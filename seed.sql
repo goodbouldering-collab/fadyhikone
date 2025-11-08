@@ -1,6 +1,8 @@
 -- Test users
+-- 管理者アカウント（メール: admin@furdi.jp, パスワード: admin123）
+-- auth_provider_id は SHA-256('admin123')
 INSERT OR IGNORE INTO users (email, name, auth_provider, auth_provider_id, role) VALUES 
-  ('admin@furdi.jp', '管理者', 'google', 'google_admin_123', 'admin'),
+  ('admin@furdi.jp', '管理者', 'email', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin'),
   ('test.user@example.com', 'テストユーザー', 'google', 'google_user_456', 'user'),
   ('line.user@example.com', 'LINEユーザー', 'line', 'line_user_789', 'user');
 

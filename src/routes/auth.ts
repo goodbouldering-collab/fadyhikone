@@ -100,6 +100,112 @@ auth.post('/line', async (c) => {
   }
 });
 
+// パスワードハッシュ関数（簡易版）
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// メール新規登録
+auth.post('/register', async (c) => {
+  try {
+    const { name, email, password } = await c.req.json();
+    
+    if (!name || !email || !password) {
+      return c.json<ApiResponse>({ success: false, error: '必須項目が入力されていません' }, 400);
+    }
+    
+    // メール重複チェック
+    const existingUser = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE email = ?'
+    ).bind(email).first<User>();
+    
+    if (existingUser) {
+      return c.json<ApiResponse>({ success: false, error: 'このメールアドレスは既に登録されています' }, 400);
+    }
+    
+    // パスワードのハッシュ化
+    const hashedPassword = await hashPassword(password);
+    
+    // 新規ユーザー作成
+    const result = await c.env.DB.prepare(
+      'INSERT INTO users (email, name, auth_provider, auth_provider_id, role) VALUES (?, ?, ?, ?, ?)'
+    ).bind(email, name, 'email', hashedPassword, 'user').run();
+
+    const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(result.meta.last_row_id).first<User>();
+
+    if (!user) {
+      return c.json<ApiResponse>({ success: false, error: 'ユーザー作成に失敗しました' }, 500);
+    }
+
+    // JWTトークン生成
+    const jwtToken = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return c.json<ApiResponse<{ token: string; user: User }>>({
+      success: true,
+      data: { token: jwtToken, user },
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+    return c.json<ApiResponse>({ success: false, error: `登録に失敗しました: ${errorMessage}` }, 500);
+  }
+});
+
+// 管理者ログイン
+auth.post('/admin-login', async (c) => {
+  try {
+    const { email, password } = await c.req.json();
+    
+    if (!email || !password) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスとパスワードを入力してください' }, 400);
+    }
+    
+    // ユーザー取得
+    const user = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE email = ? AND auth_provider = ?'
+    ).bind(email, 'email').first<User>();
+    
+    if (!user) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスまたはパスワードが正しくありません' }, 401);
+    }
+    
+    // パスワード検証
+    const hashedPassword = await hashPassword(password);
+    if (user.auth_provider_id !== hashedPassword) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスまたはパスワードが正しくありません' }, 401);
+    }
+    
+    // 管理者権限チェック
+    if (user.role !== 'admin') {
+      return c.json<ApiResponse>({ success: false, error: '管理者権限がありません' }, 403);
+    }
+    
+    // JWTトークン生成
+    const jwtToken = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return c.json<ApiResponse<{ token: string; user: User }>>({
+      success: true,
+      data: { token: jwtToken, user },
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+    return c.json<ApiResponse>({ success: false, error: `ログインに失敗しました: ${errorMessage}` }, 500);
+  }
+});
+
 // トークン検証
 auth.get('/verify', async (c) => {
   try {
