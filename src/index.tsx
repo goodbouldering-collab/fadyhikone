@@ -73,6 +73,7 @@ app.get('/', (c) => {
     </head>
     <body class="bg-gray-50">
         <div id="root"></div>
+        <script src="/static/utils.js"></script>
         <script src="/static/app.js"></script>
     </body>
     </html>
@@ -110,6 +111,7 @@ app.get('/mypage', (c) => {
     </head>
     <body class="bg-gray-50">
         <div id="root"></div>
+        <script src="/static/utils.js"></script>
         <script src="/static/mypage.js"></script>
     </body>
     </html>
@@ -147,6 +149,7 @@ app.get('/admin', (c) => {
     </head>
     <body class="bg-gray-50">
         <div id="root"></div>
+        <script src="/static/utils.js"></script>
         <script src="/static/admin.js"></script>
     </body>
     </html>

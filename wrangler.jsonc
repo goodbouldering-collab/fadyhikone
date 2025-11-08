@@ -9,8 +9,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "furdi-hikone-db",
-      "database_id": "placeholder-create-db-first"
+      "database_name": "DB",
+      "database_id": "00000000-0000-0000-0000-000000000000"
     }
   ],
   
