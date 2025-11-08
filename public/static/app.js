@@ -7,6 +7,7 @@ let todayLog = null;
 let announcements = [];
 let latestStaffComment = null;
 let userOpinions = [];
+let selectedDate = null; // 選択された日付（YYYY-MM-DD形式）
 
 // 食事記録データ
 let mealData = {
@@ -23,8 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // 認証されている場合、アドバイスとログをロード
   if (currentUser) {
+    selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
     await loadAdvices();
-    await loadTodayLog();
+    await loadLogForDate(selectedDate);
     await loadLatestStaffComment();
     await loadUserOpinions();
   }
@@ -68,13 +70,33 @@ async function loadAdvices() {
   }
 }
 
-// 今日のログ読み込み
-async function loadTodayLog() {
+// 指定日のログ読み込み
+async function loadLogForDate(date) {
   try {
     const response = await apiCall('/api/health-logs');
     if (response.success) {
-      const today = dayjs().format('YYYY-MM-DD');
-      todayLog = response.data.find(log => log.log_date === today);
+      const targetDate = date || dayjs().format('YYYY-MM-DD');
+      todayLog = response.data.find(log => log.log_date === targetDate);
+      
+      // 食事データの復元
+      if (todayLog?.meal_analysis) {
+        try {
+          const parsedMealData = JSON.parse(todayLog.meal_analysis);
+          mealData = parsedMealData;
+        } catch (e) {
+          console.error('食事データのパースに失敗:', e);
+        }
+      } else {
+        // データがない場合は初期化
+        mealData = {
+          breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+          lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+          dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+        };
+      }
+      
+      // ページを再レンダリング
+      renderPage();
     }
   } catch (error) {
     console.error('ログの読み込みに失敗:', error);
@@ -252,10 +274,41 @@ function renderHealthLogSection() {
     <section class="bg-gray-50 py-12">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">
-            <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
-            今日の健康ログ
-          </h3>
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">
+              <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
+              健康ログ
+            </h3>
+            
+            <!-- 日付選択 -->
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="changeLogDate(-1)" class="p-2 text-gray-600 hover:text-primary transition">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary"></i>
+                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                  onchange="changeLogDateFromPicker(this.value)"
+                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
+              </div>
+              <button type="button" onclick="changeLogDate(1)" class="p-2 text-gray-600 hover:text-primary transition">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              <button type="button" onclick="goToToday()" class="ml-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                今日
+              </button>
+            </div>
+          </div>
+          
+          <!-- 選択された日付の表示 -->
+          <div class="mb-6 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+              <i class="fas fa-calendar-day text-primary"></i>
+              <span class="text-lg font-bold text-gray-800" id="selected-date-display">
+                ${formatDateDisplay(selectedDate || dayjs().format('YYYY-MM-DD'))}
+              </span>
+            </div>
+          </div>
           
           <!-- スタッフコメント（最新1件） -->
           ${latestStaffComment ? `
@@ -847,6 +900,56 @@ function selectConditionRating(rating) {
   }
 }
 
+// 日付変更ハンドラー（前後移動）
+async function changeLogDate(days) {
+  if (!selectedDate) selectedDate = dayjs().format('YYYY-MM-DD');
+  
+  const newDate = dayjs(selectedDate).add(days, 'day').format('YYYY-MM-DD');
+  selectedDate = newDate;
+  
+  // 日付ピッカーの値を更新
+  const picker = document.getElementById('log-date-picker');
+  if (picker) picker.value = newDate;
+  
+  // ログを読み込んでページを再レンダリング
+  await loadLogForDate(selectedDate);
+}
+
+// 日付ピッカーから変更
+async function changeLogDateFromPicker(dateString) {
+  selectedDate = dateString;
+  await loadLogForDate(selectedDate);
+}
+
+// 今日に戻る
+async function goToToday() {
+  selectedDate = dayjs().format('YYYY-MM-DD');
+  
+  const picker = document.getElementById('log-date-picker');
+  if (picker) picker.value = selectedDate;
+  
+  await loadLogForDate(selectedDate);
+}
+
+// 日付の表示フォーマット
+function formatDateDisplay(dateString) {
+  const date = dayjs(dateString);
+  const today = dayjs().format('YYYY-MM-DD');
+  const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  
+  if (dateString === today) {
+    return `今日 (${date.format('M月D日')})`;
+  } else if (dateString === yesterday) {
+    return `昨日 (${date.format('M月D日')})`;
+  } else if (dateString === tomorrow) {
+    return `明日 (${date.format('M月D日')})`;
+  } else {
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.day()];
+    return `${date.format('YYYY年M月D日')} (${dayOfWeek})`;
+  }
+}
+
 // 健康ログ送信
 async function handleHealthLogSubmit(e) {
   e.preventDefault();
@@ -860,7 +963,7 @@ async function handleHealthLogSubmit(e) {
   const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs;
   
   const data = {
-    log_date: dayjs().format('YYYY-MM-DD'),
+    log_date: selectedDate || dayjs().format('YYYY-MM-DD'),
     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
     body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
     body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
@@ -892,7 +995,9 @@ async function handleHealthLogSubmit(e) {
     
     if (response.success) {
       showToast('健康ログを保存しました', 'success');
-      todayLog = response.data;
+      
+      // 選択された日付のログを再読み込み
+      await loadLogForDate(selectedDate);
       
       // 保存後にマイページへのリンクを表示
       showModal(
