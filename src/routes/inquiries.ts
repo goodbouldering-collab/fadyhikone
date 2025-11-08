@@ -1,50 +1,40 @@
 import { Hono } from 'hono';
-import type { Bindings, User } from '../types';
-import { authMiddleware } from '../lib/auth';
-import { createInquiry } from '../lib/db';
+import type { Bindings, Inquiry, ApiResponse } from '../types';
 
-const inquiries = new Hono<{ Bindings: Bindings; Variables: { user?: User } }>();
+const inquiries = new Hono<{ Bindings: Bindings }>();
 
-// 問い合わせ作成（認証不要）
+// 問い合わせ作成 (認証不要)
 inquiries.post('/', async (c) => {
   try {
-    // 認証トークンがあればユーザーIDを取得
-    const authHeader = c.req.header('Authorization');
-    let userId: number | undefined;
+    const body = await c.req.json();
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const jwtSecret = c.env.JWT_SECRET || 'your-secret-key-change-in-production';
-      const { verifyToken } = await import('../lib/jwt');
-      const payload = await verifyToken(token, jwtSecret);
-      
-      if (payload) {
-        userId = payload.userId;
-      }
+    if (!body.name || !body.email || !body.subject || !body.message) {
+      return c.json<ApiResponse>({
+        success: false,
+        error: '必須項目が入力されていません',
+      }, 400);
     }
 
-    const data = await c.req.json();
+    const result = await c.env.DB.prepare(`
+      INSERT INTO inquiries (name, email, phone, subject, message)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      body.name,
+      body.email,
+      body.phone || null,
+      body.subject,
+      body.message
+    ).run();
 
-    if (!data.name || !data.email || !data.subject || !data.message) {
-      return c.json(
-        { success: false, error: '必須項目が入力されていません' },
-        400
-      );
-    }
-
-    const inquiry = await createInquiry(c.env.DB, {
-      userId,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      subject: data.subject,
-      message: data.message,
+    return c.json<ApiResponse>({
+      success: true,
+      message: 'お問い合わせを受け付けました。担当者より折り返しご連絡いたします。',
     });
-
-    return c.json({ success: true, data: inquiry });
   } catch (error) {
-    console.error('Create inquiry error:', error);
-    return c.json({ success: false, error: '問い合わせの送信に失敗しました' }, 500);
+    return c.json<ApiResponse>({
+      success: false,
+      error: 'お問い合わせの送信に失敗しました',
+    }, 500);
   }
 });
 

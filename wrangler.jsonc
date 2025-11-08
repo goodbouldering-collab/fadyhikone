@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "furdi-hikone",
+  "compatibility_date": "2024-01-01",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+  
+  // D1 Database
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "furdi-hikone-db",
+      "database_id": "placeholder-create-db-first"
+    }
+  ],
+  
+  // R2 Storage for images
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "furdi-hikone-images"
+    }
+  ]
+}

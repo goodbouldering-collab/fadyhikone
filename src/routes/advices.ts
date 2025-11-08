@@ -1,39 +1,68 @@
 import { Hono } from 'hono';
-import type { Bindings, User } from '../types';
-import { authMiddleware } from '../lib/auth';
-import { getStaffAdvices, markAdviceAsRead } from '../lib/db';
+import type { Bindings, Advice, ApiResponse } from '../types';
+import { verifyToken, extractToken } from '../utils/jwt';
 
-const advices = new Hono<{ Bindings: Bindings; Variables: { user: User } }>();
+const advices = new Hono<{ Bindings: Bindings }>();
 
-// 全ルートに認証ミドルウェアを適用
-advices.use('*', authMiddleware);
+// 認証ミドルウェア
+advices.use('*', async (c, next) => {
+  const token = extractToken(c.req.header('Authorization'));
+  if (!token) {
+    return c.json<ApiResponse>({ success: false, error: '認証が必要です' }, 401);
+  }
 
-// スタッフアドバイス一覧取得
-advices.get('/', async (c) => {
-  const user = c.get('user');
-  const limit = Number(c.req.query('limit')) || 10;
+  const payload = await verifyToken(token);
+  if (!payload) {
+    return c.json<ApiResponse>({ success: false, error: 'トークンが無効です' }, 401);
+  }
 
-  const adviceList = await getStaffAdvices(c.env.DB, user.id, limit);
-
-  return c.json({ success: true, data: adviceList });
+  c.set('userId', payload.userId);
+  c.set('userRole', payload.role);
+  await next();
 });
 
-// アドバイス既読マーク
-advices.post('/:id/read', async (c) => {
+// アドバイス一覧取得
+advices.get('/', async (c) => {
   try {
-    const user = c.get('user');
-    const adviceId = Number(c.req.param('id'));
+    const userId = c.get('userId');
+    const adviceList = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE user_id = ? ORDER BY created_at DESC'
+    ).bind(userId).all<Advice>();
 
-    const success = await markAdviceAsRead(c.env.DB, adviceId, user.id);
+    return c.json<ApiResponse<Advice[]>>({
+      success: true,
+      data: adviceList.results,
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの取得に失敗しました' }, 500);
+  }
+});
 
-    if (!success) {
-      return c.json({ success: false, error: 'アドバイスの更新に失敗しました' }, 400);
+// アドバイスを既読にする
+advices.put('/:id/read', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const adviceId = c.req.param('id');
+
+    // アドバイスの所有権確認
+    const advice = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE id = ? AND user_id = ?'
+    ).bind(adviceId, userId).first<Advice>();
+
+    if (!advice) {
+      return c.json<ApiResponse>({ success: false, error: 'アドバイスが見つかりません' }, 404);
     }
 
-    return c.json({ success: true, message: 'アドバイスを既読にしました' });
+    await c.env.DB.prepare(
+      'UPDATE advices SET is_read = 1 WHERE id = ?'
+    ).bind(adviceId).run();
+
+    return c.json<ApiResponse>({
+      success: true,
+      message: 'アドバイスを既読にしました',
+    });
   } catch (error) {
-    console.error('Mark advice as read error:', error);
-    return c.json({ success: false, error: 'アドバイスの更新に失敗しました' }, 500);
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの更新に失敗しました' }, 500);
   }
 });
 

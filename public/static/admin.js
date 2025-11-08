@@ -1,513 +1,614 @@
-// ファディー彦根 - 管理画面
+// 管理画面 - ファディー彦根
 
-// ========== グローバル変数 ==========
+// 状態管理
 let currentUser = null;
-let authToken = null;
 let users = [];
-let inquiries = [];
 let selectedUser = null;
+let userLogs = [];
+let inquiries = [];
+let stats = {};
 
-// ========== ユーティリティ関数 ==========
-function showLoading() {
-  const overlay = document.createElement('div');
-  overlay.id = 'loading-overlay';
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="spinner spinner-lg"></div>';
-  document.body.appendChild(overlay);
-}
+// ページ初期化
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkAdminAuth();
+});
 
-function hideLoading() {
-  const overlay = document.getElementById('loading-overlay');
-  if (overlay) overlay.remove();
-}
-
-async function apiRequest(url, options = {}) {
-  showLoading();
-  try {
-    const headers = { 'Content-Type': 'application/json', ...options.headers };
-    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-    const response = await axios({ url, method: options.method || 'GET', headers, data: options.body, ...options });
-    return response.data;
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
-  } finally {
-    hideLoading();
+// 管理者認証チェック
+async function checkAdminAuth() {
+  const token = getToken();
+  if (!token) {
+    showToast('ログインが必要です', 'warning');
+    setTimeout(() => window.location.href = '/', 1500);
+    return;
   }
-}
-
-// ========== データ読み込み ==========
-async function checkAuth() {
+  
   try {
-    const result = await apiRequest('/api/auth/me');
-    if (result.success && result.data.role === 'admin') {
-      currentUser = result.data;
+    const response = await apiCall('/api/auth/verify');
+    if (response.success && response.data.role === 'admin') {
+      currentUser = response.data;
+      await loadAdminData();
       renderPage();
-      await loadAllData();
     } else {
-      alert('管理者権限が必要です');
-      window.location.href = '/';
+      showToast('管理者権限が必要です', 'error');
+      setTimeout(() => window.location.href = '/', 1500);
     }
   } catch (error) {
-    alert('認証に失敗しました');
-    window.location.href = '/';
+    showToast('認証エラーが発生しました', 'error');
+    setTimeout(() => window.location.href = '/', 1500);
   }
 }
 
-async function loadAllData() {
-  await Promise.all([loadUsers(), loadInquiries()]);
-}
-
-async function loadUsers() {
+// 管理者データロード
+async function loadAdminData() {
   try {
-    const result = await apiRequest('/api/admin/users');
-    if (result.success) {
-      users = result.data;
-      renderUsers();
-    }
+    const [usersRes, inquiriesRes, statsRes] = await Promise.all([
+      apiCall('/api/admin/users'),
+      apiCall('/api/admin/inquiries'),
+      apiCall('/api/admin/stats'),
+    ]);
+    
+    if (usersRes.success) users = usersRes.data;
+    if (inquiriesRes.success) inquiries = inquiriesRes.data;
+    if (statsRes.success) stats = statsRes.data;
   } catch (error) {
-    console.error('Failed to load users:', error);
+    showToast('データの読み込みに失敗しました', 'error');
   }
 }
 
-async function loadInquiries() {
-  try {
-    const result = await apiRequest('/api/admin/inquiries');
-    if (result.success) {
-      inquiries = result.data;
-      renderInquiries();
-    }
-  } catch (error) {
-    console.error('Failed to load inquiries:', error);
-  }
-}
-
-async function loadUserLogs(userId) {
-  try {
-    const result = await apiRequest(`/api/admin/users/${userId}/logs`);
-    if (result.success) {
-      return result.data;
-    }
-  } catch (error) {
-    console.error('Failed to load user logs:', error);
-    return [];
-  }
-}
-
-// ========== レンダリング関数 ==========
+// ページレンダリング
 function renderPage() {
   const root = document.getElementById('root');
   root.innerHTML = `
-    <header class="bg-white shadow-md">
+    ${renderHeader()}
+    ${renderStats()}
+    ${renderTabs()}
+    <div id="tab-content"></div>
+  `;
+  
+  // デフォルトタブ表示
+  showTab('users');
+}
+
+// ヘッダー
+function renderHeader() {
+  return `
+    <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-4 py-4">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-3">
-            <a href="/" class="flex items-center gap-3">
-              <i class="fas fa-dumbbell text-3xl text-primary"></i>
-              <h1 class="text-2xl font-bold text-gray-800">ファディー彦根 - 管理画面</h1>
-            </a>
+            <i class="fas fa-user-shield text-3xl" style="color: var(--color-primary)"></i>
+            <div>
+              <h1 class="text-2xl font-bold" style="color: var(--color-primary)">管理画面</h1>
+              <p class="text-sm text-gray-600">ファディー彦根</p>
+            </div>
           </div>
-          <nav class="flex items-center gap-4">
-            <a href="/mypage" class="btn btn-outline">
-              <i class="fas fa-user"></i> マイページ
-            </a>
-            <a href="/" class="btn btn-primary">
-              <i class="fas fa-home"></i> ホーム
-            </a>
+          
+          <nav class="flex items-center gap-6">
+            <a href="/" class="text-gray-700 hover:text-primary transition">トップ</a>
+            <a href="/mypage" class="text-gray-700 hover:text-primary transition">マイページ</a>
+            <button onclick="logout()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+              ログアウト
+            </button>
           </nav>
         </div>
       </div>
     </header>
-
-    <main class="container mx-auto px-4 py-8">
-      <div class="mb-6">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">管理者ダッシュボード</h2>
-        <p class="text-gray-600">全ユーザーのデータと問い合わせを管理できます</p>
-      </div>
-
-      <!-- 統計カード -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="card bg-gradient-to-r from-pink-400 to-pink-500 text-white">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-sm opacity-80">総ユーザー数</p>
-              <h3 class="text-4xl font-bold">${users.length}</h3>
-            </div>
-            <i class="fas fa-users text-5xl opacity-50"></i>
-          </div>
-        </div>
-        <div class="card bg-gradient-to-r from-blue-400 to-blue-500 text-white">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-sm opacity-80">未対応の問い合わせ</p>
-              <h3 class="text-4xl font-bold">${inquiries.filter(i => i.status === 'pending').length}</h3>
-            </div>
-            <i class="fas fa-envelope text-5xl opacity-50"></i>
-          </div>
-        </div>
-        <div class="card bg-gradient-to-r from-green-400 to-green-500 text-white">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-sm opacity-80">対応中</p>
-              <h3 class="text-4xl font-bold">${inquiries.filter(i => i.status === 'in_progress').length}</h3>
-            </div>
-            <i class="fas fa-tasks text-5xl opacity-50"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- タブ -->
-      <div class="mb-4 border-b border-gray-200">
-        <nav class="flex gap-4">
-          <button onclick="showTab('users')" id="tab-users" class="tab-button active">
-            <i class="fas fa-users mr-2"></i> ユーザー管理
-          </button>
-          <button onclick="showTab('inquiries')" id="tab-inquiries" class="tab-button">
-            <i class="fas fa-inbox mr-2"></i> 問い合わせ管理
-          </button>
-        </nav>
-      </div>
-
-      <!-- ユーザー管理タブ -->
-      <div id="users-tab" class="tab-content">
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">ユーザー一覧</h3>
-            <input type="text" id="user-search" placeholder="ユーザー検索..." class="form-input w-64" onkeyup="searchUsers()" />
-          </div>
-          <div id="users-container"></div>
-        </div>
-      </div>
-
-      <!-- 問い合わせ管理タブ -->
-      <div id="inquiries-tab" class="tab-content hidden">
-        <div class="card">
-          <h3 class="text-xl font-bold text-gray-800 mb-4">問い合わせ一覧</h3>
-          <div id="inquiries-container"></div>
-        </div>
-      </div>
-    </main>
   `;
 }
 
-function renderUsers() {
-  const container = document.getElementById('users-container');
-  if (!container) return;
+// 統計情報
+function renderStats() {
+  return `
+    <section class="gradient-bg text-white py-8">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-white bg-opacity-20 backdrop-blur-sm p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <i class="fas fa-users text-2xl"></i>
+              <span class="text-sm opacity-75">総顧客数</span>
+            </div>
+            <div class="text-3xl font-bold">${stats.totalUsers || 0}</div>
+          </div>
+          
+          <div class="bg-white bg-opacity-20 backdrop-blur-sm p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <i class="fas fa-clipboard-list text-2xl"></i>
+              <span class="text-sm opacity-75">総ログ数</span>
+            </div>
+            <div class="text-3xl font-bold">${stats.totalLogs || 0}</div>
+          </div>
+          
+          <div class="bg-white bg-opacity-20 backdrop-blur-sm p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <i class="fas fa-envelope text-2xl"></i>
+              <span class="text-sm opacity-75">未対応</span>
+            </div>
+            <div class="text-3xl font-bold">${stats.pendingInquiries || 0}</div>
+          </div>
+          
+          <div class="bg-white bg-opacity-20 backdrop-blur-sm p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <i class="fas fa-calendar-day text-2xl"></i>
+              <span class="text-sm opacity-75">今日のログ</span>
+            </div>
+            <div class="text-3xl font-bold">${stats.todayLogs || 0}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
 
-  container.innerHTML = `
-    <div class="table-scroll">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>名前</th>
-            <th>メール</th>
-            <th>認証方法</th>
-            <th>権限</th>
-            <th>登録日</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${users.map(user => `
-            <tr id="user-row-${user.id}">
-              <td>${user.id}</td>
-              <td>${user.name}</td>
-              <td>${user.email}</td>
-              <td><span class="badge badge-primary">${user.provider.toUpperCase()}</span></td>
-              <td><span class="badge ${user.role === 'admin' ? 'badge-danger' : 'badge-success'}">${user.role}</span></td>
-              <td class="whitespace-nowrap">${dayjs(user.created_at).format('YYYY/MM/DD')}</td>
-              <td>
-                <button onclick="toggleUserLogs(${user.id})" class="btn btn-sm btn-outline">
-                  <i class="fas fa-eye"></i> ログ
-                </button>
-                <button onclick="showAdviceModal(${user.id})" class="btn btn-sm btn-primary">
-                  <i class="fas fa-comment"></i> アドバイス
-                </button>
-              </td>
-            </tr>
-            <tr id="user-logs-${user.id}" class="hidden">
-              <td colspan="7" class="bg-gray-50">
-                <div class="p-4">
-                  <h4 class="font-semibold mb-3">健康ログ履歴</h4>
-                  <div id="logs-content-${user.id}">読み込み中...</div>
-                </div>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+// タブ
+function renderTabs() {
+  return `
+    <div class="bg-white border-b">
+      <div class="container mx-auto px-4">
+        <div class="flex gap-2">
+          <button onclick="showTab('users')" id="tab-users" 
+            class="tab-btn px-6 py-4 font-medium border-b-2 border-transparent hover:border-primary transition">
+            <i class="fas fa-users mr-2"></i>顧客管理
+          </button>
+          <button onclick="showTab('inquiries')" id="tab-inquiries" 
+            class="tab-btn px-6 py-4 font-medium border-b-2 border-transparent hover:border-primary transition">
+            <i class="fas fa-envelope mr-2"></i>問い合わせ
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
 
-function renderInquiries() {
-  const container = document.getElementById('inquiries-container');
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="table-scroll">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>名前</th>
-            <th>メール</th>
-            <th>件名</th>
-            <th>ステータス</th>
-            <th>日時</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${inquiries.map(inquiry => `
-            <tr>
-              <td>${inquiry.id}</td>
-              <td>${inquiry.name}</td>
-              <td>${inquiry.email}</td>
-              <td>${inquiry.subject}</td>
-              <td>
-                <select onchange="updateInquiryStatus(${inquiry.id}, this.value)" class="form-select text-sm">
-                  <option value="pending" ${inquiry.status === 'pending' ? 'selected' : ''}>未対応</option>
-                  <option value="in_progress" ${inquiry.status === 'in_progress' ? 'selected' : ''}>対応中</option>
-                  <option value="resolved" ${inquiry.status === 'resolved' ? 'selected' : ''}>解決済み</option>
-                </select>
-              </td>
-              <td class="whitespace-nowrap">${dayjs(inquiry.created_at).format('YYYY/MM/DD HH:mm')}</td>
-              <td>
-                <button onclick="showInquiryDetail(${inquiry.id})" class="btn btn-sm btn-outline">
-                  <i class="fas fa-eye"></i> 詳細
-                </button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+// タブ切り替え
+function showTab(tab) {
+  // タブボタンの状態更新
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('border-primary', 'text-primary');
+  });
+  document.getElementById(`tab-${tab}`).classList.add('border-primary', 'text-primary');
+  
+  // コンテンツ表示
+  const content = document.getElementById('tab-content');
+  if (tab === 'users') {
+    content.innerHTML = renderUsersTab();
+  } else if (tab === 'inquiries') {
+    content.innerHTML = renderInquiriesTab();
+  }
 }
 
-// ========== タブ切り替え ==========
-function showTab(tabName) {
-  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-  
-  document.getElementById(`tab-${tabName}`).classList.add('active');
-  document.getElementById(`${tabName}-tab`).classList.remove('hidden');
-}
-
-// ========== ユーザーログ表示 ==========
-async function toggleUserLogs(userId) {
-  const row = document.getElementById(`user-logs-${userId}`);
-  const container = document.getElementById(`logs-content-${userId}`);
-  
-  if (row.classList.contains('hidden')) {
-    row.classList.remove('hidden');
-    
-    if (container.innerHTML === '読み込み中...') {
-      const logs = await loadUserLogs(userId);
-      
-      if (logs.length === 0) {
-        container.innerHTML = '<p class="text-gray-500">ログはありません</p>';
-      } else {
-        container.innerHTML = `
-          <div class="table-scroll">
+// 顧客管理タブ
+function renderUsersTab() {
+  return `
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">顧客一覧</h2>
+          <div class="flex gap-3">
+            <input type="text" id="user-search" placeholder="名前またはメールで検索..." 
+              class="px-4 py-2 border rounded-lg w-64" onkeyup="searchUsers()">
+            <button onclick="loadAdminData(); renderPage();" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="table-container">
             <table class="table">
               <thead>
                 <tr>
-                  <th>日付</th>
-                  <th>体重</th>
-                  <th>体脂肪率</th>
-                  <th>食事</th>
-                  <th>運動</th>
-                  <th>気分</th>
+                  <th>顧客情報</th>
+                  <th>登録日</th>
+                  <th>ログ数</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
-                ${logs.map(log => `
+                ${users.map(user => `
                   <tr>
-                    <td>${dayjs(log.log_date).format('YYYY/MM/DD')}</td>
-                    <td>${log.weight ? log.weight + 'kg' : '-'}</td>
-                    <td>${log.body_fat_percentage ? log.body_fat_percentage + '%' : '-'}</td>
-                    <td>${log.meal_description || '-'}</td>
-                    <td>${log.exercise_type || '-'}</td>
-                    <td>${log.mood || '-'}</td>
+                    <td>
+                      <div class="flex items-center gap-3">
+                        <img src="${user.avatar_url || 'https://via.placeholder.com/40'}" 
+                          class="w-10 h-10 rounded-full">
+                        <div>
+                          <div class="font-medium">${user.name}</div>
+                          <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>${formatDate(user.created_at)}</td>
+                    <td>
+                      <span class="badge badge-primary" id="log-count-${user.id}">--</span>
+                    </td>
+                    <td>
+                      <div class="flex gap-2">
+                        <button onclick="viewUserDetails(${user.id})" class="text-blue-500 hover:text-blue-700">
+                          <i class="fas fa-eye"></i> 詳細
+                        </button>
+                        <button onclick="showAddAdviceModal(${user.id})" class="text-green-500 hover:text-green-700">
+                          <i class="fas fa-comment-medical"></i> アドバイス
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           </div>
-        `;
-      }
-    }
-  } else {
-    row.classList.add('hidden');
-  }
-}
-
-// ========== アドバイスモーダル ==========
-function showAdviceModal(userId) {
-  const user = users.find(u => u.id === userId);
-  if (!user) return;
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  
-  modal.innerHTML = `
-    <div class="modal-content">
-      <div class="p-6">
-        <h3 class="text-2xl font-bold mb-4">${user.name} さんへのアドバイス</h3>
-        <form onsubmit="submitAdvice(event, ${userId})">
-          <div class="form-group">
-            <label class="form-label">スタッフ名</label>
-            <input type="text" name="staffName" required class="form-input" value="${currentUser.name}" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">アドバイス種別</label>
-            <select name="adviceType" required class="form-select">
-              <option value="diet">食事</option>
-              <option value="exercise">運動</option>
-              <option value="lifestyle">生活習慣</option>
-              <option value="general">総合</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">アドバイス内容</label>
-            <textarea name="adviceText" required class="form-textarea" rows="5"></textarea>
-          </div>
-          <div class="flex gap-3">
-            <button type="submit" class="btn btn-primary flex-1">
-              <i class="fas fa-paper-plane mr-2"></i> 送信
-            </button>
-            <button type="button" onclick="this.closest('.modal-overlay').remove()" class="btn btn-secondary">
-              キャンセル
-            </button>
-          </div>
-        </form>
+        </div>
+        
+        ${selectedUser ? renderUserDetails() : ''}
       </div>
-    </div>
+    </section>
   `;
+}
+
+// 顧客詳細表示
+function renderUserDetails() {
+  if (!selectedUser || userLogs.length === 0) return '';
   
-  document.body.appendChild(modal);
-}
-
-async function submitAdvice(event, userId) {
-  event.preventDefault();
-  const form = event.target;
-  const data = {
-    userId,
-    staffName: form.staffName.value,
-    adviceType: form.adviceType.value,
-    adviceText: form.adviceText.value,
-  };
-
-  try {
-    const result = await apiRequest('/api/admin/advices', {
-      method: 'POST',
-      body: data,
-    });
-
-    if (result.success) {
-      alert('アドバイスを送信しました');
-      form.closest('.modal-overlay').remove();
-    }
-  } catch (error) {
-    alert('送信に失敗しました: ' + error.message);
-  }
-}
-
-// ========== 問い合わせ管理 ==========
-async function updateInquiryStatus(inquiryId, status) {
-  try {
-    const result = await apiRequest(`/api/admin/inquiries/${inquiryId}/status`, {
-      method: 'PUT',
-      body: { status },
-    });
-
-    if (result.success) {
-      await loadInquiries();
-    }
-  } catch (error) {
-    alert('ステータスの更新に失敗しました');
-  }
-}
-
-function showInquiryDetail(inquiryId) {
-  const inquiry = inquiries.find(i => i.id === inquiryId);
-  if (!inquiry) return;
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  
-  modal.innerHTML = `
-    <div class="modal-content">
-      <div class="p-6">
-        <h3 class="text-2xl font-bold mb-4">問い合わせ詳細</h3>
-        <dl class="space-y-3">
-          <div>
-            <dt class="font-semibold text-gray-700">名前</dt>
-            <dd>${inquiry.name}</dd>
-          </div>
-          <div>
-            <dt class="font-semibold text-gray-700">メールアドレス</dt>
-            <dd>${inquiry.email}</dd>
-          </div>
-          ${inquiry.phone ? `
-            <div>
-              <dt class="font-semibold text-gray-700">電話番号</dt>
-              <dd>${inquiry.phone}</dd>
-            </div>
-          ` : ''}
-          <div>
-            <dt class="font-semibold text-gray-700">件名</dt>
-            <dd>${inquiry.subject}</dd>
-          </div>
-          <div>
-            <dt class="font-semibold text-gray-700">お問い合わせ内容</dt>
-            <dd class="whitespace-pre-wrap bg-gray-50 p-3 rounded">${inquiry.message}</dd>
-          </div>
-          <div>
-            <dt class="font-semibold text-gray-700">日時</dt>
-            <dd>${dayjs(inquiry.created_at).format('YYYY/MM/DD HH:mm')}</dd>
-          </div>
-        </dl>
-        <button onclick="this.closest('.modal-overlay').remove()" class="btn btn-primary w-full mt-4">
-          閉じる
+  return `
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold">
+          ${selectedUser.name} さんの健康ログ
+        </h3>
+        <button onclick="closeUserDetails()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-xl"></i>
         </button>
       </div>
+      
+      <div class="space-y-4">
+        ${userLogs.map((log, index) => `
+          <div class="border rounded-lg">
+            <button onclick="toggleAccordion(this)" 
+              class="w-full px-4 py-3 flex justify-between items-center hover:bg-gray-50 transition">
+              <div class="flex items-center gap-4">
+                <span class="font-medium">${formatDate(log.log_date)}</span>
+                <div class="flex gap-3 text-sm text-gray-600">
+                  ${log.weight ? `<span><i class="fas fa-weight"></i> ${log.weight}kg</span>` : ''}
+                  ${log.body_fat_percentage ? `<span><i class="fas fa-percentage"></i> ${log.body_fat_percentage}%</span>` : ''}
+                  ${log.meal_calories ? `<span><i class="fas fa-utensils"></i> ${log.meal_calories}kcal</span>` : ''}
+                </div>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon transition-transform"></i>
+            </button>
+            
+            <div class="accordion-content px-4 pb-4">
+              <form id="edit-log-${log.id}" class="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                  <label class="block text-sm font-medium mb-1">体重 (kg)</label>
+                  <input type="number" step="0.1" name="weight" value="${log.weight || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">体脂肪率 (%)</label>
+                  <input type="number" step="0.1" name="body_fat_percentage" value="${log.body_fat_percentage || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">体温 (℃)</label>
+                  <input type="number" step="0.1" name="body_temperature" value="${log.body_temperature || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">睡眠時間 (時間)</label>
+                  <input type="number" step="0.5" name="sleep_hours" value="${log.sleep_hours || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">運動時間 (分)</label>
+                  <input type="number" name="exercise_minutes" value="${log.exercise_minutes || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">カロリー (kcal)</label>
+                  <input type="number" name="meal_calories" value="${log.meal_calories || ''}"
+                    class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-sm font-medium mb-1">メモ</label>
+                  <textarea name="condition_note" rows="2" 
+                    class="w-full px-3 py-2 border rounded">${log.condition_note || ''}</textarea>
+                </div>
+                <div class="col-span-2 flex justify-end">
+                  <button type="button" onclick="updateUserLog(${log.id})" 
+                    class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90">
+                    <i class="fas fa-save mr-1"></i>更新
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// 問い合わせタブ
+function renderInquiriesTab() {
+  return `
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">問い合わせ一覧</h2>
+          <select onchange="filterInquiries(this.value)" class="px-4 py-2 border rounded-lg">
+            <option value="">すべて</option>
+            <option value="pending">未対応</option>
+            <option value="replied">返信済み</option>
+            <option value="closed">完了</option>
+          </select>
+        </div>
+        
+        <div class="space-y-4">
+          ${inquiries.map(inquiry => `
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <h3 class="text-lg font-bold">${inquiry.subject}</h3>
+                    <span class="badge badge-${inquiry.status === 'pending' ? 'error' : inquiry.status === 'replied' ? 'warning' : 'success'}">
+                      ${inquiry.status === 'pending' ? '未対応' : inquiry.status === 'replied' ? '返信済み' : '完了'}
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    <i class="fas fa-user mr-1"></i>${inquiry.name}
+                    <i class="fas fa-envelope ml-3 mr-1"></i>${inquiry.email}
+                    ${inquiry.phone ? `<i class="fas fa-phone ml-3 mr-1"></i>${inquiry.phone}` : ''}
+                  </div>
+                </div>
+                <span class="text-sm text-gray-500">${formatDateTime(inquiry.created_at)}</span>
+              </div>
+              
+              <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <p class="text-gray-700">${inquiry.message}</p>
+              </div>
+              
+              ${inquiry.admin_reply ? `
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                  <div class="text-sm text-gray-600 mb-1">返信内容:</div>
+                  <p class="text-gray-700">${inquiry.admin_reply}</p>
+                </div>
+              ` : ''}
+              
+              <div class="flex justify-end">
+                <button onclick="showReplyModal(${inquiry.id})" 
+                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90">
+                  <i class="fas fa-reply mr-2"></i>
+                  ${inquiry.admin_reply ? '返信を編集' : '返信する'}
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 顧客検索
+function searchUsers() {
+  const searchTerm = document.getElementById('user-search').value.toLowerCase();
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm) || 
+    user.email.toLowerCase().includes(searchTerm)
+  );
+  
+  // 再レンダリング
+  users = filteredUsers;
+  showTab('users');
+}
+
+// 顧客詳細表示
+async function viewUserDetails(userId) {
+  selectedUser = users.find(u => u.id === userId);
+  if (!selectedUser) return;
+  
+  try {
+    const response = await apiCall(`/api/admin/users/${userId}/logs`);
+    if (response.success) {
+      userLogs = response.data;
+      showTab('users');
+    }
+  } catch (error) {
+    showToast('ログの取得に失敗しました', 'error');
+  }
+}
+
+// 顧客詳細を閉じる
+function closeUserDetails() {
+  selectedUser = null;
+  userLogs = [];
+  showTab('users');
+}
+
+// 顧客ログ更新
+async function updateUserLog(logId) {
+  const form = document.getElementById(`edit-log-${logId}`);
+  const formData = new FormData(form);
+  
+  const data = {
+    weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
+    body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
+    body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
+    sleep_hours: formData.get('sleep_hours') ? parseFloat(formData.get('sleep_hours')) : null,
+    exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
+    meal_calories: formData.get('meal_calories') ? parseInt(formData.get('meal_calories')) : null,
+    condition_note: formData.get('condition_note') || null,
+  };
+  
+  try {
+    const response = await apiCall(`/api/admin/logs/${logId}`, { method: 'PUT', data });
+    if (response.success) {
+      showToast('ログを更新しました', 'success');
+      await viewUserDetails(selectedUser.id);
+    }
+  } catch (error) {
+    showToast('更新に失敗しました', 'error');
+  }
+}
+
+// アドバイス追加モーダル
+function showAddAdviceModal(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-6 max-w-2xl">
+      <h3 class="text-xl font-bold mb-4">${user.name} さんへアドバイスを送信</h3>
+      <form id="advice-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">スタッフ名 *</label>
+          <input type="text" name="staff_name" required value="${currentUser.name}"
+            class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">種類 *</label>
+          <select name="advice_type" required class="w-full px-4 py-2 border rounded-lg">
+            <option value="diet">食事</option>
+            <option value="exercise">運動</option>
+            <option value="general">全般</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">タイトル *</label>
+          <input type="text" name="title" required 
+            class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">アドバイス内容 *</label>
+          <textarea name="content" rows="5" required 
+            class="w-full px-4 py-2 border rounded-lg"></textarea>
+        </div>
+        
+        <div class="flex gap-3 justify-end">
+          <button type="button" onclick="this.closest('.modal-backdrop').remove()" 
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+            キャンセル
+          </button>
+          <button type="submit" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg">
+            送信
+          </button>
+        </div>
+      </form>
     </div>
   `;
   
   document.body.appendChild(modal);
-}
-
-// ========== 検索機能 ==========
-function searchUsers() {
-  const query = document.getElementById('user-search').value.toLowerCase();
-  const rows = document.querySelectorAll('#users-container tbody tr[id^="user-row-"]');
   
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(query) ? '' : 'none';
+  document.getElementById('advice-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
     
-    const userId = row.id.replace('user-row-', '');
-    const logRow = document.getElementById(`user-logs-${userId}`);
-    if (logRow) logRow.style.display = 'none';
+    const data = {
+      user_id: userId,
+      staff_name: formData.get('staff_name'),
+      advice_type: formData.get('advice_type'),
+      title: formData.get('title'),
+      content: formData.get('content'),
+    };
+    
+    try {
+      const response = await apiCall('/api/admin/advices', { method: 'POST', data });
+      if (response.success) {
+        showToast('アドバイスを送信しました', 'success');
+        modal.remove();
+      }
+    } catch (error) {
+      showToast('送信に失敗しました', 'error');
+    }
   });
 }
 
-// ========== 初期化 ==========
-async function init() {
-  authToken = localStorage.getItem('authToken');
-  if (!authToken) {
-    alert('ログインしてください');
-    window.location.href = '/';
-    return;
-  }
-
-  await checkAuth();
+// 問い合わせ返信モーダル
+function showReplyModal(inquiryId) {
+  const inquiry = inquiries.find(i => i.id === inquiryId);
+  if (!inquiry) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-6 max-w-2xl">
+      <h3 class="text-xl font-bold mb-4">問い合わせに返信</h3>
+      
+      <div class="bg-gray-50 p-4 rounded-lg mb-4">
+        <div class="text-sm text-gray-600 mb-2">
+          <strong>${inquiry.name}</strong> (${inquiry.email})
+        </div>
+        <div class="text-sm text-gray-600 mb-2"><strong>件名:</strong> ${inquiry.subject}</div>
+        <p class="text-gray-700">${inquiry.message}</p>
+      </div>
+      
+      <form id="reply-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">返信内容 *</label>
+          <textarea name="admin_reply" rows="6" required 
+            class="w-full px-4 py-2 border rounded-lg">${inquiry.admin_reply || ''}</textarea>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">ステータス *</label>
+          <select name="status" required class="w-full px-4 py-2 border rounded-lg">
+            <option value="pending" ${inquiry.status === 'pending' ? 'selected' : ''}>未対応</option>
+            <option value="replied" ${inquiry.status === 'replied' ? 'selected' : ''}>返信済み</option>
+            <option value="closed" ${inquiry.status === 'closed' ? 'selected' : ''}>完了</option>
+          </select>
+        </div>
+        
+        <div class="flex gap-3 justify-end">
+          <button type="button" onclick="this.closest('.modal-backdrop').remove()" 
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+            キャンセル
+          </button>
+          <button type="submit" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg">
+            返信を保存
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('reply-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const data = {
+      admin_reply: formData.get('admin_reply'),
+      status: formData.get('status'),
+    };
+    
+    try {
+      const response = await apiCall(`/api/admin/inquiries/${inquiryId}`, { method: 'PUT', data });
+      if (response.success) {
+        showToast('返信を保存しました', 'success');
+        modal.remove();
+        await loadAdminData();
+        showTab('inquiries');
+      }
+    } catch (error) {
+      showToast('保存に失敗しました', 'error');
+    }
+  });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// 問い合わせフィルター
+async function filterInquiries(status) {
+  try {
+    const url = status ? `/api/admin/inquiries?status=${status}` : '/api/admin/inquiries';
+    const response = await apiCall(url);
+    if (response.success) {
+      inquiries = response.data;
+      showTab('inquiries');
+    }
+  } catch (error) {
+    showToast('データの取得に失敗しました', 'error');
+  }
+}

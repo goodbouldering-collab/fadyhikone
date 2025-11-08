@@ -1,603 +1,678 @@
-// ファディー彦根 - トップページ
+// トップページ - ファディー彦根
 
-// ========== グローバル変数 ==========
+// 状態管理
 let currentUser = null;
-let authToken = null;
+let currentAdvices = [];
+let todayLog = null;
 
-// ========== ユーティリティ関数 ==========
-
-// ローディング表示
-function showLoading() {
-  const overlay = document.createElement('div');
-  overlay.id = 'loading-overlay';
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="spinner spinner-lg"></div>';
-  document.body.appendChild(overlay);
-}
-
-function hideLoading() {
-  const overlay = document.getElementById('loading-overlay');
-  if (overlay) {
-    overlay.remove();
+// ページ初期化
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkAuth();
+  renderPage();
+  
+  // 認証されている場合、アドバイスとログをロード
+  if (currentUser) {
+    await loadAdvices();
+    await loadTodayLog();
   }
-}
+});
 
-// API リクエスト
-async function apiRequest(url, options = {}) {
-  showLoading();
+// 認証チェック
+async function checkAuth() {
+  const token = getToken();
+  if (!token) {
+    currentUser = null;
+    return;
+  }
   
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    const response = await axios({
-      url,
-      method: options.method || 'GET',
-      headers,
-      data: options.body,
-      ...options,
+    const response = await axios.get('/api/auth/verify', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-
-    return response.data;
-  } catch (error) {
-    console.error('API Error:', error);
-    if (error.response) {
-      throw new Error(error.response.data.error || 'リクエストに失敗しました');
-    }
-    throw error;
-  } finally {
-    hideLoading();
-  }
-}
-
-// トークンからユーザー情報取得
-async function loadUserFromToken() {
-  if (!authToken) return null;
-
-  try {
-    const result = await apiRequest('/api/auth/me');
-    return result.success ? result.data : null;
-  } catch (error) {
-    console.error('Failed to load user:', error);
-    return null;
-  }
-}
-
-// ========== 認証機能 ==========
-
-async function handleGoogleLogin() {
-  try {
-    const result = await apiRequest('/api/auth/google');
-    if (result.success) {
-      window.location.href = result.data.authUrl;
-    }
-  } catch (error) {
-    alert('Google ログインに失敗しました: ' + error.message);
-  }
-}
-
-async function handleLineLogin() {
-  try {
-    const result = await apiRequest('/api/auth/line');
-    if (result.success) {
-      window.location.href = result.data.authUrl;
-    }
-  } catch (error) {
-    alert('LINE ログインに失敗しました: ' + error.message);
-  }
-}
-
-function handleLogout() {
-  authToken = null;
-  currentUser = null;
-  localStorage.removeItem('authToken');
-  location.reload();
-}
-
-// ========== スタッフアドバイス ==========
-
-async function loadStaffAdvices() {
-  if (!currentUser) return;
-
-  try {
-    const result = await apiRequest('/api/advices?limit=5');
     
-    if (result.success && result.data.length > 0) {
-      displayStaffAdvices(result.data);
-    }
-  } catch (error) {
-    console.error('Failed to load advices:', error);
-  }
-}
-
-function displayStaffAdvices(advices) {
-  const container = document.getElementById('staff-advices');
-  if (!container) return;
-
-  container.innerHTML = advices.map(advice => `
-    <div class="card mb-3">
-      <div class="flex items-start gap-4">
-        <div class="flex-shrink-0">
-          <i class="fas fa-user-md text-3xl text-primary"></i>
-        </div>
-        <div class="flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h4 class="font-semibold text-lg text-gray-800">${advice.staff_name}</h4>
-              <span class="badge badge-primary">${getAdviceTypeLabel(advice.advice_type)}</span>
-            </div>
-            <span class="text-sm text-gray-500">${dayjs(advice.created_at).format('YYYY/MM/DD HH:mm')}</span>
-          </div>
-          <p class="text-gray-700 leading-relaxed">${advice.advice_text}</p>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function getAdviceTypeLabel(type) {
-  const labels = {
-    diet: '食事',
-    exercise: '運動',
-    lifestyle: '生活習慣',
-    general: '総合',
-  };
-  return labels[type] || type;
-}
-
-// ========== 健康ログ入力 ==========
-
-async function handleHealthLogSubmit(event) {
-  event.preventDefault();
-
-  if (!currentUser) {
-    alert('ログインしてください');
-    return;
-  }
-
-  const formData = new FormData(event.target);
-  const data = {
-    log_date: formData.get('log_date') || new Date().toISOString().split('T')[0],
-    weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
-    body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
-    muscle_mass: formData.get('muscle_mass') ? parseFloat(formData.get('muscle_mass')) : null,
-    meal_type: formData.get('meal_type') || null,
-    meal_description: formData.get('meal_description') || null,
-    exercise_type: formData.get('exercise_type') || null,
-    exercise_duration: formData.get('exercise_duration') ? parseInt(formData.get('exercise_duration')) : null,
-    sleep_hours: formData.get('sleep_hours') ? parseFloat(formData.get('sleep_hours')) : null,
-    mood: formData.get('mood') || null,
-    notes: formData.get('notes') || null,
-  };
-
-  try {
-    const result = await apiRequest('/api/health-logs', {
-      method: 'POST',
-      body: data,
-    });
-
-    if (result.success) {
-      alert('健康ログを登録しました！');
-      event.target.reset();
-      loadStaffAdvices(); // アドバイスを再読み込み
-    }
-  } catch (error) {
-    alert('ログの登録に失敗しました: ' + error.message);
-  }
-}
-
-// 写真アップロード
-async function handlePhotoUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (!currentUser) {
-    alert('ログインしてください');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('image', file);
-
-  showLoading();
-
-  try {
-    const response = await axios.post('/api/health-logs/upload-image', formData, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
     if (response.data.success) {
-      const { imageUrl, analysis } = response.data.data;
-      
-      // AI解析結果を表示
-      document.getElementById('ai-analysis-result').innerHTML = `
-        <div class="alert alert-info">
-          <h4 class="font-semibold mb-2"><i class="fas fa-robot mr-2"></i>AI解析結果</h4>
-          <p>${analysis}</p>
-          <img src="${imageUrl}" alt="アップロード画像" class="mt-3 rounded-lg max-w-full h-auto" />
-        </div>
-      `;
+      currentUser = response.data.data;
+      setUserData(currentUser);
+    } else {
+      removeToken();
+      currentUser = null;
     }
   } catch (error) {
-    alert('画像のアップロードに失敗しました: ' + (error.response?.data?.error || error.message));
-  } finally {
-    hideLoading();
+    removeToken();
+    currentUser = null;
   }
 }
 
-// ========== 問い合わせフォーム ==========
-
-async function handleInquirySubmit(event) {
-  event.preventDefault();
-
-  const formData = new FormData(event.target);
-  const data = {
-    name: formData.get('name'),
-    email: formData.get('email'),
-    phone: formData.get('phone'),
-    subject: formData.get('subject'),
-    message: formData.get('message'),
-  };
-
+// アドバイス読み込み
+async function loadAdvices() {
   try {
-    const result = await apiRequest('/api/inquiries', {
-      method: 'POST',
-      body: data,
-    });
-
-    if (result.success) {
-      alert('お問い合わせを送信しました。ご連絡をお待ちください。');
-      event.target.reset();
+    const response = await apiCall('/api/advices');
+    if (response.success) {
+      currentAdvices = response.data.slice(0, 3); // 最新3件
     }
   } catch (error) {
-    alert('お問い合わせの送信に失敗しました: ' + error.message);
+    console.error('アドバイスの読み込みに失敗:', error);
   }
 }
 
-// ========== ページレンダリング ==========
+// 今日のログ読み込み
+async function loadTodayLog() {
+  try {
+    const response = await apiCall('/api/health-logs');
+    if (response.success) {
+      const today = dayjs().format('YYYY-MM-DD');
+      todayLog = response.data.find(log => log.log_date === today);
+    }
+  } catch (error) {
+    console.error('ログの読み込みに失敗:', error);
+  }
+}
 
+// ページレンダリング
 function renderPage() {
   const root = document.getElementById('root');
-
   root.innerHTML = `
-    <!-- ヘッダー -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
+    ${renderHeader()}
+    ${renderHero()}
+    ${currentUser ? renderAdviceSection() : ''}
+    ${currentUser ? renderHealthLogSection() : ''}
+    ${renderFeaturesSection()}
+    ${renderFAQSection()}
+    ${renderContactSection()}
+    ${renderFooter()}
+  `;
+  
+  // イベントリスナー設定
+  setupEventListeners();
+}
+
+// ヘッダー
+function renderHeader() {
+  return `
+    <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-4 py-4">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-3">
-            <i class="fas fa-dumbbell text-3xl text-primary"></i>
-            <h1 class="text-2xl font-bold text-gray-800">ファディー彦根</h1>
+            <i class="fas fa-dumbbell text-3xl" style="color: var(--color-primary)"></i>
+            <h1 class="text-2xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </div>
-          <nav class="flex items-center gap-4">
+          
+          <nav class="hidden md:flex items-center gap-6">
+            <a href="#features" class="text-gray-700 hover:text-primary transition">特徴</a>
+            <a href="#faq" class="text-gray-700 hover:text-primary transition">FAQ</a>
+            <a href="#contact" class="text-gray-700 hover:text-primary transition">お問い合わせ</a>
             ${currentUser ? `
-              <a href="/mypage" class="btn btn-outline">
-                <i class="fas fa-user"></i> マイページ
-              </a>
-              ${currentUser.role === 'admin' ? `
-                <a href="/admin" class="btn btn-secondary">
-                  <i class="fas fa-cog"></i> 管理画面
-                </a>
-              ` : ''}
-              <button onclick="handleLogout()" class="btn btn-primary">
-                <i class="fas fa-sign-out-alt"></i> ログアウト
+              <a href="/mypage" class="text-gray-700 hover:text-primary transition">マイページ</a>
+              ${currentUser.role === 'admin' ? '<a href="/admin" class="text-gray-700 hover:text-primary transition">管理画面</a>' : ''}
+              <button onclick="logout()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                ログアウト
               </button>
             ` : `
-              <button onclick="handleGoogleLogin()" class="btn btn-outline">
-                <i class="fab fa-google"></i> Googleでログイン
-              </button>
-              <button onclick="handleLineLogin()" class="btn btn-primary">
-                <i class="fab fa-line"></i> LINEでログイン
+              <button onclick="showLoginModal()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition">
+                ログイン
               </button>
             `}
           </nav>
+          
+          <button class="md:hidden" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars text-2xl"></i>
+          </button>
         </div>
       </div>
     </header>
+  `;
+}
 
-    <!-- メインコンテンツ -->
-    <main>
-      <!-- Hero Section -->
-      <section class="bg-gradient-to-r from-pink-100 to-purple-100 py-20">
-        <div class="container mx-auto px-4 text-center">
-          <h2 class="text-5xl font-bold text-gray-800 mb-6">
-            AIとスタッフが支える<br />あなただけの健康管理
+// Hero セクション
+function renderHero() {
+  return `
+    <section class="gradient-bg text-white py-20">
+      <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center fade-in">
+          <h2 class="text-4xl md:text-5xl font-bold mb-6">
+            AIがサポートする<br>あなた専用のパーソナルジム
           </h2>
-          <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            体重・食事・運動を記録するだけで、AIが自動分析。<br />
-            専門スタッフからの個別アドバイスで、理想の体へ。
+          <p class="text-xl mb-8 opacity-90">
+            体調・体重・食事を記録するだけで、AIとプロのスタッフが<br>
+            あなたに最適なアドバイスをお届けします
           </p>
           ${!currentUser ? `
-            <div class="flex gap-4 justify-center">
-              <button onclick="handleGoogleLogin()" class="btn btn-primary btn-lg">
-                <i class="fab fa-google mr-2"></i> 今すぐ始める
-              </button>
-            </div>
-          ` : ''}
+            <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
+              今すぐ始める <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+          ` : `
+            <a href="/mypage" class="inline-block px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
+              マイページへ <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+          `}
         </div>
-      </section>
+      </div>
+    </section>
+  `;
+}
 
-      ${currentUser ? `
-        <!-- スタッフアドバイスセクション -->
-        <section class="container mx-auto px-4 py-12">
-          <h3 class="text-3xl font-bold text-gray-800 mb-6">
-            <i class="fas fa-comments text-primary mr-2"></i> スタッフからのアドバイス
-          </h3>
-          <div id="staff-advices">
-            <p class="text-gray-500 text-center py-8">アドバイスを読み込み中...</p>
-          </div>
-        </section>
-
-        <!-- 健康ログ入力セクション -->
-        <section class="bg-white py-12">
-          <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold text-gray-800 mb-6">
-              <i class="fas fa-notes-medical text-primary mr-2"></i> 今日の健康ログ
+// アドバイスセクション
+function renderAdviceSection() {
+  if (!currentAdvices || currentAdvices.length === 0) {
+    return '';
+  }
+  
+  return `
+    <section class="bg-white py-12">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">
+              <i class="fas fa-comment-medical mr-2" style="color: var(--color-primary)"></i>
+              スタッフからのアドバイス
             </h3>
-            
-            <div class="card max-w-4xl mx-auto">
-              <form id="health-log-form" onsubmit="handleHealthLogSubmit(event)">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div class="form-group">
-                    <label class="form-label">体重 (kg)</label>
-                    <input type="number" step="0.1" name="weight" class="form-input" placeholder="58.5" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">体脂肪率 (%)</label>
-                    <input type="number" step="0.1" name="body_fat_percentage" class="form-input" placeholder="22.3" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">筋肉量 (kg)</label>
-                    <input type="number" step="0.1" name="muscle_mass" class="form-input" placeholder="42.1" />
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div class="form-group">
-                    <label class="form-label">食事の種類</label>
-                    <select name="meal_type" class="form-select">
-                      <option value="">選択してください</option>
-                      <option value="breakfast">朝食</option>
-                      <option value="lunch">昼食</option>
-                      <option value="dinner">夕食</option>
-                      <option value="snack">間食</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">食事内容</label>
-                    <input type="text" name="meal_description" class="form-input" placeholder="例: 納豆ご飯、味噌汁" />
-                  </div>
-                </div>
-
-                <div class="form-group mb-6">
-                  <label class="form-label">
-                    <i class="fas fa-camera mr-2"></i> 食事写真をアップロード（AI解析）
-                  </label>
-                  <input type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="form-input" />
-                  <div id="ai-analysis-result" class="mt-3"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div class="form-group">
-                    <label class="form-label">運動の種類</label>
-                    <input type="text" name="exercise_type" class="form-input" placeholder="例: ジョギング" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">運動時間 (分)</label>
-                    <input type="number" name="exercise_duration" class="form-input" placeholder="30" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">睡眠時間 (時間)</label>
-                    <input type="number" step="0.5" name="sleep_hours" class="form-input" placeholder="7.5" />
-                  </div>
-                </div>
-
-                <div class="form-group mb-6">
-                  <label class="form-label">今日の気分</label>
-                  <select name="mood" class="form-select">
-                    <option value="">選択してください</option>
-                    <option value="excellent">最高</option>
-                    <option value="good">良い</option>
-                    <option value="normal">普通</option>
-                    <option value="bad">悪い</option>
-                    <option value="terrible">最悪</option>
-                  </select>
-                </div>
-
-                <div class="form-group mb-6">
-                  <label class="form-label">メモ</label>
-                  <textarea name="notes" class="form-textarea" placeholder="今日の体調や気づいたことなど..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-full">
-                  <i class="fas fa-save mr-2"></i> ログを保存
-                </button>
-              </form>
-            </div>
+            <a href="/mypage" class="text-primary hover:underline">すべて見る</a>
           </div>
-        </section>
-      ` : ''}
-
-      <!-- AIパーソナルジムの良さ -->
-      <section class="container mx-auto px-4 py-12">
-        <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">
-          ファディー彦根の特徴
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="card text-center">
-            <div class="text-5xl text-primary mb-4">
-              <i class="fas fa-robot"></i>
-            </div>
-            <h4 class="text-xl font-semibold mb-3">AI自動解析</h4>
-            <p class="text-gray-600">
-              食事写真をアップロードするだけで、AIが自動でカロリーや栄養バランスを分析します。
-            </p>
-          </div>
-          <div class="card text-center">
-            <div class="text-5xl text-primary mb-4">
-              <i class="fas fa-user-friends"></i>
-            </div>
-            <h4 class="text-xl font-semibold mb-3">専門スタッフサポート</h4>
-            <p class="text-gray-600">
-              トレーナーや栄養士が、あなたのデータを見て個別にアドバイス。一人ひとりに最適なサポートを提供します。
-            </p>
-          </div>
-          <div class="card text-center">
-            <div class="text-5xl text-primary mb-4">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <h4 class="text-xl font-semibold mb-3">見える化で継続</h4>
-            <p class="text-gray-600">
-              体重・体脂肪率の変化をグラフで可視化。進捗が見えるから、モチベーションが続きます。
-            </p>
+          
+          <div class="space-y-4">
+            ${currentAdvices.map(advice => `
+              <div class="card-hover bg-gray-50 p-6 rounded-lg border-l-4" style="border-color: var(--color-${getAdviceColor(advice.advice_type)})">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="badge badge-${getAdviceColor(advice.advice_type)}">${getAdviceTypeLabel(advice.advice_type)}</span>
+                    <h4 class="text-lg font-bold mt-2">${advice.title}</h4>
+                  </div>
+                  <span class="text-sm text-gray-500">${formatRelativeTime(advice.created_at)}</span>
+                </div>
+                <p class="text-gray-700 mb-3">${advice.content}</p>
+                <div class="text-sm text-gray-600">
+                  <i class="fas fa-user-nurse mr-1"></i>
+                  ${advice.staff_name}
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  `;
+}
 
-      <!-- FAQ -->
-      <section class="bg-white py-12">
-        <div class="container mx-auto px-4">
-          <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">
-            よくある質問
+// 健康ログ入力セクション
+function renderHealthLogSection() {
+  return `
+    <section class="bg-gray-50 py-12">
+      <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
+            今日の健康ログ
           </h3>
-          <div class="max-w-3xl mx-auto">
-            ${renderFAQ()}
-          </div>
-        </div>
-      </section>
-
-      <!-- 問い合わせフォーム -->
-      <section class="container mx-auto px-4 py-12">
-        <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">
-          お問い合わせ
-        </h3>
-        <div class="card max-w-2xl mx-auto">
-          <form onsubmit="handleInquirySubmit(event)">
-            <div class="form-group">
-              <label class="form-label">お名前 <span class="text-red-500">*</span></label>
-              <input type="text" name="name" required class="form-input" />
+          
+          <form id="health-log-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-weight mr-1"></i> 体重 (kg)
+                </label>
+                <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-percentage mr-1"></i> 体脂肪率 (%)
+                </label>
+                <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-thermometer-half mr-1"></i> 体温 (℃)
+                </label>
+                <input type="number" step="0.1" name="body_temperature" value="${todayLog?.body_temperature || ''}"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-bed mr-1"></i> 睡眠時間 (時間)
+                </label>
+                <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-running mr-1"></i> 運動時間 (分)
+                </label>
+                <input type="number" name="exercise_minutes" value="${todayLog?.exercise_minutes || ''}"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">メールアドレス <span class="text-red-500">*</span></label>
-              <input type="email" name="email" required class="form-input" />
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-camera mr-1"></i> 食事写真
+              </label>
+              <div class="flex items-center gap-4">
+                <input type="file" id="meal-photo" accept="image/*" 
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  onchange="previewImage(this, 'meal-preview')">
+                <button type="button" onclick="uploadMealPhoto()" class="px-6 py-2 bg-accent text-white hover:bg-opacity-90 rounded-lg transition">
+                  AI解析
+                </button>
+              </div>
+              <img id="meal-preview" class="mt-4 max-w-full h-48 object-cover rounded-lg hidden">
+              <div id="meal-analysis-result" class="mt-4"></div>
             </div>
-            <div class="form-group">
-              <label class="form-label">電話番号</label>
-              <input type="tel" name="phone" class="form-input" />
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-comment mr-1"></i> 体調メモ
+              </label>
+              <textarea name="condition_note" rows="3" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >${todayLog?.condition_note || ''}</textarea>
             </div>
-            <div class="form-group">
-              <label class="form-label">件名 <span class="text-red-500">*</span></label>
-              <input type="text" name="subject" required class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">お問い合わせ内容 <span class="text-red-500">*</span></label>
-              <textarea name="message" required class="form-textarea"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary w-full">
-              <i class="fas fa-paper-plane mr-2"></i> 送信する
+            
+            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold text-lg">
+              <i class="fas fa-save mr-2"></i>
+              保存する
             </button>
           </form>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
+  `;
+}
 
-    <!-- フッター -->
+// 特徴セクション
+function renderFeaturesSection() {
+  return `
+    <section id="features" class="bg-white py-16">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">AIパーソナルジムの特徴</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
+            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+              <i class="fas fa-robot text-3xl" style="color: var(--color-primary)"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">AI食事解析</h3>
+            <p class="text-gray-600">
+              写真を撮るだけでカロリーや栄養素を自動分析。面倒な入力作業は不要です。
+            </p>
+          </div>
+          
+          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
+            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+              <i class="fas fa-user-nurse text-3xl" style="color: var(--color-primary)"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">プロのアドバイス</h3>
+            <p class="text-gray-600">
+              経験豊富なトレーナーと栄養士があなたのデータを分析し、個別アドバイスを提供。
+            </p>
+          </div>
+          
+          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
+            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+              <i class="fas fa-chart-line text-3xl" style="color: var(--color-primary)"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">詳細な分析</h3>
+            <p class="text-gray-600">
+              体重・体脂肪率・食事の推移をグラフで可視化。目標達成をサポートします。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// FAQセクション
+function renderFAQSection() {
+  const faqs = [
+    {
+      question: 'どのようなサービスですか？',
+      answer: 'AIとプロのスタッフがあなたの健康管理をサポートするオンラインパーソナルジムサービスです。体重・体脂肪率・食事・睡眠などを記録すると、AIが自動で分析し、専門スタッフが個別アドバイスを提供します。'
+    },
+    {
+      question: '料金はいくらですか？',
+      answer: '月額9,900円（税込）で、AI解析・スタッフアドバイス・データ管理がすべて利用できます。初月は無料体験も可能です。'
+    },
+    {
+      question: 'スマートフォンで利用できますか？',
+      answer: 'はい、スマートフォン・タブレット・パソコンのすべてのデバイスで利用可能です。いつでもどこでも健康管理ができます。'
+    },
+    {
+      question: '食事写真の解析はどのくらい正確ですか？',
+      answer: 'AIが食材を認識し、カロリーと主要栄養素を推定します。精度は約85-90%程度です。より正確な管理が必要な場合は、手動で修正も可能です。'
+    },
+  ];
+  
+  return `
+    <section id="faq" class="bg-gray-50 py-16">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">よくある質問</h2>
+        
+        <div class="max-w-3xl mx-auto space-y-4">
+          ${faqs.map((faq, index) => `
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+              <button onclick="toggleAccordion(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition">
+                <span class="font-bold text-lg">${faq.question}</span>
+                <i class="fas fa-chevron-down accordion-icon transition-transform" style="color: var(--color-primary)"></i>
+              </button>
+              <div class="accordion-content px-6 pb-4">
+                <p class="text-gray-600">${faq.answer}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// お問い合わせセクション
+function renderContactSection() {
+  return `
+    <section id="contact" class="bg-white py-16">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">お問い合わせ</h2>
+        
+        <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded-lg">
+          <form id="contact-form" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">お名前 <span class="text-red-500">*</span></label>
+              <input type="text" name="name" required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス <span class="text-red-500">*</span></label>
+              <input type="email" name="email" required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+              <input type="tel" name="phone" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">件名 <span class="text-red-500">*</span></label>
+              <input type="text" name="subject" required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">お問い合わせ内容 <span class="text-red-500">*</span></label>
+              <textarea name="message" rows="5" required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold text-lg">
+              <i class="fas fa-paper-plane mr-2"></i>
+              送信する
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// フッター
+function renderFooter() {
+  return `
     <footer class="bg-gray-800 text-white py-8">
       <div class="container mx-auto px-4 text-center">
-        <p>&copy; 2024 ファディー彦根. All rights reserved.</p>
-        <div class="mt-4">
-          <a href="#" class="text-white hover:text-primary mx-2">プライバシーポリシー</a>
-          <a href="#" class="text-white hover:text-primary mx-2">利用規約</a>
-        </div>
+        <p class="mb-2">&copy; 2025 ファディー彦根 All rights reserved.</p>
+        <p class="text-sm text-gray-400">AIパーソナルジム - あなたの健康をサポート</p>
       </div>
     </footer>
   `;
 }
 
-function renderFAQ() {
-  const faqs = [
-    {
-      question: 'AIパーソナルジムとは何ですか？',
-      answer: '体重・食事・運動などの健康データを入力すると、AIが自動で分析し、改善点を提案します。さらに、専門スタッフが個別にアドバイスを提供する、次世代型のパーソナルジムです。',
-    },
-    {
-      question: '料金はいくらですか？',
-      answer: '月額9,900円（税込）で、AIパーソナルトレーニング、食事管理、専門スタッフによるアドバイスが受けられます。初月は入会金5,500円が別途かかります。',
-    },
-    {
-      question: 'スマートフォンだけで利用できますか？',
-      answer: 'はい。スマートフォン、タブレット、PCのどれからでもアクセス可能です。アプリのダウンロードは不要で、Webブラウザから簡単にご利用いただけます。',
-    },
-    {
-      question: '食事写真のAI解析はどれくらい正確ですか？',
-      answer: '最新のAI技術により、約85%以上の精度でカロリーや栄養素を推定します。ただし、あくまで目安としてご利用ください。',
-    },
-  ];
-
-  return faqs.map((faq, index) => `
-    <div class="accordion-item">
-      <div class="accordion-header" onclick="toggleAccordion(${index})">
-        <h4 class="font-semibold text-gray-800">${faq.question}</h4>
-        <i class="fas fa-chevron-down transition-transform" id="faq-icon-${index}"></i>
-      </div>
-      <div class="accordion-content" id="faq-content-${index}">
-        <p class="text-gray-600">${faq.answer}</p>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleAccordion(index) {
-  const content = document.getElementById(`faq-content-${index}`);
-  const icon = document.getElementById(`faq-icon-${index}`);
-  
-  content.classList.toggle('active');
-  icon.style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
-}
-
-// ========== 初期化 ==========
-
-async function init() {
-  // URL パラメータからトークン取得
-  const urlParams = new URLSearchParams(window.location.search);
-  const tokenFromUrl = urlParams.get('token');
-  
-  if (tokenFromUrl) {
-    authToken = tokenFromUrl;
-    localStorage.setItem('authToken', tokenFromUrl);
-    // URLからトークンを削除
-    window.history.replaceState({}, document.title, '/');
-  } else {
-    // ローカルストレージからトークン取得
-    authToken = localStorage.getItem('authToken');
+// イベントリスナー設定
+function setupEventListeners() {
+  // 健康ログフォーム
+  const healthLogForm = document.getElementById('health-log-form');
+  if (healthLogForm) {
+    healthLogForm.addEventListener('submit', handleHealthLogSubmit);
   }
+  
+  // お問い合わせフォーム
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) {
+    contactForm.addEventListener('submit', handleContactSubmit);
+  }
+}
 
-  // ユーザー情報読み込み
-  if (authToken) {
-    currentUser = await loadUserFromToken();
-    if (!currentUser) {
-      // トークンが無効な場合は削除
-      localStorage.removeItem('authToken');
-      authToken = null;
+// 健康ログ送信
+async function handleHealthLogSubmit(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = {
+    log_date: dayjs().format('YYYY-MM-DD'),
+    weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
+    body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
+    body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
+    sleep_hours: formData.get('sleep_hours') ? parseFloat(formData.get('sleep_hours')) : null,
+    exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
+    condition_note: formData.get('condition_note') || null,
+  };
+  
+  try {
+    let response;
+    if (todayLog) {
+      response = await apiCall(`/api/health-logs/${todayLog.id}`, {
+        method: 'PUT',
+        data: data,
+      });
+    } else {
+      response = await apiCall('/api/health-logs', {
+        method: 'POST',
+        data: data,
+      });
     }
-  }
-
-  // ページレンダリング
-  renderPage();
-
-  // ログインしている場合はスタッフアドバイス読み込み
-  if (currentUser) {
-    loadStaffAdvices();
+    
+    if (response.success) {
+      showToast('健康ログを保存しました', 'success');
+      todayLog = response.data;
+    }
+  } catch (error) {
+    showToast('保存に失敗しました', 'error');
   }
 }
 
-// ページ読み込み時に初期化
-document.addEventListener('DOMContentLoaded', init);
+// 食事写真アップロード
+async function uploadMealPhoto() {
+  const fileInput = document.getElementById('meal-photo');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showToast('写真を選択してください', 'warning');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('photo', file);
+  formData.append('log_date', dayjs().format('YYYY-MM-DD'));
+  
+  try {
+    showLoading();
+    const token = getToken();
+    const response = await axios.post('/api/health-logs/upload-meal', formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      }
+    });
+    hideLoading();
+    
+    if (response.data.success) {
+      const analysis = response.data.data.analysis;
+      document.getElementById('meal-analysis-result').innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 class="font-bold text-green-800 mb-2">
+            <i class="fas fa-check-circle mr-1"></i>
+            AI解析結果
+          </h4>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div><strong>カロリー:</strong> ${analysis.カロリー} kcal</div>
+            <div><strong>タンパク質:</strong> ${analysis.タンパク質} g</div>
+            <div><strong>炭水化物:</strong> ${analysis.炭水化物} g</div>
+            <div><strong>脂質:</strong> ${analysis.脂質} g</div>
+          </div>
+          <p class="mt-3 text-green-700">${analysis.評価}</p>
+          <div class="mt-2 text-xs text-gray-600">
+            <strong>検出された食材:</strong> ${analysis.食材.join('、')}
+          </div>
+        </div>
+      `;
+      showToast('AI解析が完了しました', 'success');
+      
+      // フォームに自動入力
+      await loadTodayLog();
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('解析に失敗しました', 'error');
+  }
+}
+
+// お問い合わせ送信
+async function handleContactSubmit(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    phone: formData.get('phone') || null,
+    subject: formData.get('subject'),
+    message: formData.get('message'),
+  };
+  
+  if (!validateEmail(data.email)) {
+    showToast('有効なメールアドレスを入力してください', 'warning');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const response = await axios.post('/api/inquiries', data);
+    hideLoading();
+    
+    if (response.data.success) {
+      showToast(response.data.message, 'success');
+      e.target.reset();
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('送信に失敗しました', 'error');
+  }
+}
+
+// ログインモーダル表示
+function showLoginModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-8">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-bold mb-2">ログイン</h3>
+        <p class="text-gray-600">以下の方法でログインしてください</p>
+      </div>
+      
+      <div class="space-y-4">
+        <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
+          <i class="fab fa-google text-xl" style="color: #DB4437"></i>
+          <span class="font-medium">Googleでログイン</span>
+        </button>
+        
+        <button onclick="loginWithLine()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
+          <i class="fab fa-line text-xl" style="color: #00B900"></i>
+          <span class="font-medium">LINEでログイン</span>
+        </button>
+      </div>
+      
+      <button onclick="this.closest('.modal-backdrop').remove()" class="mt-6 w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+        キャンセル
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  };
+}
+
+// Google認証 (モック)
+async function loginWithGoogle() {
+  try {
+    showLoading();
+    // 本番環境ではGoogle OAuthフローを実装
+    const response = await axios.post('/api/auth/google', { token: 'mock_google_token' });
+    hideLoading();
+    
+    if (response.data.success) {
+      setToken(response.data.data.token);
+      setUserData(response.data.data.user);
+      showToast('ログインしました', 'success');
+      document.querySelector('.modal-backdrop')?.remove();
+      location.reload();
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('ログインに失敗しました', 'error');
+  }
+}
+
+// LINE認証 (モック)
+async function loginWithLine() {
+  try {
+    showLoading();
+    // 本番環境ではLINE OAuthフローを実装
+    const response = await axios.post('/api/auth/line', { code: 'mock_line_code' });
+    hideLoading();
+    
+    if (response.data.success) {
+      setToken(response.data.data.token);
+      setUserData(response.data.data.user);
+      showToast('ログインしました', 'success');
+      document.querySelector('.modal-backdrop')?.remove();
+      location.reload();
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('ログインに失敗しました', 'error');
+  }
+}
+
+// ヘルパー関数
+function getAdviceTypeLabel(type) {
+  const labels = {
+    diet: '食事',
+    exercise: '運動',
+    general: '全般',
+  };
+  return labels[type] || type;
+}
+
+function getAdviceColor(type) {
+  const colors = {
+    diet: 'success',
+    exercise: 'warning',
+    general: 'primary',
+  };
+  return colors[type] || 'primary';
+}
+
+function toggleMobileMenu() {
+  showToast('モバイルメニューは今後実装予定です', 'info');
+}
