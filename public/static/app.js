@@ -133,24 +133,40 @@ function renderHeader() {
             <h1 class="text-xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-4">
+          <nav class="flex items-center gap-2 md:gap-4">
+            <!-- 外部リンク -->
+            <a href="https://furdi.jp/" target="_blank" rel="noopener noreferrer" 
+               class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition flex items-center gap-1"
+               title="ファディ本部公式サイト">
+              <i class="fas fa-home"></i>
+              <span class="hidden md:inline">本部</span>
+            </a>
+            <a href="https://furdi.jp/shop/hikone/" target="_blank" rel="noopener noreferrer" 
+               class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition flex items-center gap-1"
+               title="ファディ彦根店">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="hidden md:inline">彦根店</span>
+            </a>
+            
+            <div class="h-6 w-px bg-gray-300 hidden md:block"></div>
+            
             ${currentUser ? `
               <span class="text-sm text-gray-600 hidden md:inline">
                 <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
               </span>
-              <a href="/mypage" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                <i class="fas fa-chart-line mr-1"></i>マイページ
+              <a href="/mypage" class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition">
+                <i class="fas fa-chart-line mr-1"></i><span class="hidden md:inline">マイページ</span>
               </a>
               ${currentUser.role === 'admin' ? `
-                <a href="/admin" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                  <i class="fas fa-user-shield mr-1"></i>管理画面
+                <a href="/admin" class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition">
+                  <i class="fas fa-user-shield mr-1"></i><span class="hidden md:inline">管理画面</span>
                 </a>
               ` : ''}
-              <button onclick="logout()" class="text-sm px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
-                <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+              <button onclick="logout()" class="text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
+                <i class="fas fa-sign-out-alt mr-1"></i><span class="hidden md:inline">ログアウト</span>
               </button>
             ` : `
-              <button onclick="showLoginModal()" class="text-sm px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
+              <button onclick="showLoginModal()" class="text-xs md:text-sm px-3 md:px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
                 <i class="fas fa-sign-in-alt mr-1"></i>ログイン
               </button>
             `}
@@ -848,10 +864,44 @@ function renderContactSection() {
 // フッター
 function renderFooter() {
   return `
-    <footer class="bg-gray-800 text-white py-8">
-      <div class="container mx-auto px-4 text-center">
-        <p class="mb-2">&copy; 2025 ファディー彦根 All rights reserved.</p>
-        <p class="text-sm text-gray-400">AIパーソナルジム - あなたの健康をサポート</p>
+    <footer class="bg-gray-800 text-white py-12">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <!-- 公式サイトリンク -->
+          <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
+            <!-- ファディ本部 -->
+            <a href="https://furdi.jp/" target="_blank" rel="noopener noreferrer" 
+               class="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 px-6 py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg w-full md:w-auto">
+              <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <i class="fas fa-home text-2xl"></i>
+              </div>
+              <div class="text-left">
+                <div class="text-xs text-white text-opacity-80">ファディ本部</div>
+                <div class="text-lg font-bold">公式サイト</div>
+              </div>
+              <i class="fas fa-external-link-alt ml-2"></i>
+            </a>
+            
+            <!-- 彦根店 -->
+            <a href="https://furdi.jp/shop/hikone/" target="_blank" rel="noopener noreferrer" 
+               class="flex items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-6 py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg w-full md:w-auto">
+              <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <i class="fas fa-map-marker-alt text-2xl"></i>
+              </div>
+              <div class="text-left">
+                <div class="text-xs text-white text-opacity-80">ファディ</div>
+                <div class="text-lg font-bold">彦根店</div>
+              </div>
+              <i class="fas fa-external-link-alt ml-2"></i>
+            </a>
+          </div>
+          
+          <!-- コピーライト -->
+          <div class="text-center border-t border-gray-700 pt-6">
+            <p class="mb-2 text-gray-300">&copy; 2025 ファディー彦根 All rights reserved.</p>
+            <p class="text-sm text-gray-400">AIパーソナルジム - あなたの健康をサポート</p>
+          </div>
+        </div>
       </div>
     </footer>
   `;
