@@ -77,7 +77,7 @@ admin.put('/logs/:logId', async (c) => {
         weight = ?, body_fat_percentage = ?, body_temperature = ?,
         sleep_hours = ?, meal_calories = ?, meal_protein = ?,
         meal_carbs = ?, meal_fat = ?, exercise_minutes = ?,
-        condition_note = ?, updated_at = CURRENT_TIMESTAMP
+        condition_rating = ?, condition_note = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).bind(
       body.weight || null,
@@ -89,6 +89,7 @@ admin.put('/logs/:logId', async (c) => {
       body.meal_carbs || null,
       body.meal_fat || null,
       body.exercise_minutes || null,
+      body.condition_rating || 3,
       body.condition_note || null,
       logId
     ).run();

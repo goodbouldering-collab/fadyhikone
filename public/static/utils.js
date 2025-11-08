@@ -212,12 +212,19 @@ function toggleAccordion(element) {
   const content = element.nextElementSibling;
   const icon = element.querySelector('.accordion-icon');
   
-  if (content.classList.contains('open')) {
-    content.classList.remove('open');
+  // Check if already open by checking max-height
+  const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+  
+  if (isOpen) {
+    // Close
+    content.style.maxHeight = '0';
     icon.style.transform = 'rotate(0deg)';
+    content.classList.remove('open');
   } else {
-    content.classList.add('open');
+    // Open
+    content.style.maxHeight = content.scrollHeight + 'px';
     icon.style.transform = 'rotate(180deg)';
+    content.classList.add('open');
   }
 }
 

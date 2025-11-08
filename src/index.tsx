@@ -9,6 +9,10 @@ import healthLogs from './routes/health-logs';
 import advices from './routes/advices';
 import inquiries from './routes/inquiries';
 import admin from './routes/admin';
+import announcements from './routes/announcements';
+import comments from './routes/comments';
+import settings from './routes/settings';
+import opinions from './routes/opinions';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -24,6 +28,10 @@ app.route('/api/health-logs', healthLogs);
 app.route('/api/advices', advices);
 app.route('/api/inquiries', inquiries);
 app.route('/api/admin', admin);
+app.route('/api/announcements', announcements);
+app.route('/api/comments', comments);
+app.route('/api/settings', settings);
+app.route('/api/opinions', opinions);
 
 // R2から画像を取得するルート
 app.get('/api/images/:path{.+}', async (c) => {

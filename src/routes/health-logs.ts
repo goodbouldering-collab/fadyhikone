@@ -48,8 +48,8 @@ healthLogs.post('/', async (c) => {
       INSERT INTO health_logs (
         user_id, log_date, weight, body_fat_percentage, body_temperature,
         sleep_hours, meal_calories, meal_protein, meal_carbs, meal_fat,
-        exercise_minutes, condition_note
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        exercise_minutes, condition_rating, condition_note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       userId,
       body.log_date,
@@ -62,6 +62,7 @@ healthLogs.post('/', async (c) => {
       body.meal_carbs || null,
       body.meal_fat || null,
       body.exercise_minutes || null,
+      body.condition_rating || 3,
       body.condition_note || null
     ).run();
 
@@ -184,7 +185,7 @@ healthLogs.put('/:id', async (c) => {
         weight = ?, body_fat_percentage = ?, body_temperature = ?,
         sleep_hours = ?, meal_calories = ?, meal_protein = ?,
         meal_carbs = ?, meal_fat = ?, exercise_minutes = ?,
-        condition_note = ?, updated_at = CURRENT_TIMESTAMP
+        condition_rating = ?, condition_note = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).bind(
       body.weight || null,
@@ -196,6 +197,7 @@ healthLogs.put('/:id', async (c) => {
       body.meal_carbs || null,
       body.meal_fat || null,
       body.exercise_minutes || null,
+      body.condition_rating || 3,
       body.condition_note || null,
       logId
     ).run();

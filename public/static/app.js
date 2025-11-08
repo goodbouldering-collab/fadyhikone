@@ -4,6 +4,9 @@
 let currentUser = null;
 let currentAdvices = [];
 let todayLog = null;
+let announcements = [];
+let latestStaffComment = null;
+let userOpinions = [];
 
 // 食事記録データ
 let mealData = {
@@ -15,12 +18,15 @@ let mealData = {
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuth();
+  await loadAnnouncements();
   renderPage();
   
   // 認証されている場合、アドバイスとログをロード
   if (currentUser) {
     await loadAdvices();
     await loadTodayLog();
+    await loadLatestStaffComment();
+    await loadUserOpinions();
   }
 });
 
@@ -80,12 +86,12 @@ function renderPage() {
   const root = document.getElementById('root');
   root.innerHTML = `
     ${renderHeader()}
-    ${currentUser ? renderQuickAccessSection() : ''}
     ${renderHero()}
     ${currentUser ? renderAdviceSection() : ''}
     ${currentUser ? renderHealthLogSection() : ''}
     ${renderFeaturesSection()}
     ${renderFAQSection()}
+    ${renderGymIntroSection()}
     ${renderContactSection()}
     ${renderFooter()}
   `;
@@ -94,82 +100,104 @@ function renderPage() {
   setupEventListeners();
 }
 
-// ヘッダー
+// 共通ヘッダー
 function renderHeader() {
   return `
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div class="container mx-auto px-4 py-4">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+      <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <i class="fas fa-dumbbell text-3xl" style="color: var(--color-primary)"></i>
-            <h1 class="text-2xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
-          </div>
+          <a href="/" class="flex items-center gap-2">
+            <i class="fas fa-dumbbell text-2xl" style="color: var(--color-primary)"></i>
+            <h1 class="text-xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
+          </a>
           
-          <nav class="hidden md:flex items-center gap-6">
-            <a href="#features" class="text-gray-700 hover:text-primary transition">特徴</a>
-            <a href="#faq" class="text-gray-700 hover:text-primary transition">FAQ</a>
-            <a href="#contact" class="text-gray-700 hover:text-primary transition">お問い合わせ</a>
+          <nav class="flex items-center gap-4">
             ${currentUser ? `
-              <a href="/mypage" class="text-gray-700 hover:text-primary transition">マイページ</a>
-              ${currentUser.role === 'admin' ? '<a href="/admin" class="text-gray-700 hover:text-primary transition">管理画面</a>' : ''}
-              <button onclick="logout()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
-                ログアウト
+              <span class="text-sm text-gray-600 hidden md:inline">
+                <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
+              </span>
+              <a href="/mypage" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
+                <i class="fas fa-chart-line mr-1"></i>マイページ
+              </a>
+              ${currentUser.role === 'admin' ? `
+                <a href="/admin" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
+                  <i class="fas fa-user-shield mr-1"></i>管理画面
+                </a>
+              ` : ''}
+              <button onclick="logout()" class="text-sm px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
+                <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
               </button>
             ` : `
-              <button onclick="showLoginModal()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition">
-                ログイン
+              <button onclick="showLoginModal()" class="text-sm px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
+                <i class="fas fa-sign-in-alt mr-1"></i>ログイン
               </button>
             `}
           </nav>
-          
-          <button class="md:hidden" onclick="toggleMobileMenu()">
-            <i class="fas fa-bars text-2xl"></i>
-          </button>
         </div>
       </div>
     </header>
   `;
 }
 
-// クイックアクセスセクション
-function renderQuickAccessSection() {
-  return `
-    <section class="bg-gradient-to-r from-pink-500 to-orange-400 py-6">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-center">
-          <a href="/mypage" class="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-800 hover:bg-gray-100 rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg">
-            <i class="fas fa-user-circle text-2xl" style="color: var(--color-primary)"></i>
-            マイページを見る
-            <i class="fas fa-arrow-right"></i>
-          </a>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
 // Hero セクション
 function renderHero() {
   return `
-    <section class="gradient-bg text-white py-20">
+    <section class="gradient-bg text-white py-12">
       <div class="container mx-auto px-4">
-        <div class="max-w-3xl mx-auto text-center fade-in">
-          <h2 class="text-4xl md:text-5xl font-bold mb-6">
-            AIがサポートする<br>あなた専用のパーソナルジム
-          </h2>
-          <p class="text-xl mb-8 opacity-90">
-            体調・体重・食事を記録するだけで、AIとプロのスタッフが<br>
-            あなたに最適なアドバイスをお届けします
-          </p>
-          ${!currentUser ? `
-            <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
-              今すぐ始める <i class="fas fa-arrow-right ml-2"></i>
-            </button>
-          ` : `
-            <a href="/mypage" class="inline-block px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
-              マイページへ <i class="fas fa-arrow-right ml-2"></i>
-            </a>
-          `}
+        <div class="max-w-6xl mx-auto">
+          <!-- 店舗情報（小さく表示） -->
+          <div class="flex justify-center gap-6 mb-6 text-xs opacity-80">
+            <div class="flex items-center gap-1">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>彦根店: 滋賀県彦根市○○町1-2-3</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <i class="fas fa-building"></i>
+              <span>本部: 滋賀県○○市△△町4-5-6</span>
+            </div>
+          </div>
+          
+          <div class="text-center fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">
+              AIがサポートする<br>あなた専用の<br>パーソナルジム
+            </h2>
+            <p class="text-lg mb-6 opacity-90">
+              体調・体重・食事を記録するだけで、<br class="hidden md:block">
+              AIとプロのスタッフが<br class="hidden md:block">
+              あなたに最適なアドバイスをお届けします
+            </p>
+            ${!currentUser ? `
+              <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
+                今すぐ始める <i class="fas fa-arrow-right ml-2"></i>
+              </button>
+            ` : `
+              <a href="/mypage" class="inline-block px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
+                マイページへ <i class="fas fa-arrow-right ml-2"></i>
+              </a>
+            `}
+          </div>
+          
+          <!-- お知らせ（枠なし、小さく） -->
+          ${announcements.length > 0 ? `
+            <div class="mt-8 space-y-2">
+              ${announcements.map(announcement => `
+                <div class="flex gap-2 items-start bg-white bg-opacity-10 backdrop-blur-sm p-2 rounded hover:bg-opacity-20 transition cursor-pointer"
+                     onclick="showAnnouncementDetail(${announcement.id})">
+                  ${announcement.image_url ? `
+                    <img src="${announcement.image_url}" alt="${announcement.title}" 
+                      class="w-10 h-10 object-cover rounded flex-shrink-0">
+                  ` : ''}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <i class="fas fa-bullhorn text-xs"></i>
+                      <h4 class="text-xs font-bold truncate">${announcement.title}</h4>
+                    </div>
+                    <p class="text-xs opacity-90 line-clamp-1 leading-tight">${announcement.content}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
       </div>
     </section>
@@ -229,6 +257,24 @@ function renderHealthLogSection() {
             今日の健康ログ
           </h3>
           
+          <!-- スタッフコメント（最新1件） -->
+          ${latestStaffComment ? `
+            <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-user-nurse text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-sm font-bold text-blue-700">スタッフからのコメント</span>
+                    <span class="text-xs text-gray-500">${latestStaffComment.staff_name} • ${formatRelativeTime(latestStaffComment.created_at)}</span>
+                  </div>
+                  <p class="text-sm text-gray-700">${latestStaffComment.comment}</p>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+          
           <form id="health-log-form" class="space-y-6">
             <!-- 基本データ -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -266,148 +312,176 @@ function renderHealthLogSection() {
             </div>
             
             <!-- 食事記録 -->
-            <div class="border-t pt-6">
-              <h4 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-utensils mr-2" style="color: var(--color-accent)"></i>
+            <div class="border-t pt-4">
+              <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-utensils" style="color: var(--color-accent)"></i>
                 食事記録
               </h4>
               
               <!-- 朝食 -->
-              <div class="mb-6 bg-yellow-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between mb-3">
-                  <h5 class="font-bold text-gray-800">
-                    <i class="fas fa-sun mr-2 text-yellow-500"></i>朝食
+              <div class="mb-3 bg-yellow-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
+                    <i class="fas fa-sun text-yellow-500"></i>朝食
                   </h5>
-                  <button type="button" onclick="showMealModal('breakfast')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>写真追加
+                  <button type="button" onclick="showMealModal('breakfast')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>追加
                   </button>
                 </div>
-                <div id="breakfast-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
-                <div class="grid grid-cols-4 gap-2 text-sm">
+                <div id="breakfast-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
+                <div class="grid grid-cols-4 gap-1 text-xs">
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
                     <input type="number" id="breakfast-calories" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
                     <input type="number" id="breakfast-protein" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
                     <input type="number" id="breakfast-fat" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
                     <input type="number" id="breakfast-carbs" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                 </div>
               </div>
               
               <!-- 昼食 -->
-              <div class="mb-6 bg-orange-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between mb-3">
-                  <h5 class="font-bold text-gray-800">
-                    <i class="fas fa-cloud-sun mr-2 text-orange-500"></i>昼食
+              <div class="mb-3 bg-orange-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
+                    <i class="fas fa-cloud-sun text-orange-500"></i>昼食
                   </h5>
-                  <button type="button" onclick="showMealModal('lunch')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>写真追加
+                  <button type="button" onclick="showMealModal('lunch')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>追加
                   </button>
                 </div>
-                <div id="lunch-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
-                <div class="grid grid-cols-4 gap-2 text-sm">
+                <div id="lunch-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
+                <div class="grid grid-cols-4 gap-1 text-xs">
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
                     <input type="number" id="lunch-calories" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
                     <input type="number" id="lunch-protein" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
                     <input type="number" id="lunch-fat" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
                     <input type="number" id="lunch-carbs" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                 </div>
               </div>
               
               <!-- 夕食 -->
-              <div class="mb-6 bg-blue-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between mb-3">
-                  <h5 class="font-bold text-gray-800">
-                    <i class="fas fa-moon mr-2 text-blue-500"></i>夕食
+              <div class="mb-3 bg-blue-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
+                    <i class="fas fa-moon text-blue-500"></i>夕食
                   </h5>
-                  <button type="button" onclick="showMealModal('dinner')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>写真追加
+                  <button type="button" onclick="showMealModal('dinner')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>追加
                   </button>
                 </div>
-                <div id="dinner-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
-                <div class="grid grid-cols-4 gap-2 text-sm">
+                <div id="dinner-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
+                <div class="grid grid-cols-4 gap-1 text-xs">
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
                     <input type="number" id="dinner-calories" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
                     <input type="number" id="dinner-protein" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
                     <input type="number" id="dinner-fat" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                   <div>
-                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
                     <input type="number" id="dinner-carbs" readonly 
-                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
                   </div>
                 </div>
               </div>
               
               <!-- 合計 -->
-              <div class="bg-gray-100 p-4 rounded-lg">
-                <h5 class="font-bold text-gray-800 mb-3">
-                  <i class="fas fa-calculator mr-2" style="color: var(--color-primary)"></i>1日の合計
+              <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-3 rounded-lg border border-gray-200">
+                <h5 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  <i class="fas fa-calculator" style="color: var(--color-primary)"></i>1日の合計
                 </h5>
-                <div class="grid grid-cols-4 gap-4">
-                  <div class="text-center">
-                    <div class="text-2xl font-bold text-primary" id="total-calories">0</div>
+                <div class="grid grid-cols-4 gap-2">
+                  <div class="text-center bg-white rounded p-2">
+                    <div class="text-lg font-bold text-primary" id="total-calories">0</div>
                     <div class="text-xs text-gray-600">kcal</div>
                   </div>
-                  <div class="text-center">
-                    <div class="text-2xl font-bold text-green-600" id="total-protein">0</div>
-                    <div class="text-xs text-gray-600">タンパク質 (g)</div>
+                  <div class="text-center bg-white rounded p-2">
+                    <div class="text-lg font-bold text-green-600" id="total-protein">0</div>
+                    <div class="text-xs text-gray-600">P (g)</div>
                   </div>
-                  <div class="text-center">
-                    <div class="text-2xl font-bold text-yellow-600" id="total-fat">0</div>
-                    <div class="text-xs text-gray-600">脂質 (g)</div>
+                  <div class="text-center bg-white rounded p-2">
+                    <div class="text-lg font-bold text-yellow-600" id="total-fat">0</div>
+                    <div class="text-xs text-gray-600">F (g)</div>
                   </div>
-                  <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600" id="total-carbs">0</div>
-                    <div class="text-xs text-gray-600">炭水化物 (g)</div>
+                  <div class="text-center bg-white rounded p-2">
+                    <div class="text-lg font-bold text-blue-600" id="total-carbs">0</div>
+                    <div class="text-xs text-gray-600">C (g)</div>
                   </div>
                 </div>
               </div>
             </div>
             
+            <!-- 5段階体調評価 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-3">
+                <i class="fas fa-smile mr-1"></i> 今日の体調
+              </label>
+              <div class="flex items-center justify-between gap-2 bg-gray-50 p-4 rounded-lg">
+                ${[1, 2, 3, 4, 5].map(rating => {
+                  const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
+                  const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
+                  const labels = ['とても悪い', '悪い', '普通', '良い', 'とても良い'];
+                  const isSelected = (todayLog?.condition_rating || 3) === rating;
+                  
+                  return `
+                    <label class="flex-1 cursor-pointer" onclick="selectConditionRating(${rating})">
+                      <input type="radio" name="condition_rating" value="${rating}" 
+                        ${isSelected ? 'checked' : ''}
+                        class="hidden" id="condition-rating-${rating}">
+                      <div class="flex flex-col items-center p-3 rounded-lg transition ${isSelected ? 'bg-white shadow-md' : 'hover:bg-white hover:bg-opacity-50'}" id="condition-rating-label-${rating}">
+                        <i class="fas ${icons[rating-1]} text-3xl ${isSelected ? colors[rating-1] : 'text-gray-400'} mb-1" id="condition-rating-icon-${rating}"></i>
+                        <span class="text-xs font-medium ${isSelected ? 'text-gray-800' : 'text-gray-500'}" id="condition-rating-text-${rating}">${labels[rating-1]}</span>
+                      </div>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+            
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-comment mr-1"></i> 体調メモ
+                <i class="fas fa-dumbbell mr-1"></i> 運動記録
               </label>
               <textarea name="condition_note" rows="3" 
+                placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット、ランニング5km（30分）"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >${todayLog?.condition_note || ''}</textarea>
             </div>
@@ -419,12 +493,54 @@ function renderHealthLogSection() {
           </form>
           
           <!-- マイページへのリンク -->
-          <div class="mt-6 text-center">
+          <div class="mt-4 text-center">
             <a href="/mypage" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
               <i class="fas fa-chart-line"></i>
-              マイページで詳細を確認
+              マイページへ
               <i class="fas fa-arrow-right"></i>
             </a>
+          </div>
+          
+          <!-- スタッフに質問・相談する -->
+          <div class="mt-6 border-t pt-6">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">
+              <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
+              スタッフに質問・相談する
+            </h4>
+            <div>
+              <textarea 
+                id="opinion-question-top" 
+                rows="3" 
+                placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              ></textarea>
+              <div class="flex justify-end mt-2">
+                <button 
+                  type="button"
+                  onclick="submitOpinionFromTop()" 
+                  class="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-opacity-90 transition"
+                >
+                  <i class="fas fa-paper-plane mr-1"></i>
+                  質問を送信
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 過去の質問と回答 -->
+          <div class="mt-6">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">
+              <i class="fas fa-history mr-2" style="color: var(--color-primary)"></i>
+              過去の質問と回答
+            </h4>
+            ${userOpinions.length > 0 ? renderOpinionHistory() : `
+              <div class="text-center py-8">
+                <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-inbox text-4xl text-gray-300"></i>
+                </div>
+                <p class="text-gray-500 text-sm">まだ質問・相談を投稿していません</p>
+              </div>
+            `}
           </div>
         </div>
       </div>
@@ -437,37 +553,106 @@ function renderFeaturesSection() {
   return `
     <section id="features" class="bg-white py-16">
       <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">AIパーソナルジムの特徴</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
-            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
-              <i class="fas fa-robot text-3xl" style="color: var(--color-primary)"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-3">AI食事解析</h3>
-            <p class="text-gray-600">
-              写真を撮るだけでカロリーや栄養素を自動分析。面倒な入力作業は不要です。
-            </p>
-          </div>
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-4">ファディーの特徴</h2>
+          <p class="text-center text-gray-600 mb-12">最新のAI技術とプロのトレーナーが、あなたの健康目標達成を強力にサポート</p>
           
-          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
-            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
-              <i class="fas fa-user-nurse text-3xl" style="color: var(--color-primary)"></i>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- AI食事解析 -->
+            <div class="card-hover p-6 bg-gradient-to-br from-pink-50 to-white rounded-lg border border-pink-100">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-robot text-2xl" style="color: var(--color-primary)"></i>
+                </div>
+                <h3 class="text-lg font-bold">AI食事解析</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>写真1枚で自動カロリー計算</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>PFC（タンパク質・脂質・炭水化物）バランス解析</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>朝・昼・晩の食事パターン分析</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>栄養不足の自動検出とアラート</li>
+              </ul>
             </div>
-            <h3 class="text-xl font-bold mb-3">プロのアドバイス</h3>
-            <p class="text-gray-600">
-              経験豊富なトレーナーと栄養士があなたのデータを分析し、個別アドバイスを提供。
-            </p>
-          </div>
-          
-          <div class="card-hover text-center p-8 bg-gray-50 rounded-lg">
-            <div class="w-16 h-16 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
-              <i class="fas fa-chart-line text-3xl" style="color: var(--color-primary)"></i>
+            
+            <!-- プロのアドバイス -->
+            <div class="card-hover p-6 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-100">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-blue-500 bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-user-nurse text-2xl text-blue-500"></i>
+                </div>
+                <h3 class="text-lg font-bold">プロのアドバイス</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>国家資格保持トレーナーが個別対応</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>週1回の詳細フィードバック</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>運動メニューのカスタマイズ提案</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>目標達成までの具体的ロードマップ作成</li>
+              </ul>
             </div>
-            <h3 class="text-xl font-bold mb-3">詳細な分析</h3>
-            <p class="text-gray-600">
-              体重・体脂肪率・食事の推移をグラフで可視化。目標達成をサポートします。
-            </p>
+            
+            <!-- 詳細な分析 -->
+            <div class="card-hover p-6 bg-gradient-to-br from-green-50 to-white rounded-lg border border-green-100">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-green-500 bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-chart-line text-2xl text-green-500"></i>
+                </div>
+                <h3 class="text-lg font-bold">詳細な分析</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>体重・体脂肪率の推移グラフ</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>睡眠時間と体調の相関分析</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>カロリー摂取と消費のバランス可視化</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>月次レポートで進捗確認</li>
+              </ul>
+            </div>
+            
+            <!-- 24時間記録 -->
+            <div class="card-hover p-6 bg-gradient-to-br from-purple-50 to-white rounded-lg border border-purple-100">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-purple-500 bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-clock text-2xl text-purple-500"></i>
+                </div>
+                <h3 class="text-lg font-bold">24時間記録</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>いつでもどこでも記録可能</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>スマホ・PC・タブレット対応</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>通知機能で記録忘れ防止</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>データは自動バックアップで安心</li>
+              </ul>
+            </div>
+            
+            <!-- モチベーション管理 -->
+            <div class="card-hover p-6 bg-gradient-to-br from-yellow-50 to-white rounded-lg border border-yellow-100">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-yellow-500 bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-trophy text-2xl text-yellow-500"></i>
+                </div>
+                <h3 class="text-lg font-bold">モチベーション管理</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>目標達成でバッジ獲得</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>継続記録でポイント貯まる</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>同じ目標の仲間と励まし合い</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>小さな成功を可視化して自信UP</li>
+              </ul>
+            </div>
+            
+            <!-- セキュリティ -->
+            <div class="card-hover p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 bg-gray-500 bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-shield-alt text-2xl text-gray-600"></i>
+                </div>
+                <h3 class="text-lg font-bold">安心のセキュリティ</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li><i class="fas fa-check text-green-500 mr-2"></i>個人情報は厳重に暗号化</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>プライバシーポリシー完備</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>医療機関レベルのセキュリティ</li>
+                <li><i class="fas fa-check text-green-500 mr-2"></i>いつでもデータ削除可能</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -499,20 +684,58 @@ function renderFAQSection() {
   return `
     <section id="faq" class="bg-gray-50 py-16">
       <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">よくある質問</h2>
-        
-        <div class="max-w-3xl mx-auto space-y-4">
-          ${faqs.map((faq, index) => `
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-              <button onclick="toggleAccordion(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition">
-                <span class="font-bold text-lg">${faq.question}</span>
-                <i class="fas fa-chevron-down accordion-icon transition-transform" style="color: var(--color-primary)"></i>
-              </button>
-              <div class="accordion-content px-6 pb-4">
-                <p class="text-gray-600">${faq.answer}</p>
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-12">よくある質問</h2>
+          
+          <div class="space-y-3">
+            ${faqs.map((faq, index) => `
+              <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <button onclick="toggleAccordion(this)" class="w-full px-5 py-3 text-left flex justify-between items-center hover:bg-gray-50 transition">
+                  <span class="font-bold text-base">${faq.question}</span>
+                  <i class="fas fa-chevron-down accordion-icon transition-transform text-sm" style="color: var(--color-primary)"></i>
+                </button>
+                <div class="accordion-content" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;">
+                  <div class="px-5 pb-3">
+                    <p class="text-sm text-gray-600">${faq.answer}</p>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// AIパーソナルジム紹介セクション
+function renderGymIntroSection() {
+  return `
+    <section class="bg-gradient-to-br from-pink-50 to-purple-50 py-16">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=500&fit=crop" 
+              alt="AIパーソナルジム" 
+              class="w-full h-80 object-cover rounded-xl shadow-lg mb-6">
+            <div class="grid grid-cols-3 gap-4">
+              <div class="bg-gradient-to-br from-pink-50 to-white p-4 rounded-lg text-center shadow-sm border border-pink-100">
+                <div class="text-3xl font-bold text-primary mb-2">AI</div>
+                <div class="text-sm text-gray-700 font-medium">食事解析</div>
+                <div class="text-xs text-gray-500 mt-1">写真で自動分析</div>
+              </div>
+              <div class="bg-gradient-to-br from-blue-50 to-white p-4 rounded-lg text-center shadow-sm border border-blue-100">
+                <div class="text-3xl font-bold text-primary mb-2">24h</div>
+                <div class="text-sm text-gray-700 font-medium">記録可能</div>
+                <div class="text-xs text-gray-500 mt-1">いつでもどこでも</div>
+              </div>
+              <div class="bg-gradient-to-br from-purple-50 to-white p-4 rounded-lg text-center shadow-sm border border-purple-100">
+                <div class="text-3xl font-bold text-primary mb-2">PRO</div>
+                <div class="text-sm text-gray-700 font-medium">トレーナー</div>
+                <div class="text-xs text-gray-500 mt-1">専門家サポート</div>
               </div>
             </div>
-          `).join('')}
+          </div>
         </div>
       </div>
     </section>
@@ -596,6 +819,34 @@ function setupEventListeners() {
   }
 }
 
+// 体調評価選択ハンドラー
+function selectConditionRating(rating) {
+  const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
+  const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
+  
+  // すべての評価ボタンを更新
+  for (let i = 1; i <= 5; i++) {
+    const radio = document.getElementById(`condition-rating-${i}`);
+    const label = document.getElementById(`condition-rating-label-${i}`);
+    const icon = document.getElementById(`condition-rating-icon-${i}`);
+    const text = document.getElementById(`condition-rating-text-${i}`);
+    
+    if (i === rating) {
+      // 選択された評価
+      radio.checked = true;
+      label.className = 'flex flex-col items-center p-3 rounded-lg transition bg-white shadow-md';
+      icon.className = `fas ${icons[i-1]} text-3xl ${colors[i-1]} mb-1`;
+      text.className = 'text-xs font-medium text-gray-800';
+    } else {
+      // 選択されていない評価
+      radio.checked = false;
+      label.className = 'flex flex-col items-center p-3 rounded-lg transition hover:bg-white hover:bg-opacity-50';
+      icon.className = `fas ${icons[i-1]} text-3xl text-gray-400 mb-1`;
+      text.className = 'text-xs font-medium text-gray-500';
+    }
+  }
+}
+
 // 健康ログ送信
 async function handleHealthLogSubmit(e) {
   e.preventDefault();
@@ -615,6 +866,7 @@ async function handleHealthLogSubmit(e) {
     body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
     sleep_hours: formData.get('sleep_hours') ? parseFloat(formData.get('sleep_hours')) : null,
     exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
+    condition_rating: formData.get('condition_rating') ? parseInt(formData.get('condition_rating')) : 3,
     condition_note: formData.get('condition_note') || null,
     // 食事データ
     meal_calories: totalCalories || null,
@@ -1184,4 +1436,199 @@ function getAdviceColor(type) {
 
 function toggleMobileMenu() {
   showToast('モバイルメニューは今後実装予定です', 'info');
+}
+
+// お知らせ取得
+async function loadAnnouncements() {
+  try {
+    const response = await apiCall('/api/announcements');
+    if (response.success) {
+      announcements = response.data.slice(0, 2); // 最新2件のみ
+    }
+  } catch (error) {
+    console.error('お知らせの取得に失敗:', error);
+  }
+}
+
+// お知らせセクション（小さく表示）
+function renderAnnouncementsSection() {
+  if (announcements.length === 0) return '';
+  
+  return `
+    <section class="bg-white py-4">
+      <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-bullhorn text-primary text-sm"></i>
+            <h3 class="text-sm font-bold text-gray-800">お知らせ</h3>
+          </div>
+          
+          <div class="space-y-2">
+            ${announcements.map(announcement => `
+              <div class="flex gap-2 items-start bg-gray-50 p-2 rounded hover:bg-gray-100 transition cursor-pointer"
+                   onclick="showAnnouncementDetail(${announcement.id})">
+                ${announcement.image_url ? `
+                  <img src="${announcement.image_url}" alt="${announcement.title}" 
+                    class="w-12 h-12 object-cover rounded flex-shrink-0">
+                ` : ''}
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-xs font-bold text-gray-800 truncate">${announcement.title}</h4>
+                  <p class="text-xs text-gray-600 line-clamp-2 leading-tight">${announcement.content}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// お知らせ詳細モーダル
+function showAnnouncementDetail(id) {
+  const announcement = announcements.find(a => a.id === id);
+  if (!announcement) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-5 max-w-2xl">
+      <div class="flex justify-between items-start mb-3">
+        <h3 class="text-lg font-bold">${announcement.title}</h3>
+        <button onclick="this.closest('.modal-backdrop').remove()" 
+          class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      ${announcement.image_url ? `
+        <img src="${announcement.image_url}" alt="${announcement.title}" 
+          class="w-full max-h-64 object-cover rounded-lg mb-3">
+      ` : ''}
+      
+      <p class="text-sm text-gray-700 whitespace-pre-wrap">${announcement.content}</p>
+      
+      <div class="mt-4 text-xs text-gray-500 text-right">
+        ${formatDateTime(announcement.published_at)}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// スタッフコメント取得（最新1件）
+async function loadLatestStaffComment() {
+  try {
+    const response = await apiCall(`/api/comments/user/${currentUser.id}`);
+    if (response.success && response.data.length > 0) {
+      latestStaffComment = response.data[0]; // 最新の1件のみ
+    }
+  } catch (error) {
+    console.error('スタッフコメントの取得に失敗:', error);
+  }
+}
+
+// ユーザーのオピニオンをロード
+async function loadUserOpinions() {
+  try {
+    const response = await apiCall(`/api/opinions/user/${currentUser.id}`);
+    if (response.success) {
+      userOpinions = response.data;
+    }
+  } catch (error) {
+    console.error('オピニオンの取得に失敗:', error);
+  }
+}
+
+// オピニオン履歴レンダリング
+function renderOpinionHistory() {
+  const pendingOpinions = userOpinions.filter(op => op.status === 'pending');
+  const answeredOpinions = userOpinions.filter(op => op.status === 'answered');
+  
+  // 全ての質問を時系列で表示（未回答と回答済みを混ぜて表示）
+  const allOpinions = [...userOpinions].sort((a, b) => 
+    new Date(b.created_at) - new Date(a.created_at)
+  );
+  
+  return `
+    <div class="space-y-4">
+      ${allOpinions.slice(0, 5).map(opinion => {
+        const isPending = opinion.status === 'pending';
+        return `
+          <div class="bg-gray-50 p-4 rounded-lg border ${isPending ? 'border-orange-300' : 'border-green-300'}">
+            <!-- 質問部分 -->
+            <div class="mb-3">
+              <div class="flex justify-between items-start mb-2">
+                <span class="text-xs text-gray-500">
+                  <i class="fas fa-clock mr-1"></i>${formatDateTime(opinion.created_at)}
+                </span>
+                <span class="px-2 py-1 text-xs rounded ${isPending ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">
+                  ${isPending ? '回答待ち' : '回答済み'}
+                </span>
+              </div>
+              <div class="bg-white p-3 rounded border border-gray-200">
+                <p class="text-sm text-gray-800">${opinion.question}</p>
+              </div>
+            </div>
+            
+            <!-- 回答部分 -->
+            ${!isPending ? `
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <i class="fas fa-user-nurse text-blue-600 text-sm"></i>
+                  <span class="text-sm font-medium text-blue-700">${opinion.answered_by}</span>
+                  <span class="text-xs text-gray-500">• ${formatDateTime(opinion.answered_at)}</span>
+                </div>
+                <p class="text-sm text-gray-700 whitespace-pre-wrap">${opinion.answer}</p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('')}
+      
+      ${allOpinions.length > 5 ? `
+        <div class="text-center">
+          <a href="/mypage" class="inline-block px-4 py-2 text-sm text-primary hover:underline">
+            <i class="fas fa-list mr-1"></i>
+            すべての質問を見る（${allOpinions.length}件）
+          </a>
+        </div>
+      ` : allOpinions.length > 0 ? `
+        <div class="text-center">
+          <a href="/mypage" class="inline-block px-4 py-2 text-sm text-primary hover:underline">
+            <i class="fas fa-list mr-1"></i>
+            マイページで詳細を確認
+          </a>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// トップページからオピニオン送信
+async function submitOpinionFromTop() {
+  const questionElement = document.getElementById('opinion-question-top');
+  const question = questionElement.value.trim();
+  
+  if (!question) {
+    showToast('質問を入力してください', 'warning');
+    return;
+  }
+  
+  try {
+    const response = await apiCall('/api/opinions', {
+      method: 'POST',
+      data: { question }
+    });
+    
+    if (response.success) {
+      showToast('質問を送信しました', 'success');
+      questionElement.value = '';
+      await loadUserOpinions();
+      renderPage();
+    }
+  } catch (error) {
+    showToast('送信に失敗しました', 'error');
+  }
 }
