@@ -1,401 +1,384 @@
-# FURDI 彦根 - AIパーソナルジムシステム
+# ファディー彦根 - AIパーソナルジムシステム
 
 ## プロジェクト概要
 
-**プロジェクト名**: FURDI 彦根  
-**プロジェクト目標**: AIとスタッフが寄り添う、新しいパーソナルジム体験を提供するWebアプリケーション  
-**技術スタック**: Hono + TypeScript + Cloudflare Pages + D1 Database
+**ファディー彦根**は、AIとスタッフが連携してユーザーの健康管理をサポートする次世代型パーソナルジムシステムです。
 
-## 主要機能
+### 主な特徴
 
-### ✅ 完成済み機能
+- 🤖 **AI自動解析** - 食事写真から栄養バランスとカロリーを推定
+- 👥 **専門スタッフアドバイス** - トレーナーや栄養士が個別にサポート
+- 📊 **データ可視化** - 体重・体脂肪率の変化をグラフで管理
+- 🔐 **外部認証対応** - Google・LINE連携ログイン
+- ⚡ **エッジコンピューティング** - Cloudflare Pages/Workersで高速配信
 
-1. **トップページ (/)** 
-   - HEROセクション（グラデーション背景、ブランディング）
-   - スタッフからのアドバイス表示（最新3件、未読管理）
-   - 健康ログ入力フォーム（体重、体脂肪率、体調、食事、運動、睡眠、水分）
-   - 食事写真アップロード機能（AI解析準備完了）
-   - AIパーソナルジムの特長セクション（3つの主要機能紹介）
-   - FAQアコーディオン（5つの質問）
-   - 問い合わせフォーム（名前、メール、電話、件名、メッセージ）
+## 公開URL
 
-2. **認証機能 (/api/auth)**
-   - ユーザー登録（メール、パスワード、名前、電話番号）
-   - ログイン（セッションCookie管理）
-   - ログアウト
-   - 認証状態確認
+### 開発環境（サンドボックス）
+- **トップページ**: https://3000-i48axlepfz387nht5ffrx-5c13a017.sandbox.novita.ai
+- **マイページ**: https://3000-i48axlepfz387nht5ffrx-5c13a017.sandbox.novita.ai/mypage
+- **管理画面**: https://3000-i48axlepfz387nht5ffrx-5c13a017.sandbox.novita.ai/admin
 
-3. **マイページ (/mypage)**
-   - ユーザーダッシュボード
-   - 最新のスタッフアドバイス表示
-   - 7日間の統計サマリー（体重変化、平均運動時間、睡眠時間、水分摂取）
-   - 健康ログ履歴（横スライド表形式）
-     - 日付、体重、体重変化、体脂肪率、体脂肪変化、体調レベル、運動、睡眠、水分、食事記録
-     - 行クリックで詳細モーダル表示
-   - AI進捗分析ボタン（7-14日間のデータ分析）
+### テストアカウント
 
-4. **管理画面 (/admin)** - 管理者専用
-   - ダッシュボード統計（総会員数、今日のアクティブ、総ログ数、未対応問合せ）
-   - 会員管理テーブル
-     - 検索機能（名前、メール、電話番号）
-     - ステータス表示（アクティブ/休止中）
-     - 最終ログ日付表示
-   - ユーザー詳細モーダル
-     - アドバイス送信フォーム（タイプ、トレーナー名、内容）
-     - 健康ログアコーディオン（日付ごとに展開可能）
-     - ログ編集機能（全フィールド編集可能）
-     - アドバイス履歴（既読/未読表示）
+**一般ユーザー:**
+- Email: user1@example.com (山田花子)
+- Email: user2@example.com (佐藤太郎)
 
-5. **API エンドポイント**
-   - `/api/auth/*` - 認証（ログイン、登録、ログアウト、現在のユーザー取得）
-   - `/api/logs/*` - 健康ログ（CRUD操作）
-   - `/api/advice/*` - スタッフアドバイス（取得、既読管理、作成、更新、削除）
-   - `/api/admin/*` - 管理機能（統計、ユーザー一覧、ログ編集、問合せ管理）
-   - `/api/inquiry` - 問い合わせ送信
-   - `/api/ai/*` - AI分析（食事分析、進捗分析）
+**管理者:**
+- Email: admin@furdi-hikone.jp
 
-6. **データベース設計 (Cloudflare D1)**
-   - **users** テーブル: ユーザー情報、管理者フラグ
-   - **health_logs** テーブル: 健康ログ（体重、体脂肪、食事、運動、睡眠など）
-   - **staff_advice** テーブル: スタッフアドバイス（タイプ、既読状態）
-   - **ai_analysis** テーブル: AI分析結果
-   - **inquiries** テーブル: 問い合わせ（ステータス管理）
+※ 認証はGoogle/LINE OAuthで行いますが、開発環境ではシードデータのユーザーが登録済みです。
 
-7. **統一UIテーマシステム**
-   - CSS変数ベースのテーマ（全ページで一括変更可能）
-   - プライマリカラー: #FF6B9D（ピンク）
-   - セカンダリカラー: #4A90E2（ブルー）
-   - レスポンシブデザイン対応
-   - アニメーション、スピナー、アラートコンポーネント
+## 技術スタック
 
-## データモデル
+### バックエンド
+- **Hono** - 軽量高速Webフレームワーク
+- **Cloudflare Workers** - エッジランタイム
+- **D1 Database** - SQLiteベースの分散データベース
+- **Web Crypto API** - JWT認証（Node.js非依存）
 
-### ユーザー (users)
-```
-- id (主キー)
-- email (ユニーク)
-- password_hash
-- name
-- phone
-- is_admin (0/1)
-- created_at
-- updated_at
+### フロントエンド
+- **Vanilla JavaScript** - フレームワークレス
+- **TailwindCSS** - ユーティリティファーストCSS
+- **Chart.js** - グラフ描画
+- **Axios** - HTTPクライアント
+- **Day.js** - 日付処理
+
+### インフラ
+- **Cloudflare Pages** - 静的サイトホスティング
+- **Cloudflare R2** - オブジェクトストレージ（画像保存）
+- **PM2** - プロセスマネージャー（開発環境）
+
+## データ構造
+
+### データベーステーブル
+
+#### 1. users（ユーザー）
+```sql
+- id: INTEGER PRIMARY KEY
+- email: TEXT UNIQUE
+- name: TEXT
+- provider: TEXT (google/line)
+- provider_id: TEXT
+- role: TEXT (user/admin)
+- avatar_url: TEXT
+- created_at: DATETIME
+- updated_at: DATETIME
 ```
 
-### 健康ログ (health_logs)
-```
-- id (主キー)
-- user_id (外部キー)
-- log_date (日付)
-- weight (体重)
-- body_fat_percentage (体脂肪率)
-- condition_level (体調レベル 1-5)
-- condition_notes (体調メモ)
-- meal_breakfast, meal_lunch, meal_dinner, meal_snacks
-- meal_photo_url (食事写真URL)
-- exercise_minutes (運動時間)
-- sleep_hours (睡眠時間)
-- water_intake_ml (水分摂取量)
-- created_at
-- updated_at
-```
-
-### スタッフアドバイス (staff_advice)
-```
-- id (主キー)
-- user_id (外部キー)
-- advice_date (日付)
-- advice_text (アドバイス内容)
-- staff_name (トレーナー名)
-- advice_type (general/nutrition/exercise/motivation)
-- is_read (既読フラグ)
-- created_at
+#### 2. health_logs（健康ログ）
+```sql
+- id: INTEGER PRIMARY KEY
+- user_id: INTEGER FK
+- log_date: DATE
+- weight: REAL
+- body_fat_percentage: REAL
+- muscle_mass: REAL
+- meal_type: TEXT
+- meal_description: TEXT
+- meal_image_url: TEXT
+- exercise_type: TEXT
+- exercise_duration: INTEGER
+- sleep_hours: REAL
+- mood: TEXT
+- notes: TEXT
+- ai_analysis: TEXT
+- created_at: DATETIME
 ```
 
-## デプロイ手順
+#### 3. staff_advices（スタッフアドバイス）
+```sql
+- id: INTEGER PRIMARY KEY
+- user_id: INTEGER FK
+- staff_name: TEXT
+- advice_text: TEXT
+- advice_type: TEXT (diet/exercise/lifestyle/general)
+- is_read: BOOLEAN
+- created_at: DATETIME
+```
+
+#### 4. inquiries（問い合わせ）
+```sql
+- id: INTEGER PRIMARY KEY
+- user_id: INTEGER FK (nullable)
+- name: TEXT
+- email: TEXT
+- phone: TEXT
+- subject: TEXT
+- message: TEXT
+- status: TEXT (pending/in_progress/resolved)
+- created_at: DATETIME
+```
+
+## 機能一覧
+
+### ✅ 実装済み機能
+
+#### トップページ
+- ✅ Heroセクション（サービス紹介）
+- ✅ スタッフアドバイス表示（ログインユーザーのみ）
+- ✅ 健康ログ入力フォーム
+  - 体重・体脂肪率・筋肉量
+  - 食事情報（種類・内容・写真アップロード）
+  - 運動情報（種類・時間）
+  - 睡眠時間・気分・メモ
+- ✅ 写真アップロード & AI解析（モック）
+- ✅ AIパーソナルジムの良さ紹介
+- ✅ FAQ（アコーディオン）
+- ✅ 問い合わせフォーム
+
+#### 認証機能
+- ✅ Google OAuth ログイン
+- ✅ LINE OAuth ログイン
+- ✅ JWT トークン認証
+- ✅ 自動ログイン（ローカルストレージ）
+
+#### マイページ
+- ✅ ユーザー情報表示
+- ✅ 最新のスタッフアドバイス表示
+- ✅ 体重・体脂肪率推移グラフ（Chart.js）
+- ✅ 健康ログ履歴（横スクロールテーブル）
+
+#### 管理画面（管理者のみ）
+- ✅ 統計ダッシュボード
+  - 総ユーザー数
+  - 未対応の問い合わせ数
+  - 対応中の問い合わせ数
+- ✅ ユーザー管理
+  - 全ユーザー一覧表示
+  - ユーザー検索機能
+  - ユーザー別健康ログ表示（アコーディオン）
+  - スタッフアドバイス送信
+- ✅ 問い合わせ管理
+  - 全問い合わせ一覧
+  - ステータス変更（未対応/対応中/解決済み）
+  - 問い合わせ詳細表示（モーダル）
+
+#### UI/UX
+- ✅ 統一テーマシステム（CSS変数）
+- ✅ ローディングスピナー（全API呼び出し）
+- ✅ レスポンシブデザイン
+- ✅ アコーディオン・モーダル
+- ✅ タブ切り替え（管理画面）
+
+### ⚠️ 未実装機能（本番環境で必要）
+
+1. **Google OAuth設定**
+   - Google Cloud ConsoleでOAuth 2.0クライアントID発行
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` を環境変数に設定
+
+2. **LINE OAuth設定**
+   - LINE DevelopersでLINE Loginチャネル作成
+   - `LINE_CHANNEL_ID`, `LINE_CHANNEL_SECRET` を環境変数に設定
+
+3. **R2バケット設定**
+   - Cloudflare R2バケット作成
+   - `wrangler.json`にバケット名設定
+   - 画像アップロード機能の有効化
+
+4. **実際のAI解析API統合**
+   - OpenAI Vision API、Google Gemini等と統合
+   - `src/routes/health-logs.ts`の`generateMockAnalysis`を置き換え
+
+5. **メール通知機能**
+   - SendGrid, Mailgun等と統合
+   - 問い合わせ受付通知、アドバイス通知
+
+6. **プッシュ通知**
+   - LINE Messaging API統合
+   - 新着アドバイス通知
+
+## 開発環境セットアップ
 
 ### 前提条件
-1. Cloudflare アカウント
-2. Cloudflare API トークン
+- Node.js 18+
+- npm または pnpm
+- Wrangler CLI
 
-### ローカル開発
+### インストール
 
 ```bash
-# 依存関係のインストール
+# リポジトリクローン
+git clone <repository-url>
+cd webapp
+
+# 依存関係インストール
 npm install
 
-# データベースマイグレーション（ローカル）
+# ローカルD1データベース初期化
 npm run db:migrate:local
 
-# テストデータの投入
+# テストデータ投入
 npm run db:seed
+```
 
+### 開発サーバー起動
+
+```bash
 # ビルド
 npm run build
 
-# 開発サーバー起動（ローカルD1使用）
+# PM2で開発サーバー起動（推奨）
+pm2 start ecosystem.config.cjs
+
+# または直接起動
 npm run dev:sandbox
-# または
-npx wrangler pages dev dist --d1=furdi-hikone-production --local --ip 0.0.0.0 --port 3000
 ```
 
-### 本番デプロイ
+### データベース操作
 
-#### 1. D1データベース作成
 ```bash
-# 本番用D1データベース作成
+# ローカルマイグレーション適用
+npm run db:migrate:local
+
+# 本番マイグレーション適用
+npm run db:migrate:prod
+
+# シードデータ投入
+npm run db:seed
+
+# データベースリセット
+npm run db:reset
+
+# ローカルD1コンソール
+npm run db:console:local
+```
+
+## 本番デプロイ
+
+### 1. Cloudflare API設定
+
+```bash
+# Cloudflare APIトークンを環境変数に設定
+export CLOUDFLARE_API_TOKEN="your-api-token"
+
+# または .dev.vars ファイルに記載
+echo "CLOUDFLARE_API_TOKEN=your-api-token" > .dev.vars
+```
+
+### 2. D1データベース作成
+
+```bash
+# 本番D1データベース作成
 npx wrangler d1 create furdi-hikone-production
 
-# 出力されたdatabase_idをwrangler.jsoncに設定
-# "database_id": "your-database-id-here"
+# wrangler.json に database_id を追加
+# 出力されたdatabase_idをコピーして設定
 ```
 
-#### 2. マイグレーション適用
+### 3. 環境変数設定
+
 ```bash
-# 本番DBにマイグレーション適用
-npm run db:migrate:prod
+# JWT秘密鍵
+npx wrangler pages secret put JWT_SECRET
+
+# Google OAuth
+npx wrangler pages secret put GOOGLE_CLIENT_ID
+npx wrangler pages secret put GOOGLE_CLIENT_SECRET
+
+# LINE OAuth
+npx wrangler pages secret put LINE_CHANNEL_ID
+npx wrangler pages secret put LINE_CHANNEL_SECRET
 ```
 
-#### 3. Cloudflare Pagesプロジェクト作成
-```bash
-# Pagesプロジェクト作成（mainブランチを本番として設定）
-npx wrangler pages project create furdi-hikone \
-  --production-branch main \
-  --compatibility-date 2024-01-01
-```
+### 4. デプロイ
 
-#### 4. デプロイ
 ```bash
-# ビルドしてデプロイ
+# ビルド & デプロイ
 npm run deploy
 
-# または手動で
+# または手動
 npm run build
 npx wrangler pages deploy dist --project-name furdi-hikone
 ```
-
-#### 5. 本番URL
-- **本番**: `https://random-id.furdi-hikone.pages.dev`
-- **ブランチ**: `https://main.furdi-hikone.pages.dev`
-
-### 環境変数設定
-
-本番環境でのシークレット設定:
-```bash
-# 必要に応じて環境変数を設定
-npx wrangler pages secret put API_KEY --project-name furdi-hikone
-```
-
-## ユーザーガイド
-
-### 一般ユーザー
-
-1. **新規登録**
-   - トップページから「新規登録」ボタンをクリック
-   - 名前、メール、電話番号、パスワードを入力
-   - 自動的にログイン状態になります
-
-2. **ログイン**
-   - トップページから「ログイン」ボタンをクリック
-   - メールアドレスとパスワードを入力
-
-3. **健康ログ記録**
-   - トップページまたはマイページから入力フォームにアクセス
-   - 日付、体重、体脂肪率、体調レベルなどを入力
-   - 食事内容や写真もアップロード可能
-   - 「ログを保存」ボタンでデータを保存
-
-4. **マイページの確認**
-   - ログイン後、「マイページ」にアクセス
-   - 最新のスタッフアドバイスを確認
-   - 7日間の統計サマリーを確認
-   - 過去のログを横スクロール表で閲覧
-   - ログをクリックして詳細を確認
-
-5. **AI進捗分析**
-   - マイページの「AI進捗分析」ボタンをクリック
-   - 最大14日間のデータを基に自動分析
-   - 体重変化、運動量、睡眠、水分摂取の傾向を確認
-   - 改善アドバイスを受け取る
-
-### 管理者（スタッフ）
-
-**テスト管理者アカウント**:
-- メール: `admin@furdi-hikone.jp`
-- パスワード: `admin123`
-
-1. **管理画面アクセス**
-   - ログイン後、ヘッダーの「管理画面」ボタンをクリック
-   - ダッシュボード統計を確認
-
-2. **会員管理**
-   - 検索ボックスで会員を検索
-   - 会員の行をクリックして詳細を表示
-
-3. **アドバイス送信**
-   - ユーザー詳細モーダルを開く
-   - アドバイスフォームに入力
-     - アドバイスタイプ（一般/栄養/運動/モチベーション）
-     - トレーナー名
-     - アドバイス内容
-   - 「送信」ボタンでアドバイスを送信
-
-4. **ログ編集**
-   - ユーザー詳細モーダルのログアコーディオンを展開
-   - 「編集」ボタンをクリック
-   - すべてのフィールドを編集可能
-   - 「保存」ボタンで更新
 
 ## プロジェクト構造
 
 ```
 webapp/
 ├── src/
-│   ├── index.tsx                 # メインアプリケーション
-│   ├── types.ts                  # TypeScript型定義
-│   ├── utils/
-│   │   └── auth.ts               # 認証ユーティリティ
+│   ├── index.tsx              # メインアプリケーション
+│   ├── renderer.tsx           # JSXレンダラー
+│   ├── types/
+│   │   └── index.ts           # TypeScript型定義
+│   ├── lib/
+│   │   ├── jwt.ts             # JWT認証ライブラリ
+│   │   ├── auth.ts            # OAuth認証ヘルパー
+│   │   └── db.ts              # データベースヘルパー
 │   └── routes/
-│       ├── auth.ts               # 認証API
-│       ├── logs.ts               # 健康ログAPI
-│       ├── advice.ts             # アドバイスAPI
-│       ├── admin.ts              # 管理API
-│       ├── inquiry.ts            # 問い合わせAPI
-│       └── ai.ts                 # AI分析API
-├── public/
-│   └── static/
-│       ├── theme.css             # 統一UIテーマ
-│       ├── app.js                # トップページJS
-│       ├── mypage.js             # マイページJS
-│       └── admin.js              # 管理画面JS
+│       ├── auth.ts            # 認証APIルート
+│       ├── health-logs.ts     # 健康ログAPIルート
+│       ├── advices.ts         # アドバイスAPIルート
+│       ├── inquiries.ts       # 問い合わせAPIルート
+│       └── admin.ts           # 管理者APIルート
+├── public/static/
+│   ├── styles.css             # 共通スタイルシート
+│   ├── app.js                 # トップページJS
+│   ├── mypage.js              # マイページJS
+│   └── admin.js               # 管理画面JS
 ├── migrations/
-│   └── 0001_initial_schema.sql  # D1マイグレーション
-├── seed.sql                      # テストデータ
-├── ecosystem.config.cjs          # PM2設定
-├── wrangler.jsonc                # Cloudflare設定
-├── package.json                  # 依存関係とスクリプト
-├── tsconfig.json                 # TypeScript設定
-├── vite.config.ts                # Vite設定
-└── README.md                     # このファイル
+│   └── 0001_initial_schema.sql # D1マイグレーション
+├── seed.sql                   # テストデータ
+├── wrangler.json              # Cloudflare設定
+├── ecosystem.config.cjs       # PM2設定
+├── vite.config.ts             # Viteビルド設定
+├── package.json               # 依存関係・スクリプト
+└── README.md                  # このファイル
 ```
 
-## 技術仕様
+## API エンドポイント
 
-### フロントエンド
-- **フレームワーク**: Vanilla JavaScript（CDN経由）
-- **スタイリング**: CSS変数ベースの統一テーマ
-- **HTTPクライアント**: Axios (CDN)
-- **アイコン**: Font Awesome 6.4.0
+### 認証 (`/api/auth`)
+- `GET /api/auth/google` - Google OAuth開始
+- `GET /api/auth/google/callback` - Googleコールバック
+- `GET /api/auth/line` - LINE OAuth開始
+- `GET /api/auth/line/callback` - LINEコールバック
+- `GET /api/auth/me` - 現在のユーザー情報取得
 
-### バックエンド
-- **フレームワーク**: Hono 4.x
-- **ランタイム**: Cloudflare Workers
-- **言語**: TypeScript
-- **データベース**: Cloudflare D1 (SQLite)
-- **AI**: Cloudflare AI (Workers AI)
+### 健康ログ (`/api/health-logs`) ※要認証
+- `GET /api/health-logs` - ログ一覧取得
+- `POST /api/health-logs` - ログ作成
+- `PUT /api/health-logs/:id` - ログ更新
+- `POST /api/health-logs/upload-image` - 写真アップロード&AI解析
 
-### デプロイ
-- **プラットフォーム**: Cloudflare Pages
-- **ビルドツール**: Vite
-- **CDN**: Cloudflare Global Network
+### アドバイス (`/api/advices`) ※要認証
+- `GET /api/advices` - アドバイス一覧取得
+- `POST /api/advices/:id/read` - アドバイス既読マーク
 
-## 開発中の機能
+### 問い合わせ (`/api/inquiries`)
+- `POST /api/inquiries` - 問い合わせ作成
 
-### 今後の実装予定
+### 管理者 (`/api/admin`) ※要管理者権限
+- `GET /api/admin/users` - 全ユーザー取得
+- `GET /api/admin/users/:userId/logs` - ユーザー別ログ取得
+- `POST /api/admin/advices` - アドバイス作成
+- `GET /api/admin/inquiries` - 全問い合わせ取得
+- `PUT /api/admin/inquiries/:id/status` - 問い合わせステータス更新
 
-1. **画像AI解析**
-   - 食事写真の自動栄養分析
-   - カロリー推定
-   - 栄養素バランス評価
+## 推奨される次のステップ
 
-2. **データ可視化**
-   - グラフ表示（体重推移、体脂肪率推移）
-   - Chart.js統合
-   - 週次・月次レポート
-
-3. **通知機能**
-   - 新しいアドバイス通知
-   - ログ記録リマインダー
-   - 目標達成通知
-
-4. **目標設定機能**
-   - 目標体重設定
-   - 目標達成までの予測
-   - マイルストーン管理
-
-5. **エクスポート機能**
-   - ログデータのCSVエクスポート
-   - PDF レポート生成
-
-## トラブルシューティング
-
-### ローカル開発でエラーが発生する場合
-
-1. **D1マイグレーションエラー**
-   ```bash
-   # D1ローカルストレージをリセット
-   npm run db:reset
-   ```
-
-2. **ポート3000が使用中**
-   ```bash
-   # ポートをクリーンアップ
-   npm run clean-port
-   ```
-
-3. **ビルドエラー**
-   ```bash
-   # node_modulesを再インストール
-   rm -rf node_modules package-lock.json
-   npm install
-   ```
-
-### 本番環境のエラー
-
-1. **データベース接続エラー**
-   - wrangler.jsoncのdatabase_idを確認
-   - マイグレーションが適用されているか確認
-
-2. **認証エラー**
-   - Cloudflare API トークンの権限を確認
-   - D1とPages両方の権限が必要
-
-## テストアカウント
-
-開発・テスト用のアカウント（seed.sqlで作成）:
-
-- **管理者**:
-  - メール: `admin@furdi-hikone.jp`
-  - パスワード: `admin123`
-
-- **一般ユーザー1**:
-  - メール: `yamada@example.com`
-  - パスワード: `user123`
-
-- **一般ユーザー2**:
-  - メール: `tanaka@example.com`
-  - パスワード: `user123`
-
-- **一般ユーザー3**:
-  - メール: `suzuki@example.com`
-  - パスワード: `user123`
-
-## デプロイ状況
-
-**現在のステータス**: ⏳ ローカル開発完了、本番デプロイ準備完了
-
-**次のステップ**:
-1. Cloudflare API トークンを設定
-2. D1データベースを作成してdatabase_idを取得
-3. wrangler.jsoncを更新
-4. マイグレーションを適用
-5. Cloudflare Pagesにデプロイ
+1. **Google/LINE OAuth設定** - 実際のOAuth認証を有効化
+2. **R2バケット統合** - 画像アップロード機能の完全実装
+3. **実際のAI API統合** - OpenAI VisionやGeminiで食事解析
+4. **メール通知機能** - SendGrid/Mailgun統合
+5. **LINE通知機能** - Messaging API統合
+6. **カスタムドメイン設定** - `furdi-hikone.jp`等
+7. **分析機能強化** - 栄養素トラッキング、目標設定
+8. **エクスポート機能** - CSV/PDFレポート生成
 
 ## ライセンス
 
-© 2024 FURDI Hikone. All rights reserved.
+Copyright © 2024 ファディー彦根. All rights reserved.
 
-## お問い合わせ
+## 開発者
 
-- 電話: 0749-00-0000
-- メール: info@furdi-hikone.jp
+- **Backend**: Hono + Cloudflare Workers
+- **Frontend**: Vanilla JS + TailwindCSS
+- **Database**: Cloudflare D1 (SQLite)
+- **Auth**: Google & LINE OAuth
+- **Deployment**: Cloudflare Pages
+
+---
+
+**最終更新日**: 2024-11-08
