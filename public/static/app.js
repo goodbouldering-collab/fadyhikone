@@ -5,6 +5,13 @@ let currentUser = null;
 let currentAdvices = [];
 let todayLog = null;
 
+// 食事記録データ
+let mealData = {
+  breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+  lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+  dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+};
+
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuth();
@@ -73,6 +80,7 @@ function renderPage() {
   const root = document.getElementById('root');
   root.innerHTML = `
     ${renderHeader()}
+    ${currentUser ? renderQuickAccessSection() : ''}
     ${renderHero()}
     ${currentUser ? renderAdviceSection() : ''}
     ${currentUser ? renderHealthLogSection() : ''}
@@ -120,6 +128,23 @@ function renderHeader() {
         </div>
       </div>
     </header>
+  `;
+}
+
+// クイックアクセスセクション
+function renderQuickAccessSection() {
+  return `
+    <section class="bg-gradient-to-r from-pink-500 to-orange-400 py-6">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-center">
+          <a href="/mypage" class="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-800 hover:bg-gray-100 rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg">
+            <i class="fas fa-user-circle text-2xl" style="color: var(--color-primary)"></i>
+            マイページを見る
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
   `;
 }
 
@@ -198,20 +223,21 @@ function renderHealthLogSection() {
   return `
     <section class="bg-gray-50 py-12">
       <div class="container mx-auto px-4">
-        <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
           <h3 class="text-2xl font-bold text-gray-800 mb-6">
             <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
             今日の健康ログ
           </h3>
           
           <form id="health-log-form" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 基本データ -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   <i class="fas fa-weight mr-1"></i> 体重 (kg)
                 </label>
                 <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
               </div>
               
               <div>
@@ -219,48 +245,162 @@ function renderHealthLogSection() {
                   <i class="fas fa-percentage mr-1"></i> 体脂肪率 (%)
                 </label>
                 <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
               </div>
               
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-thermometer-half mr-1"></i> 体温 (℃)
-                </label>
-                <input type="number" step="0.1" name="body_temperature" value="${todayLog?.body_temperature || ''}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-bed mr-1"></i> 睡眠時間 (時間)
+                  <i class="fas fa-bed mr-1"></i> 睡眠 (時間)
                 </label>
                 <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
               </div>
               
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-running mr-1"></i> 運動時間 (分)
+                  <i class="fas fa-running mr-1"></i> 運動 (分)
                 </label>
                 <input type="number" name="exercise_minutes" value="${todayLog?.exercise_minutes || ''}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
               </div>
             </div>
             
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-camera mr-1"></i> 食事写真
-              </label>
-              <div class="flex items-center gap-4">
-                <input type="file" id="meal-photo" accept="image/*" 
-                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                  onchange="previewImage(this, 'meal-preview')">
-                <button type="button" onclick="uploadMealPhoto()" class="px-6 py-2 bg-accent text-white hover:bg-opacity-90 rounded-lg transition">
-                  AI解析
-                </button>
+            <!-- 食事記録 -->
+            <div class="border-t pt-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-utensils mr-2" style="color: var(--color-accent)"></i>
+                食事記録
+              </h4>
+              
+              <!-- 朝食 -->
+              <div class="mb-6 bg-yellow-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between mb-3">
+                  <h5 class="font-bold text-gray-800">
+                    <i class="fas fa-sun mr-2 text-yellow-500"></i>朝食
+                  </h5>
+                  <button type="button" onclick="showMealModal('breakfast')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>写真追加
+                  </button>
+                </div>
+                <div id="breakfast-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
+                <div class="grid grid-cols-4 gap-2 text-sm">
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <input type="number" id="breakfast-calories" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <input type="number" id="breakfast-protein" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <input type="number" id="breakfast-fat" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <input type="number" id="breakfast-carbs" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                </div>
               </div>
-              <img id="meal-preview" class="mt-4 max-w-full h-48 object-cover rounded-lg hidden">
-              <div id="meal-analysis-result" class="mt-4"></div>
+              
+              <!-- 昼食 -->
+              <div class="mb-6 bg-orange-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between mb-3">
+                  <h5 class="font-bold text-gray-800">
+                    <i class="fas fa-cloud-sun mr-2 text-orange-500"></i>昼食
+                  </h5>
+                  <button type="button" onclick="showMealModal('lunch')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>写真追加
+                  </button>
+                </div>
+                <div id="lunch-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
+                <div class="grid grid-cols-4 gap-2 text-sm">
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <input type="number" id="lunch-calories" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <input type="number" id="lunch-protein" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <input type="number" id="lunch-fat" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <input type="number" id="lunch-carbs" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 夕食 -->
+              <div class="mb-6 bg-blue-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between mb-3">
+                  <h5 class="font-bold text-gray-800">
+                    <i class="fas fa-moon mr-2 text-blue-500"></i>夕食
+                  </h5>
+                  <button type="button" onclick="showMealModal('dinner')" class="text-sm px-4 py-1 bg-accent text-white rounded-lg hover:bg-opacity-90">
+                    <i class="fas fa-camera mr-1"></i>写真追加
+                  </button>
+                </div>
+                <div id="dinner-photos" class="grid grid-cols-3 gap-2 mb-3"></div>
+                <div class="grid grid-cols-4 gap-2 text-sm">
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">カロリー</label>
+                    <input type="number" id="dinner-calories" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">P (g)</label>
+                    <input type="number" id="dinner-protein" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">F (g)</label>
+                    <input type="number" id="dinner-fat" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">C (g)</label>
+                    <input type="number" id="dinner-carbs" readonly 
+                      class="w-full px-2 py-1 border rounded text-center bg-white">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 合計 -->
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <h5 class="font-bold text-gray-800 mb-3">
+                  <i class="fas fa-calculator mr-2" style="color: var(--color-primary)"></i>1日の合計
+                </h5>
+                <div class="grid grid-cols-4 gap-4">
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-primary" id="total-calories">0</div>
+                    <div class="text-xs text-gray-600">kcal</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="total-protein">0</div>
+                    <div class="text-xs text-gray-600">タンパク質 (g)</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-yellow-600" id="total-fat">0</div>
+                    <div class="text-xs text-gray-600">脂質 (g)</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="total-carbs">0</div>
+                    <div class="text-xs text-gray-600">炭水化物 (g)</div>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div>
@@ -277,6 +417,15 @@ function renderHealthLogSection() {
               保存する
             </button>
           </form>
+          
+          <!-- マイページへのリンク -->
+          <div class="mt-6 text-center">
+            <a href="/mypage" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
+              <i class="fas fa-chart-line"></i>
+              マイページで詳細を確認
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -452,6 +601,13 @@ async function handleHealthLogSubmit(e) {
   e.preventDefault();
   
   const formData = new FormData(e.target);
+  
+  // 合計栄養素を計算
+  const totalCalories = mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories;
+  const totalProtein = mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein;
+  const totalFat = mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat;
+  const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs;
+  
   const data = {
     log_date: dayjs().format('YYYY-MM-DD'),
     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
@@ -460,6 +616,12 @@ async function handleHealthLogSubmit(e) {
     sleep_hours: formData.get('sleep_hours') ? parseFloat(formData.get('sleep_hours')) : null,
     exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
     condition_note: formData.get('condition_note') || null,
+    // 食事データ
+    meal_calories: totalCalories || null,
+    meal_protein: totalProtein || null,
+    meal_carbs: totalCarbs || null,
+    meal_fat: totalFat || null,
+    meal_analysis: JSON.stringify(mealData) || null,
   };
   
   try {
@@ -479,13 +641,193 @@ async function handleHealthLogSubmit(e) {
     if (response.success) {
       showToast('健康ログを保存しました', 'success');
       todayLog = response.data;
+      
+      // 保存後にマイページへのリンクを表示
+      showModal(
+        '保存完了',
+        '健康ログを保存しました。マイページで詳細を確認しますか？',
+        () => {
+          window.location.href = '/mypage';
+        }
+      );
     }
   } catch (error) {
     showToast('保存に失敗しました', 'error');
   }
 }
 
-// 食事写真アップロード
+// 食事写真追加モーダル
+function showMealModal(mealType) {
+  const mealNames = {
+    breakfast: '朝食',
+    lunch: '昼食',
+    dinner: '夕食'
+  };
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-6 max-w-md">
+      <h3 class="text-xl font-bold mb-4">${mealNames[mealType]}の写真を追加</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">写真を選択（複数可）</label>
+          <input type="file" id="meal-photos-input" accept="image/*" multiple
+            class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        
+        <div id="preview-container" class="grid grid-cols-3 gap-2"></div>
+        
+        <div class="flex gap-3">
+          <button onclick="this.closest('.modal-backdrop').remove()" 
+            class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+            キャンセル
+          </button>
+          <button onclick="analyzeMealPhotos('${mealType}')" 
+            class="flex-1 px-4 py-2 bg-accent text-white hover:bg-opacity-90 rounded-lg">
+            <i class="fas fa-robot mr-1"></i>AI解析
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // ファイル選択時のプレビュー
+  document.getElementById('meal-photos-input').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    const previewContainer = document.getElementById('preview-container');
+    previewContainer.innerHTML = '';
+    
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target.result;
+        img.className = 'w-full h-24 object-cover rounded-lg';
+        previewContainer.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  };
+}
+
+// 食事写真をAI解析
+async function analyzeMealPhotos(mealType) {
+  const input = document.getElementById('meal-photos-input');
+  const files = Array.from(input.files);
+  
+  if (files.length === 0) {
+    showToast('写真を選択してください', 'warning');
+    return;
+  }
+  
+  try {
+    showLoading();
+    
+    // 各写真をアップロードして解析
+    const analyses = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('photo', file);
+      formData.append('log_date', dayjs().format('YYYY-MM-DD'));
+      formData.append('meal_type', mealType);
+      
+      const token = getToken();
+      const response = await axios.post('/api/health-logs/upload-meal', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+      
+      if (response.data.success) {
+        analyses.push(response.data.data.analysis);
+      }
+    }
+    
+    hideLoading();
+    
+    // 合計を計算
+    const total = analyses.reduce((acc, analysis) => {
+      return {
+        calories: acc.calories + (analysis.カロリー || 0),
+        protein: acc.protein + (analysis.タンパク質 || 0),
+        fat: acc.fat + (analysis.脂質 || 0),
+        carbs: acc.carbs + (analysis.炭水化物 || 0)
+      };
+    }, { calories: 0, protein: 0, fat: 0, carbs: 0 });
+    
+    // データを保存
+    mealData[mealType] = {
+      photos: analyses,
+      calories: total.calories,
+      protein: total.protein,
+      fat: total.fat,
+      carbs: total.carbs
+    };
+    
+    // UI更新
+    updateMealDisplay(mealType);
+    updateTotalNutrition();
+    
+    showToast(`${files.length}枚の写真を解析しました`, 'success');
+    document.querySelector('.modal-backdrop')?.remove();
+    
+  } catch (error) {
+    hideLoading();
+    showToast('解析に失敗しました', 'error');
+  }
+}
+
+// 食事表示を更新
+function updateMealDisplay(mealType) {
+  const data = mealData[mealType];
+  
+  // 写真表示
+  const photosContainer = document.getElementById(`${mealType}-photos`);
+  if (photosContainer && data.photos.length > 0) {
+    photosContainer.innerHTML = data.photos.map((analysis, index) => `
+      <div class="relative">
+        <div class="bg-green-100 border border-green-300 rounded-lg p-2 text-xs">
+          <div class="font-bold text-green-800">写真 ${index + 1}</div>
+          <div>${analysis.カロリー || 0} kcal</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // 栄養素表示
+  document.getElementById(`${mealType}-calories`).value = data.calories;
+  document.getElementById(`${mealType}-protein`).value = data.protein;
+  document.getElementById(`${mealType}-fat`).value = data.fat;
+  document.getElementById(`${mealType}-carbs`).value = data.carbs;
+}
+
+// 合計栄養素を更新
+function updateTotalNutrition() {
+  const total = {
+    calories: mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories,
+    protein: mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein,
+    fat: mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat,
+    carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs
+  };
+  
+  document.getElementById('total-calories').textContent = total.calories;
+  document.getElementById('total-protein').textContent = total.protein;
+  document.getElementById('total-fat').textContent = total.fat;
+  document.getElementById('total-carbs').textContent = total.carbs;
+}
+
+// 食事写真アップロード (旧関数 - 互換性のため残す)
 async function uploadMealPhoto() {
   const fileInput = document.getElementById('meal-photo');
   const file = fileInput.files[0];
