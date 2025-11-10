@@ -87,12 +87,13 @@ function renderHeader() {
           
           <nav class="flex items-center gap-4">
             ${currentUser ? `
+              <a href="/" class="text-sm px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition flex items-center gap-2">
+                <i class="fas fa-home"></i>
+                <span>ホーム</span>
+              </a>
               <span class="text-sm text-gray-600 hidden md:inline">
                 <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
               </span>
-              <a href="/mypage" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                <i class="fas fa-chart-line mr-1"></i>マイページ
-              </a>
               ${currentUser.role === 'admin' ? `
                 <a href="/admin" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
                   <i class="fas fa-user-shield mr-1"></i>管理画面
