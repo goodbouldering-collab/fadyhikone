@@ -253,40 +253,29 @@ function renderHealthLogSection() {
     <section class="bg-gray-50 py-12">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-gray-800">
-              <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
-              健康ログ
-            </h3>
-            
-            <!-- 日付選択 -->
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="changeLogDate(-1)" class="p-2 text-gray-600 hover:text-primary transition">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                <i class="fas fa-calendar-alt text-primary"></i>
-                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                  onchange="changeLogDateFromPicker(this.value)"
-                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
-              </div>
-              <button type="button" onclick="changeLogDate(1)" class="p-2 text-gray-600 hover:text-primary transition">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-              <button type="button" onclick="goToToday()" class="ml-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-                今日
-              </button>
-            </div>
-          </div>
+          <!-- タイトル（1行） -->
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
+            健康ログ
+          </h3>
           
-          <!-- 選択された日付の表示 -->
-          <div class="mb-6 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
-              <i class="fas fa-calendar-day text-primary"></i>
-              <span class="text-lg font-bold text-gray-800" id="selected-date-display">
-                ${formatDateDisplay(selectedDate || dayjs().format('YYYY-MM-DD'))}
-              </span>
+          <!-- 日付選択（タイトルの下） -->
+          <div class="flex items-center justify-center gap-2 mb-6">
+            <button type="button" onclick="changeLogDate(-1)" class="p-2 text-gray-600 hover:text-primary transition">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+              <i class="fas fa-calendar-alt text-primary"></i>
+              <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                onchange="changeLogDateFromPicker(this.value)"
+                class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
             </div>
+            <button type="button" onclick="changeLogDate(1)" class="p-2 text-gray-600 hover:text-primary transition">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button type="button" onclick="goToToday()" class="ml-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+              今日
+            </button>
           </div>
           
           <!-- スタッフコメント（最新1件） -->
