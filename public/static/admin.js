@@ -99,10 +99,6 @@ function renderHeader() {
           </div>
           
           <nav class="flex items-center gap-2">
-            <a href="/" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
-              <i class="fas fa-home"></i>
-              <span>ホーム</span>
-            </a>
             <a href="/mypage" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
               <i class="fas fa-chart-line"></i>
               <span>マイページ</span>
