@@ -85,28 +85,21 @@ function renderHeader() {
             <h1 class="text-xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-4">
-            ${currentUser ? `
-              <span class="text-sm text-gray-600 hidden md:inline">
-                <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
-              </span>
-              ${currentUser.role === 'admin' ? `
-                <a href="/admin" class="text-sm px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                  <i class="fas fa-user-shield mr-1"></i>管理画面
-                </a>
-              ` : ''}
-              <button onclick="logout()" class="text-sm px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
-                <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
-              </button>
-              <a href="/" class="text-sm px-4 py-2 bg-transparent border border-gray-300 text-gray-700 hover:border-primary hover:text-primary rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-home"></i>
-                <span>ホーム</span>
+          <nav class="flex items-center gap-2">
+            <a href="/" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
+              <i class="fas fa-home"></i>
+              <span>ホーム</span>
+            </a>
+            <a href="/mypage" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
+              <i class="fas fa-chart-line"></i>
+              <span>マイページ</span>
+            </a>
+            ${currentUser?.role === 'admin' ? `
+              <a href="/admin" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
+                <i class="fas fa-user-shield"></i>
+                <span>管理画面</span>
               </a>
-            ` : `
-              <button onclick="showLoginModal()" class="text-sm px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
-                <i class="fas fa-sign-in-alt mr-1"></i>ログイン
-              </button>
-            `}
+            ` : ''}
           </nav>
         </div>
       </div>
