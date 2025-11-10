@@ -86,8 +86,8 @@ function renderHeader() {
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-4">
             <a href="/" class="flex items-center gap-2">
-              <i class="fas fa-dumbbell text-2xl" style="color: var(--color-primary)"></i>
-              <h1 class="text-xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
+              <i class="fas fa-dumbbell text-lg" style="color: var(--color-primary)"></i>
+              <h1 class="text-lg font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
             </a>
             
             ${unprocessedOpinionCount > 0 ? `
