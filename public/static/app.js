@@ -133,41 +133,16 @@ function renderHeader() {
             <h1 class="text-xl font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-2 md:gap-4">
-            <!-- 外部リンク -->
-            <a href="https://furdi.jp/" target="_blank" rel="noopener noreferrer" 
-               class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition flex items-center gap-1"
-               title="ファディ本部公式サイト">
-              <i class="fas fa-home"></i>
-              <span class="hidden md:inline">本部</span>
-            </a>
-            <a href="https://furdi.jp/shop/hikone/" target="_blank" rel="noopener noreferrer" 
-               class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition flex items-center gap-1"
-               title="ファディ彦根店">
-              <i class="fas fa-map-marker-alt"></i>
-              <span class="hidden md:inline">彦根店</span>
-            </a>
-            
-            <div class="h-6 w-px bg-gray-300 hidden md:block"></div>
-            
+          <nav class="flex items-center gap-2">
             ${currentUser ? `
-              <span class="text-sm text-gray-600 hidden md:inline">
-                <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
-              </span>
-              <a href="/mypage" class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                <i class="fas fa-chart-line mr-1"></i><span class="hidden md:inline">マイページ</span>
-              </a>
-              ${currentUser.role === 'admin' ? `
-                <a href="/admin" class="text-xs md:text-sm px-2 md:px-3 py-1.5 text-gray-700 hover:text-primary transition">
-                  <i class="fas fa-user-shield mr-1"></i><span class="hidden md:inline">管理画面</span>
-                </a>
-              ` : ''}
-              <button onclick="logout()" class="text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
-                <i class="fas fa-sign-out-alt mr-1"></i><span class="hidden md:inline">ログアウト</span>
+              <button onclick="logout()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ログアウト</span>
               </button>
             ` : `
-              <button onclick="showLoginModal()" class="text-xs md:text-sm px-3 md:px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
-                <i class="fas fa-sign-in-alt mr-1"></i>ログイン
+              <button onclick="showLoginModal()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition flex items-center gap-2">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>ログイン</span>
               </button>
             `}
           </nav>
@@ -183,18 +158,6 @@ function renderHero() {
     <section class="gradient-bg text-white py-12">
       <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
-          <!-- 店舗情報（小さく表示） -->
-          <div class="flex justify-center gap-6 mb-6 text-xs opacity-80">
-            <div class="flex items-center gap-1">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>彦根店: 滋賀県彦根市○○町1-2-3</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <i class="fas fa-building"></i>
-              <span>本部: 滋賀県○○市△△町4-5-6</span>
-            </div>
-          </div>
-          
           <div class="text-center fade-in">
             <h2 class="text-4xl md:text-5xl font-bold mb-4">
               AIがサポートする<br>あなた専用の<br>パーソナルジム
