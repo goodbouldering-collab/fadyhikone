@@ -87,10 +87,6 @@ function renderHeader() {
           
           <nav class="flex items-center gap-4">
             ${currentUser ? `
-              <a href="/" class="text-sm px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-home"></i>
-                <span>ホーム</span>
-              </a>
               <span class="text-sm text-gray-600 hidden md:inline">
                 <i class="fas fa-user-circle mr-1"></i>${currentUser.name}
               </span>
@@ -102,6 +98,10 @@ function renderHeader() {
               <button onclick="logout()" class="text-sm px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded transition">
                 <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
               </button>
+              <a href="/" class="text-sm px-4 py-2 bg-transparent border border-gray-300 text-gray-700 hover:border-primary hover:text-primary rounded-lg transition flex items-center gap-2">
+                <i class="fas fa-home"></i>
+                <span>ホーム</span>
+              </a>
             ` : `
               <button onclick="showLoginModal()" class="text-sm px-4 py-1.5 bg-primary text-white hover:bg-opacity-90 rounded transition">
                 <i class="fas fa-sign-in-alt mr-1"></i>ログイン
