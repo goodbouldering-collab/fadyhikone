@@ -63,9 +63,9 @@ function renderPage() {
     ${renderHeader()}
     ${renderUserProfile()}
     ${renderAdvicesList()}
-    ${renderOpinionBox()}
-    ${renderHealthLogsTable()}
     ${renderChartsSection()}
+    ${renderHealthLogsTable()}
+    ${renderOpinionBox()}
   `;
   
   // グラフ描画
@@ -209,40 +209,40 @@ function renderAdvicesList() {
   `;
 }
 
-// オピニオンボックス（質疑応答）
+// オピニオンボックス（質疑応答）- コンパクト版
 function renderOpinionBox() {
   const pendingOpinions = opinions.filter(op => op.status === 'pending');
   const answeredOpinions = opinions.filter(op => op.status === 'answered');
   
   return `
-    <section class="bg-gradient-to-br from-purple-50 to-white py-8">
+    <section class="bg-gradient-to-br from-purple-50 to-white py-6">
       <div class="container mx-auto px-4">
         <div class="max-w-7xl mx-auto">
-          <h3 class="text-xl font-bold text-gray-800 mb-4">
+          <h3 class="text-lg font-bold text-gray-800 mb-3">
             <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
             オピニオンボックス（質問・相談）
           </h3>
           
           <!-- 質問フォーム -->
-          <div class="bg-white p-5 rounded-lg shadow-md mb-6">
-            <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-question text-primary"></i>
+          <div class="bg-white p-3 rounded-lg shadow-md mb-4">
+            <div class="flex items-start gap-2">
+              <div class="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-question text-primary text-sm"></i>
               </div>
               <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-xs font-medium text-gray-700 mb-1">
                   スタッフに質問・相談する
                 </label>
                 <textarea 
                   id="opinion-question" 
-                  rows="3" 
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  rows="2" 
+                  class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="トレーニングや食事、健康に関する質問・相談をお気軽にどうぞ..."
                 ></textarea>
-                <div class="flex justify-end mt-2">
+                <div class="flex justify-end mt-1.5">
                   <button 
                     onclick="submitOpinion()" 
-                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition"
+                    class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition"
                   >
                     <i class="fas fa-paper-plane mr-1"></i>
                     送信
@@ -254,26 +254,26 @@ function renderOpinionBox() {
           
           <!-- 質問履歴 -->
           ${opinions.length > 0 ? `
-            <div class="space-y-4">
+            <div class="space-y-3">
               <!-- 未回答の質問 -->
               ${pendingOpinions.length > 0 ? `
                 <div>
-                  <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-hourglass-half text-orange-500"></i>
+                  <h4 class="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-hourglass-half text-orange-500 text-xs"></i>
                     回答待ち（${pendingOpinions.length}件）
                   </h4>
-                  <div class="space-y-3">
+                  <div class="space-y-2">
                     ${pendingOpinions.map(opinion => `
-                      <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-orange-500">
-                        <div class="flex justify-between items-start mb-2">
-                          <div class="flex items-center gap-2">
+                      <div class="bg-white p-2.5 rounded-lg shadow-sm border-l-4 border-orange-500">
+                        <div class="flex justify-between items-start mb-1.5">
+                          <div class="flex items-center gap-1.5">
                             <i class="fas fa-clock text-orange-500 text-xs"></i>
                             <span class="text-xs text-gray-500">${formatDateTime(opinion.created_at)}</span>
                           </div>
                           <span class="badge badge-warning text-xs">回答待ち</span>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded mb-2">
-                          <p class="text-sm text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
+                        <div class="bg-gray-50 p-2 rounded mb-1.5">
+                          <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
                         </div>
                         <p class="text-xs text-gray-500 italic">スタッフが確認中です。しばらくお待ちください。</p>
                       </div>
@@ -285,32 +285,32 @@ function renderOpinionBox() {
               <!-- 回答済みの質問 -->
               ${answeredOpinions.length > 0 ? `
                 <div>
-                  <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-check-circle text-green-500"></i>
+                  <h4 class="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-green-500 text-xs"></i>
                     回答済み（${answeredOpinions.length}件）
                   </h4>
-                  <div class="space-y-3">
+                  <div class="space-y-2">
                     ${answeredOpinions.map(opinion => `
-                      <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-                        <div class="flex justify-between items-start mb-3">
-                          <div class="flex items-center gap-2">
+                      <div class="bg-white p-2.5 rounded-lg shadow-sm border-l-4 border-green-500">
+                        <div class="flex justify-between items-start mb-2">
+                          <div class="flex items-center gap-1.5">
                             <i class="fas fa-calendar text-green-500 text-xs"></i>
                             <span class="text-xs text-gray-500">質問: ${formatDateTime(opinion.created_at)}</span>
                           </div>
                           <span class="badge badge-success text-xs">回答済み</span>
                         </div>
                         
-                        <div class="bg-gray-50 p-3 rounded mb-3">
-                          <p class="text-sm text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
+                        <div class="bg-gray-50 p-2 rounded mb-2">
+                          <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
                         </div>
                         
-                        <div class="bg-green-50 p-3 rounded border-l-2 border-green-500">
-                          <div class="flex items-center gap-2 mb-2">
+                        <div class="bg-green-50 p-2 rounded border-l-2 border-green-500">
+                          <div class="flex items-center gap-1.5 mb-1.5">
                             <i class="fas fa-user-nurse text-green-600 text-xs"></i>
                             <span class="text-xs font-medium text-green-700">${opinion.answered_by} からの回答:</span>
                             <span class="text-xs text-gray-500">${formatDateTime(opinion.answered_at)}</span>
                           </div>
-                          <p class="text-sm text-gray-800 whitespace-pre-wrap">${opinion.answer}</p>
+                          <p class="text-xs text-gray-800 whitespace-pre-wrap">${opinion.answer}</p>
                         </div>
                       </div>
                     `).join('')}
@@ -319,9 +319,9 @@ function renderOpinionBox() {
               ` : ''}
             </div>
           ` : `
-            <div class="bg-white p-6 rounded-lg shadow-sm text-center">
-              <i class="fas fa-comments text-4xl text-gray-300 mb-2"></i>
-              <p class="text-sm text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
+            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+              <i class="fas fa-comments text-3xl text-gray-300 mb-1.5"></i>
+              <p class="text-xs text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
             </div>
           `}
         </div>
@@ -420,35 +420,31 @@ function renderChartsSection() {
         <div class="max-w-7xl mx-auto">
           <h3 class="text-xl font-bold text-gray-800 mb-4">
             <i class="fas fa-chart-line mr-2" style="color: var(--color-primary)"></i>
-            推移グラフ
+            健康データ推移（最新30日）
           </h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-bold mb-3">体重推移</h4>
-              <div style="height: 220px;">
-                <canvas id="weight-chart"></canvas>
-              </div>
+          <div class="bg-gray-50 p-5 rounded-lg">
+            <div style="height: 400px;">
+              <canvas id="combined-chart"></canvas>
             </div>
             
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-bold mb-3">体脂肪率推移</h4>
-              <div style="height: 220px;">
-                <canvas id="bodyfat-chart"></canvas>
+            <!-- 凡例 -->
+            <div class="flex flex-wrap justify-center gap-4 mt-4">
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #3b82f6;"></div>
+                <span class="text-sm">体重 (kg)</span>
               </div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-bold mb-3">睡眠時間推移</h4>
-              <div style="height: 220px;">
-                <canvas id="sleep-chart"></canvas>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #ef4444;"></div>
+                <span class="text-sm">体脂肪率 (%)</span>
               </div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-bold mb-3">カロリー摂取量推移</h4>
-              <div style="height: 220px;">
-                <canvas id="calories-chart"></canvas>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #8b5cf6;"></div>
+                <span class="text-sm">睡眠時間 (h)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #10b981;"></div>
+                <span class="text-sm">カロリー (kcal ÷ 100)</span>
               </div>
             </div>
           </div>
@@ -458,33 +454,118 @@ function renderChartsSection() {
   `;
 }
 
-// グラフ描画
+// グラフ描画（重ねたグラフ）
 function renderCharts() {
   const sortedLogs = [...healthLogs].reverse().slice(-30); // 最新30日分
   const labels = sortedLogs.map(log => dayjs(log.log_date).format('M/D'));
   
-  // 体重グラフ
-  if (document.getElementById('weight-chart')) {
+  // 統合グラフ
+  if (document.getElementById('combined-chart')) {
     const weightData = sortedLogs.map(log => log.weight || null);
-    charts.weight = createLineChart('weight-chart', labels, weightData, '体重 (kg)');
-  }
-  
-  // 体脂肪率グラフ
-  if (document.getElementById('bodyfat-chart')) {
     const bodyfatData = sortedLogs.map(log => log.body_fat_percentage || null);
-    charts.bodyfat = createLineChart('bodyfat-chart', labels, bodyfatData, '体脂肪率 (%)');
-  }
-  
-  // 睡眠時間グラフ
-  if (document.getElementById('sleep-chart')) {
     const sleepData = sortedLogs.map(log => log.sleep_hours || null);
-    charts.sleep = createLineChart('sleep-chart', labels, sleepData, '睡眠時間 (時間)');
-  }
-  
-  // カロリーグラフ
-  if (document.getElementById('calories-chart')) {
-    const caloriesData = sortedLogs.map(log => log.meal_calories || null);
-    charts.calories = createLineChart('calories-chart', labels, caloriesData, 'カロリー (kcal)');
+    const caloriesData = sortedLogs.map(log => log.meal_calories ? log.meal_calories / 100 : null); // 100で割ってスケール調整
+    
+    const ctx = document.getElementById('combined-chart').getContext('2d');
+    charts.combined = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: '体重 (kg)',
+            data: weightData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            yAxisID: 'y'
+          },
+          {
+            label: '体脂肪率 (%)',
+            data: bodyfatData,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            yAxisID: 'y'
+          },
+          {
+            label: '睡眠時間 (h)',
+            data: sleepData,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            yAxisID: 'y'
+          },
+          {
+            label: 'カロリー (kcal ÷ 100)',
+            data: caloriesData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            yAxisID: 'y'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false // 下部に独自の凡例を表示
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  // カロリーだけ100倍して表示
+                  if (context.dataset.label.includes('カロリー')) {
+                    label += (context.parsed.y * 100).toFixed(0);
+                  } else {
+                    label += context.parsed.y.toFixed(1);
+                  }
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: '値'
+            }
+          },
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: '日付'
+            }
+          }
+        }
+      }
+    });
   }
 }
 
