@@ -550,27 +550,50 @@ function renderHealthLogSection() {
             </a>
           </div>
           
-          <!-- 質問・相談はマイページへ -->
+          <!-- 質問・相談 -->
           <div class="mt-6">
             <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl shadow-sm">
-              <div class="flex items-start gap-4">
-                <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <i class="fas fa-comments text-2xl" style="color: var(--color-primary)"></i>
+              <h4 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
+                質問・相談
+              </h4>
+              
+              <!-- 質問入力フォーム -->
+              <div class="bg-white p-5 rounded-xl shadow-sm mb-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <i class="fas fa-question text-white"></i>
+                  </div>
+                  <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      スタッフに質問・相談する
+                    </label>
+                    <textarea 
+                      id="question-input" 
+                      rows="3" 
+                      class="w-full px-4 py-3 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
+                      placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
+                    ></textarea>
+                    <div class="flex justify-end mt-2">
+                      <button 
+                        onclick="submitQuestion()" 
+                        class="px-5 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                      >
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        質問を送信
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex-1">
-                  <h4 class="text-lg font-bold text-gray-800 mb-2">
-                    <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
-                    質問・相談
-                  </h4>
-                  <p class="text-sm text-gray-600 mb-4">
-                    トレーニングや食事、健康に関するご質問はマイページから投稿できます。<br>
-                    過去の質問と回答の履歴もマイページでご確認いただけます。
-                  </p>
-                  <a href="/mypage#qa-section" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-md">
-                    <i class="fas fa-arrow-right"></i>
-                    マイページで質問する
-                  </a>
-                </div>
+              </div>
+              
+              <!-- 過去の質問と回答を見るリンク -->
+              <div class="text-center">
+                <a href="/mypage#qa-section" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
+                  <i class="fas fa-history"></i>
+                  過去の質問と回答を見る
+                  <i class="fas fa-arrow-right"></i>
+                </a>
               </div>
             </div>
           </div>
@@ -1696,6 +1719,34 @@ async function loadLatestStaffComment() {
     }
   } catch (error) {
     console.error('スタッフコメントの取得に失敗:', error);
+  }
+}
+
+// 質問を送信（トップページから）
+async function submitQuestion() {
+  const questionInput = document.getElementById('question-input');
+  const question = questionInput.value.trim();
+  
+  if (!question) {
+    showToast('質問を入力してください', 'warning');
+    return;
+  }
+  
+  if (!currentUser) {
+    showToast('ログインが必要です', 'warning');
+    showLoginModal();
+    return;
+  }
+  
+  try {
+    const response = await apiCall('/api/opinions', 'POST', { question });
+    
+    if (response.success) {
+      showToast('質問を送信しました', 'success');
+      questionInput.value = '';
+    }
+  } catch (error) {
+    showToast('送信に失敗しました', 'error');
   }
 }
 
