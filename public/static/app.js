@@ -123,7 +123,7 @@ function renderPage() {
 // 共通ヘッダー
 function renderHeader() {
   return `
-    <header class="bg-white shadow-md sticky top-0 z-50">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
           <a href="/" class="flex items-center gap-2">
@@ -131,15 +131,24 @@ function renderHeader() {
             <h1 class="text-lg font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-2">
+          <nav class="flex items-center gap-3">
             ${currentUser ? `
-              <button onclick="logout()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ログアウト</span>
-              </button>
+              <div class="flex items-center gap-3">
+                <span class="hidden sm:flex items-center gap-2 text-sm text-gray-700">
+                  <i class="fas fa-user-circle text-primary"></i>
+                  <span class="font-medium">${currentUser.name}さん</span>
+                </span>
+                <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-chart-line mr-1"></i>
+                  マイページ
+                </a>
+                <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
             ` : `
-              <button onclick="showLoginModal()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-sign-in-alt"></i>
+              <button onclick="showLoginModal()" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
+                <i class="fas fa-sign-in-alt mr-2"></i>
                 <span>ログイン</span>
               </button>
             `}
@@ -157,22 +166,33 @@ function renderHero() {
       <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
           <div class="text-center fade-in">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4">
-              AIがサポートする<br>あなた専用の<br>パーソナルジム
-            </h2>
-            <p class="text-lg mb-6 opacity-90">
-              体調・体重・食事を記録するだけで、<br class="hidden md:block">
-              AIとプロのスタッフが<br class="hidden md:block">
-              あなたに最適なアドバイスをお届けします
-            </p>
-            ${!currentUser ? `
-              <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
+            ${currentUser ? `
+              <h2 class="text-3xl md:text-4xl font-bold mb-3">
+                こんにちは、${currentUser.name}さん
+              </h2>
+              <p class="text-lg mb-6 opacity-90">
+                今日も健康的な1日を過ごしましょう！
+              </p>
+              <div class="flex justify-center gap-3">
+                <a href="#health-log" onclick="document.getElementById('health-log-section').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3 bg-white text-primary hover:bg-opacity-90 rounded-lg font-medium transition shadow-lg">
+                  <i class="fas fa-edit mr-2"></i>今日の記録
+                </a>
+                <a href="/mypage" class="px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 border-2 border-white rounded-lg font-medium transition">
+                  <i class="fas fa-chart-line mr-2"></i>詳細を見る
+                </a>
+              </div>
+            ` : `
+              <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                AIがサポートする<br>あなた専用の<br>パーソナルジム
+              </h2>
+              <p class="text-lg mb-6 opacity-90">
+                体調・体重・食事を記録するだけで、<br class="hidden md:block">
+                AIとプロのスタッフが<br class="hidden md:block">
+                あなたに最適なアドバイスをお届けします
+              </p>
+              <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg">
                 今すぐ始める <i class="fas fa-arrow-right ml-2"></i>
               </button>
-            ` : `
-              <a href="/mypage" class="inline-block px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105">
-                マイページへ <i class="fas fa-arrow-right ml-2"></i>
-              </a>
             `}
           </div>
           
@@ -255,39 +275,40 @@ function renderAdviceSection() {
 // 健康ログ入力セクション
 function renderHealthLogSection() {
   return `
-    <section class="bg-gray-50 py-12">
+    <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-12">
       <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-          <!-- タイトル（1行） -->
-          <h3 class="text-2xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
-            健康ログ
-          </h3>
-          
-          <!-- 日付選択（タイトルの下） -->
-          <div class="flex items-center justify-center gap-2 mb-6">
-            <button type="button" onclick="changeLogDate(-1)" class="p-2 text-gray-600 hover:text-primary transition">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-              <i class="fas fa-calendar-alt text-primary"></i>
-              <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                onchange="changeLogDateFromPicker(this.value)"
-                class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
+        <div class="max-w-4xl mx-auto">
+          <!-- タイトルと日付選択 -->
+          <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-3 sm:mb-0">
+              <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
+              健康ログ
+            </h3>
+            
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="changeLogDate(-1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                <i class="fas fa-calendar-alt text-primary text-sm"></i>
+                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                  onchange="changeLogDateFromPicker(this.value)"
+                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
+              </div>
+              <button type="button" onclick="changeLogDate(1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              <button type="button" onclick="goToToday()" class="px-3 py-2 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm">
+                今日
+              </button>
             </div>
-            <button type="button" onclick="changeLogDate(1)" class="p-2 text-gray-600 hover:text-primary transition">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-            <button type="button" onclick="goToToday()" class="ml-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-              今日
-            </button>
           </div>
           
           <!-- スタッフコメント（最新1件） -->
           ${latestStaffComment ? `
-            <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm">
               <div class="flex items-start gap-3">
-                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
                   <i class="fas fa-user-nurse text-white"></i>
                 </div>
                 <div class="flex-1">
@@ -303,49 +324,51 @@ function renderHealthLogSection() {
           
           <form id="health-log-form" class="space-y-6">
             <!-- 基本データ -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-weight mr-1"></i> 体重 (kg)
-                </label>
-                <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-percentage mr-1"></i> 体脂肪率 (%)
-                </label>
-                <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-bed mr-1"></i> 睡眠 (時間)
-                </label>
-                <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <i class="fas fa-running mr-1"></i> 運動 (分)
-                </label>
-                <input type="number" name="exercise_minutes" value="${todayLog?.exercise_minutes || ''}"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            <div class="bg-white p-5 rounded-xl shadow-sm">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-2">
+                    <i class="fas fa-weight mr-1 text-primary"></i> 体重 (kg)
+                  </label>
+                  <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
+                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                </div>
+                
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-2">
+                    <i class="fas fa-percentage mr-1 text-primary"></i> 体脂肪率 (%)
+                  </label>
+                  <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
+                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                </div>
+                
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-2">
+                    <i class="fas fa-bed mr-1 text-primary"></i> 睡眠 (時間)
+                  </label>
+                  <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
+                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                </div>
+                
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-2">
+                    <i class="fas fa-running mr-1 text-primary"></i> 運動 (分)
+                  </label>
+                  <input type="number" name="exercise_minutes" value="${todayLog?.exercise_minutes || ''}"
+                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                </div>
               </div>
             </div>
             
             <!-- 食事記録 -->
-            <div class="border-t pt-4">
-              <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <div class="bg-white p-5 rounded-xl shadow-sm">
+              <h4 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <i class="fas fa-utensils" style="color: var(--color-accent)"></i>
                 食事記録
               </h4>
               
               <!-- 朝食 -->
-              <div class="mb-3 bg-yellow-50 p-3 rounded-lg">
+              <div class="mb-3 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
                   <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
                     <i class="fas fa-sun text-yellow-500"></i>朝食
@@ -380,7 +403,7 @@ function renderHealthLogSection() {
               </div>
               
               <!-- 昼食 -->
-              <div class="mb-3 bg-orange-50 p-3 rounded-lg">
+              <div class="mb-3 bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
                   <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
                     <i class="fas fa-cloud-sun text-orange-500"></i>昼食
@@ -415,7 +438,7 @@ function renderHealthLogSection() {
               </div>
               
               <!-- 夕食 -->
-              <div class="mb-3 bg-blue-50 p-3 rounded-lg">
+              <div class="mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
                   <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
                     <i class="fas fa-moon text-blue-500"></i>夕食
@@ -476,11 +499,11 @@ function renderHealthLogSection() {
             </div>
             
             <!-- 5段階体調評価 -->
-            <div>
+            <div class="bg-white p-5 rounded-xl shadow-sm">
               <label class="block text-sm font-medium text-gray-700 mb-3">
-                <i class="fas fa-smile mr-1"></i> 今日の体調
+                <i class="fas fa-smile mr-1 text-primary"></i> 今日の体調
               </label>
-              <div class="flex items-center justify-between gap-2 bg-gray-50 p-4 rounded-lg">
+              <div class="flex items-center justify-between gap-2">
                 ${[1, 2, 3, 4, 5].map(rating => {
                   const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
                   const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
@@ -502,17 +525,17 @@ function renderHealthLogSection() {
               </div>
             </div>
             
-            <div>
+            <div class="bg-white p-5 rounded-xl shadow-sm">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-dumbbell mr-1"></i> 運動記録
+                <i class="fas fa-dumbbell mr-1 text-primary"></i> 運動記録
               </label>
               <textarea name="condition_note" rows="3" 
                 placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット、ランニング5km（30分）"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-4 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
               >${todayLog?.condition_note || ''}</textarea>
             </div>
             
-            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold text-lg">
+            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition">
               <i class="fas fa-save mr-2"></i>
               保存する
             </button>
@@ -528,21 +551,22 @@ function renderHealthLogSection() {
           </div>
           
           <!-- 質問・相談はマイページへ -->
-          <div class="mt-6 border-t pt-6">
-            <div class="bg-gradient-to-br from-purple-50 to-white p-6 rounded-lg border border-purple-100">
+          <div class="mt-6">
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl shadow-sm">
               <div class="flex items-start gap-4">
                 <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
                   <i class="fas fa-comments text-2xl" style="color: var(--color-primary)"></i>
                 </div>
                 <div class="flex-1">
                   <h4 class="text-lg font-bold text-gray-800 mb-2">
-                    スタッフに質問・相談する
+                    <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
+                    質問・相談
                   </h4>
                   <p class="text-sm text-gray-600 mb-4">
                     トレーニングや食事、健康に関するご質問はマイページから投稿できます。<br>
                     過去の質問と回答の履歴もマイページでご確認いただけます。
                   </p>
-                  <a href="/mypage" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                  <a href="/mypage#qa-section" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-md">
                     <i class="fas fa-arrow-right"></i>
                     マイページで質問する
                   </a>

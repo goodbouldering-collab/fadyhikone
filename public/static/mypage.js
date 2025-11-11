@@ -215,40 +215,40 @@ function renderAdvicesList() {
   `;
 }
 
-// オピニオンボックス（質疑応答）- コンパクト版
+// 質問・相談セクション
 function renderOpinionBox() {
   const pendingOpinions = opinions.filter(op => op.status === 'pending');
   const answeredOpinions = opinions.filter(op => op.status === 'answered');
   
   return `
-    <section class="bg-gradient-to-br from-purple-50 to-white py-6">
+    <section id="qa-section" class="bg-gradient-to-br from-purple-50 to-pink-50 py-8">
       <div class="container mx-auto px-4">
         <div class="max-w-7xl mx-auto">
-          <h3 class="text-lg font-bold text-gray-800 mb-3">
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">
             <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
-            オピニオンボックス（質問・相談）
+            質問・相談
           </h3>
           
           <!-- 質問フォーム -->
-          <div class="bg-white p-3 rounded-lg shadow-md mb-4">
-            <div class="flex items-start gap-2">
-              <div class="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-question text-primary text-sm"></i>
+          <div class="bg-white p-5 rounded-xl shadow-sm mb-4">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                <i class="fas fa-question text-white"></i>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
                   スタッフに質問・相談する
                 </label>
                 <textarea 
                   id="opinion-question" 
-                  rows="2" 
-                  class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  rows="3" 
+                  class="w-full px-3 py-2 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
                   placeholder="トレーニングや食事、健康に関する質問・相談をお気軽にどうぞ..."
                 ></textarea>
-                <div class="flex justify-end mt-1.5">
+                <div class="flex justify-end mt-2">
                   <button 
                     onclick="submitOpinion()" 
-                    class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition"
+                    class="px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm"
                   >
                     <i class="fas fa-paper-plane mr-1"></i>
                     送信
@@ -260,17 +260,17 @@ function renderOpinionBox() {
           
           <!-- 質問履歴 -->
           ${opinions.length > 0 ? `
-            <div class="space-y-3">
+            <div class="space-y-4">
               <!-- 未回答の質問 -->
               ${pendingOpinions.length > 0 ? `
                 <div>
-                  <h4 class="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-hourglass-half text-orange-500 text-xs"></i>
+                  <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-hourglass-half text-orange-500"></i>
                     回答待ち（${pendingOpinions.length}件）
                   </h4>
-                  <div class="space-y-2">
+                  <div class="space-y-3">
                     ${pendingOpinions.map(opinion => `
-                      <div class="bg-white p-2.5 rounded-lg shadow-sm border-l-4 border-orange-500">
+                      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-400">
                         <div class="flex justify-between items-start mb-1.5">
                           <div class="flex items-center gap-1.5">
                             <i class="fas fa-clock text-orange-500 text-xs"></i>
@@ -291,13 +291,13 @@ function renderOpinionBox() {
               <!-- 回答済みの質問 -->
               ${answeredOpinions.length > 0 ? `
                 <div>
-                  <h4 class="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-check-circle text-green-500 text-xs"></i>
+                  <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-green-500"></i>
                     回答済み（${answeredOpinions.length}件）
                   </h4>
-                  <div class="space-y-2">
+                  <div class="space-y-3">
                     ${answeredOpinions.map(opinion => `
-                      <div class="bg-white p-2.5 rounded-lg shadow-sm border-l-4 border-green-500">
+                      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-400">
                         <div class="flex justify-between items-start mb-2">
                           <div class="flex items-center gap-1.5">
                             <i class="fas fa-calendar text-green-500 text-xs"></i>
@@ -325,9 +325,11 @@ function renderOpinionBox() {
               ` : ''}
             </div>
           ` : `
-            <div class="bg-white p-4 rounded-lg shadow-sm text-center">
-              <i class="fas fa-comments text-3xl text-gray-300 mb-1.5"></i>
-              <p class="text-xs text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
+            <div class="bg-white p-8 rounded-xl shadow-sm text-center">
+              <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-comments text-3xl text-gray-300"></i>
+              </div>
+              <p class="text-sm text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
             </div>
           `}
         </div>
