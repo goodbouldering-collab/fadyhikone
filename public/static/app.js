@@ -434,102 +434,192 @@ function renderHealthLogSection() {
             
             <!-- 食事記録 -->
             <div class="bg-white p-4 rounded-lg shadow-sm">
-              <div class="flex items-center justify-between mb-3">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700">
-                  <i class="fas fa-utensils text-accent"></i>
-                  食事記録
-                </label>
-                <span class="text-xs text-gray-500">写真を撮るだけ</span>
-              </div>
+              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                <i class="fas fa-utensils text-accent"></i>
+                食事記録
+              </label>
               
               <!-- 3食 -->
-              <div class="grid grid-cols-3 gap-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <!-- 朝食 -->
-                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-2 rounded-lg">
-                  <div class="text-xs font-bold text-gray-700 mb-2 text-center">
-                    <i class="fas fa-sun text-yellow-500 mr-1"></i>朝食
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-bold text-gray-700">
+                      <i class="fas fa-sun text-yellow-500 mr-1"></i>朝食
+                    </div>
+                    <button type="button" onclick="showMealModal('breakfast')" 
+                      class="px-2 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 transition">
+                      <i class="fas fa-camera mr-1"></i>撮影
+                    </button>
                   </div>
-                  <button type="button" onclick="showMealModal('breakfast')" 
-                    class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-orange-300">
-                    <div id="breakfast-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
-                    <i class="fas fa-camera text-orange-400 text-xl" id="breakfast-camera-icon"></i>
+                  
+                  <!-- カロリー -->
+                  <div class="relative mb-2">
+                    <input type="number" id="breakfast-calories" value="${mealData?.breakfast?.calories || 0}"
+                      oninput="updateMealNutrition('breakfast', 'calories', this.value)"
+                      placeholder="0"
+                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-lg font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                  </div>
+                  
+                  <!-- PFC入力 (折りたたみ) -->
+                  <button type="button" onclick="toggleMealPFC('breakfast')" 
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>PFC入力</span>
+                    <i class="fas fa-chevron-down text-xs" id="breakfast-pfc-arrow"></i>
                   </button>
-                  <div class="text-center">
-                    <div class="text-base font-bold text-primary" id="breakfast-calories-display">-</div>
-                    <div class="text-xs text-gray-500">kcal</div>
+                  
+                  <div id="breakfast-pfc" class="hidden grid grid-cols-3 gap-1">
+                    <div>
+                      <input type="number" step="0.1" id="breakfast-protein" value="${mealData?.breakfast?.protein || 0}"
+                        oninput="updateMealNutrition('breakfast', 'protein', this.value)"
+                        placeholder="P"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="breakfast-fat" value="${mealData?.breakfast?.fat || 0}"
+                        oninput="updateMealNutrition('breakfast', 'fat', this.value)"
+                        placeholder="F"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="breakfast-carbs" value="${mealData?.breakfast?.carbs || 0}"
+                        oninput="updateMealNutrition('breakfast', 'carbs', this.value)"
+                        placeholder="C"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                    </div>
                   </div>
+                  
+                  <div id="breakfast-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
                 </div>
                 
                 <!-- 昼食 -->
-                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-2 rounded-lg">
-                  <div class="text-xs font-bold text-gray-700 mb-2 text-center">
-                    <i class="fas fa-cloud-sun text-orange-500 mr-1"></i>昼食
+                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-bold text-gray-700">
+                      <i class="fas fa-cloud-sun text-orange-500 mr-1"></i>昼食
+                    </div>
+                    <button type="button" onclick="showMealModal('lunch')" 
+                      class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition">
+                      <i class="fas fa-camera mr-1"></i>撮影
+                    </button>
                   </div>
-                  <button type="button" onclick="showMealModal('lunch')" 
-                    class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-red-300">
-                    <div id="lunch-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
-                    <i class="fas fa-camera text-red-400 text-xl" id="lunch-camera-icon"></i>
+                  
+                  <!-- カロリー -->
+                  <div class="relative mb-2">
+                    <input type="number" id="lunch-calories" value="${mealData?.lunch?.calories || 0}"
+                      oninput="updateMealNutrition('lunch', 'calories', this.value)"
+                      placeholder="0"
+                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                  </div>
+                  
+                  <!-- PFC入力 (折りたたみ) -->
+                  <button type="button" onclick="toggleMealPFC('lunch')" 
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>PFC入力</span>
+                    <i class="fas fa-chevron-down text-xs" id="lunch-pfc-arrow"></i>
                   </button>
-                  <div class="text-center">
-                    <div class="text-base font-bold text-primary" id="lunch-calories-display">-</div>
-                    <div class="text-xs text-gray-500">kcal</div>
+                  
+                  <div id="lunch-pfc" class="hidden grid grid-cols-3 gap-1">
+                    <div>
+                      <input type="number" step="0.1" id="lunch-protein" value="${mealData?.lunch?.protein || 0}"
+                        oninput="updateMealNutrition('lunch', 'protein', this.value)"
+                        placeholder="P"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="lunch-fat" value="${mealData?.lunch?.fat || 0}"
+                        oninput="updateMealNutrition('lunch', 'fat', this.value)"
+                        placeholder="F"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="lunch-carbs" value="${mealData?.lunch?.carbs || 0}"
+                        oninput="updateMealNutrition('lunch', 'carbs', this.value)"
+                        placeholder="C"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                    </div>
                   </div>
+                  
+                  <div id="lunch-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
                 </div>
                 
                 <!-- 夕食 -->
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-2 rounded-lg">
-                  <div class="text-xs font-bold text-gray-700 mb-2 text-center">
-                    <i class="fas fa-moon text-blue-500 mr-1"></i>夕食
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-bold text-gray-700">
+                      <i class="fas fa-moon text-blue-500 mr-1"></i>夕食
+                    </div>
+                    <button type="button" onclick="showMealModal('dinner')" 
+                      class="px-2 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600 transition">
+                      <i class="fas fa-camera mr-1"></i>撮影
+                    </button>
                   </div>
-                  <button type="button" onclick="showMealModal('dinner')" 
-                    class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-indigo-300">
-                    <div id="dinner-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
-                    <i class="fas fa-camera text-indigo-400 text-xl" id="dinner-camera-icon"></i>
+                  
+                  <!-- カロリー -->
+                  <div class="relative mb-2">
+                    <input type="number" id="dinner-calories" value="${mealData?.dinner?.calories || 0}"
+                      oninput="updateMealNutrition('dinner', 'calories', this.value)"
+                      placeholder="0"
+                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center text-lg font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                  </div>
+                  
+                  <!-- PFC入力 (折りたたみ) -->
+                  <button type="button" onclick="toggleMealPFC('dinner')" 
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>PFC入力</span>
+                    <i class="fas fa-chevron-down text-xs" id="dinner-pfc-arrow"></i>
                   </button>
-                  <div class="text-center">
-                    <div class="text-base font-bold text-primary" id="dinner-calories-display">-</div>
-                    <div class="text-xs text-gray-500">kcal</div>
+                  
+                  <div id="dinner-pfc" class="hidden grid grid-cols-3 gap-1">
+                    <div>
+                      <input type="number" step="0.1" id="dinner-protein" value="${mealData?.dinner?.protein || 0}"
+                        oninput="updateMealNutrition('dinner', 'protein', this.value)"
+                        placeholder="P"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="dinner-fat" value="${mealData?.dinner?.fat || 0}"
+                        oninput="updateMealNutrition('dinner', 'fat', this.value)"
+                        placeholder="F"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="dinner-carbs" value="${mealData?.dinner?.carbs || 0}"
+                        oninput="updateMealNutrition('dinner', 'carbs', this.value)"
+                        placeholder="C"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
+                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                    </div>
                   </div>
+                  
+                  <div id="dinner-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
                 </div>
               </div>
                 
               <!-- 合計 -->
-              <div class="mt-3 bg-gradient-to-br from-primary/10 to-pink-50 p-3 rounded-lg">
+              <div class="mt-4 bg-gradient-to-br from-primary/10 to-pink-50 p-3 rounded-lg">
                 <div class="text-center">
                   <div class="text-xs text-gray-600 mb-1">今日の総カロリー</div>
                   <div class="text-2xl font-bold text-primary" id="total-calories">0</div>
-                  <div class="text-xs text-gray-500 mb-2">kcal</div>
-                  <div class="grid grid-cols-3 gap-2 text-xs">
-                    <div class="bg-white/80 rounded py-1">
-                      <div class="font-bold text-green-600" id="total-protein">0</div>
-                      <div class="text-gray-500">P (g)</div>
-                    </div>
-                    <div class="bg-white/80 rounded py-1">
-                      <div class="font-bold text-yellow-600" id="total-fat">0</div>
-                      <div class="text-gray-500">F (g)</div>
-                    </div>
-                    <div class="bg-white/80 rounded py-1">
-                      <div class="font-bold text-blue-600" id="total-carbs">0</div>
-                      <div class="text-gray-500">C (g)</div>
-                    </div>
-                  </div>
+                  <div class="text-xs text-gray-500">kcal</div>
                 </div>
               </div>
-                
-                <!-- 隠し入力フィールド（従来の互換性のため） -->
-                <input type="number" id="breakfast-calories" value="0" class="hidden">
-                <input type="number" id="breakfast-protein" value="0" class="hidden">
-                <input type="number" id="breakfast-fat" value="0" class="hidden">
-                <input type="number" id="breakfast-carbs" value="0" class="hidden">
-                <input type="number" id="lunch-calories" value="0" class="hidden">
-                <input type="number" id="lunch-protein" value="0" class="hidden">
-                <input type="number" id="lunch-fat" value="0" class="hidden">
-                <input type="number" id="lunch-carbs" value="0" class="hidden">
-                <input type="number" id="dinner-calories" value="0" class="hidden">
-                <input type="number" id="dinner-protein" value="0" class="hidden">
-                <input type="number" id="dinner-fat" value="0" class="hidden">
-                <input type="number" id="dinner-carbs" value="0" class="hidden">
-              </div>
+              
+            </div>
             
             <!-- 詳細（折りたたみ） -->
             <div class="bg-white p-4 rounded-lg shadow-sm">
@@ -1160,12 +1250,33 @@ async function handleHealthLogSubmit(e) {
     exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
     condition_rating: formData.get('condition_rating') ? parseInt(formData.get('condition_rating')) : 3,
     condition_note: formData.get('condition_note') || null,
-    // 食事データ
-    meal_calories: totalCalories || null,
-    meal_protein: totalProtein || null,
-    meal_carbs: totalCarbs || null,
-    meal_fat: totalFat || null,
-    meal_analysis: JSON.stringify(mealData) || null,
+    // 食事データ (新フォーマット: 朝昼晩の内訳 + 写真配列)
+    meals: {
+      breakfast: {
+        calories: mealData.breakfast.calories || 0,
+        protein: mealData.breakfast.protein || 0,
+        carbs: mealData.breakfast.carbs || 0,
+        fat: mealData.breakfast.fat || 0,
+        photos: mealData.breakfast.photos || [],
+        input_method: mealData.breakfast.photos?.length > 0 ? 'ai' : 'manual'
+      },
+      lunch: {
+        calories: mealData.lunch.calories || 0,
+        protein: mealData.lunch.protein || 0,
+        carbs: mealData.lunch.carbs || 0,
+        fat: mealData.lunch.fat || 0,
+        photos: mealData.lunch.photos || [],
+        input_method: mealData.lunch.photos?.length > 0 ? 'ai' : 'manual'
+      },
+      dinner: {
+        calories: mealData.dinner.calories || 0,
+        protein: mealData.dinner.protein || 0,
+        carbs: mealData.dinner.carbs || 0,
+        fat: mealData.dinner.fat || 0,
+        photos: mealData.dinner.photos || [],
+        input_method: mealData.dinner.photos?.length > 0 ? 'ai' : 'manual'
+      }
+    }
   };
   
   try {
@@ -1368,10 +1479,47 @@ function updateTotalNutrition() {
     carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs
   };
   
-  document.getElementById('total-calories').textContent = total.calories;
-  document.getElementById('total-protein').textContent = total.protein;
-  document.getElementById('total-fat').textContent = total.fat;
-  document.getElementById('total-carbs').textContent = total.carbs;
+  const totalCaloriesEl = document.getElementById('total-calories');
+  if (totalCaloriesEl) totalCaloriesEl.textContent = total.calories;
+  
+  const totalProteinEl = document.getElementById('total-protein');
+  if (totalProteinEl) totalProteinEl.textContent = total.protein;
+  
+  const totalFatEl = document.getElementById('total-fat');
+  if (totalFatEl) totalFatEl.textContent = total.fat;
+  
+  const totalCarbsEl = document.getElementById('total-carbs');
+  if (totalCarbsEl) totalCarbsEl.textContent = total.carbs;
+}
+
+// 食事栄養素手動更新 (新関数 - カロリー + PFC対応)
+function updateMealNutrition(mealType, nutrientType, value) {
+  const val = parseFloat(value) || 0;
+  mealData[mealType][nutrientType] = val;
+  
+  // 入力フィールドに反映
+  const input = document.getElementById(`${mealType}-${nutrientType}`);
+  if (input) input.value = val;
+  
+  // 合計更新
+  updateTotalNutrition();
+}
+
+// PFC入力セクションの表示切替
+function toggleMealPFC(mealType) {
+  const pfcSection = document.getElementById(`${mealType}-pfc`);
+  const arrow = document.getElementById(`${mealType}-pfc-arrow`);
+  
+  if (pfcSection && arrow) {
+    pfcSection.classList.toggle('hidden');
+    arrow.classList.toggle('fa-chevron-down');
+    arrow.classList.toggle('fa-chevron-up');
+  }
+}
+
+// 食事カロリー手動更新 (旧関数 - 互換性維持)
+function updateMealCalories(mealType, calories) {
+  updateMealNutrition(mealType, 'calories', calories);
 }
 
 // 食事写真アップロード (旧関数 - 互換性のため残す)
@@ -2077,40 +2225,32 @@ function toggleDetailedInputs() {
 function updateMealPhotosDisplay() {
   ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
     const photosDiv = document.getElementById(`${mealType}-photos`);
-    const cameraIcon = document.getElementById(`${mealType}-camera-icon`);
-    const caloriesDisplay = document.getElementById(`${mealType}-calories-display`);
     const meal = mealData[mealType];
     
     if (!photosDiv) return;
     
+    // 写真情報を表示（新レイアウト）
     if (meal.photos && meal.photos.length > 0) {
-      // 写真がある場合
-      photosDiv.innerHTML = meal.photos.map(photo => `
-        <div class="relative w-full h-full">
-          <img src="${photo}" class="w-full h-full object-cover rounded-lg">
-        </div>
-      `).join('');
-      if (cameraIcon) cameraIcon.classList.add('hidden');
+      photosDiv.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i>${meal.photos.length}枚`;
     } else {
-      // 写真がない場合
       photosDiv.innerHTML = '';
-      if (cameraIcon) cameraIcon.classList.remove('hidden');
     }
     
-    // カロリー表示更新
-    if (caloriesDisplay) {
-      caloriesDisplay.textContent = meal.calories > 0 ? meal.calories : '-';
+    // カロリー入力欄を更新
+    const caloriesInput = document.getElementById(`${mealType}-calories`);
+    if (caloriesInput) {
+      caloriesInput.value = meal.calories || 0;
     }
     
     // 隠しフィールドも更新
-    ['calories', 'protein', 'fat', 'carbs'].forEach(field => {
+    ['protein', 'fat', 'carbs'].forEach(field => {
       const input = document.getElementById(`${mealType}-${field}`);
       if (input) input.value = meal[field] || 0;
     });
   });
   
   // 合計カロリー更新
-  updateTotalCalories();
+  updateTotalNutrition();
 }
 
 

@@ -21,7 +21,7 @@ healthLogs.use('*', async (c, next) => {
   await next();
 });
 
-// 健康ログ一覧取得
+// 健康ログ一覧取得（食事データを含む）
 healthLogs.get('/', async (c) => {
   try {
     const userId = c.get('userId');
@@ -29,11 +29,40 @@ healthLogs.get('/', async (c) => {
       'SELECT * FROM health_logs WHERE user_id = ? ORDER BY log_date DESC'
     ).bind(userId).all<HealthLog>();
 
-    return c.json<ApiResponse<HealthLog[]>>({
+    // 各ログに食事データを追加
+    const logsWithMeals = await Promise.all(logs.results.map(async (log) => {
+      const meals = await c.env.DB.prepare(`
+        SELECT m.*, GROUP_CONCAT(mp.photo_url, '|||') as photo_urls
+        FROM meals m
+        LEFT JOIN meal_photos mp ON mp.meal_id = m.id
+        WHERE m.health_log_id = ?
+        GROUP BY m.id, m.meal_type
+      `).bind(log.id).all();
+
+      // meals を { breakfast: {}, lunch: {}, dinner: {} } 形式に変換
+      const mealsObj: any = {};
+      meals.results.forEach((meal: any) => {
+        mealsObj[meal.meal_type] = {
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          ai_analysis_text: meal.ai_analysis_text,
+          ai_confidence: meal.ai_confidence,
+          input_method: meal.input_method,
+          photos: meal.photo_urls ? meal.photo_urls.split('|||') : []
+        };
+      });
+
+      return { ...log, meals: mealsObj };
+    }));
+
+    return c.json<ApiResponse<any[]>>({
       success: true,
-      data: logs.results,
+      data: logsWithMeals,
     });
   } catch (error) {
+    console.error('ログ取得エラー:', error);
     return c.json<ApiResponse>({ success: false, error: 'ログの取得に失敗しました' }, 500);
   }
 });
@@ -44,12 +73,12 @@ healthLogs.post('/', async (c) => {
     const userId = c.get('userId');
     const body = await c.req.json();
 
+    // 1. health_logsレコードを作成（食事データは除外）
     const result = await c.env.DB.prepare(`
       INSERT INTO health_logs (
         user_id, log_date, weight, body_fat_percentage, body_temperature,
-        sleep_hours, meal_calories, meal_protein, meal_carbs, meal_fat,
-        exercise_minutes, condition_rating, condition_note
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        sleep_hours, exercise_minutes, condition_rating, condition_note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       userId,
       body.log_date,
@@ -57,24 +86,60 @@ healthLogs.post('/', async (c) => {
       body.body_fat_percentage || null,
       body.body_temperature || null,
       body.sleep_hours || null,
-      body.meal_calories || null,
-      body.meal_protein || null,
-      body.meal_carbs || null,
-      body.meal_fat || null,
       body.exercise_minutes || null,
       body.condition_rating || 3,
       body.condition_note || null
     ).run();
 
+    const healthLogId = result.meta.last_row_id;
+
+    // 2. mealsレコードを作成（breakfast, lunch, dinner）
+    if (body.meals) {
+      for (const [mealType, mealData] of Object.entries(body.meals)) {
+        if (mealData && typeof mealData === 'object') {
+          const meal: any = mealData;
+          const mealResult = await c.env.DB.prepare(`
+            INSERT INTO meals (
+              health_log_id, meal_type, calories, protein, carbs, fat,
+              ai_analysis_text, ai_confidence, input_method
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            healthLogId,
+            mealType,
+            meal.calories || 0,
+            meal.protein || 0,
+            meal.carbs || 0,
+            meal.fat || 0,
+            meal.ai_analysis_text || null,
+            meal.ai_confidence || null,
+            meal.input_method || 'manual'
+          ).run();
+
+          const mealId = mealResult.meta.last_row_id;
+
+          // 3. meal_photosレコードを作成（複数写真対応）
+          if (meal.photos && Array.isArray(meal.photos)) {
+            for (let i = 0; i < meal.photos.length; i++) {
+              await c.env.DB.prepare(`
+                INSERT INTO meal_photos (meal_id, photo_url, photo_order)
+                VALUES (?, ?, ?)
+              `).bind(mealId, meal.photos[i], i + 1).run();
+            }
+          }
+        }
+      }
+    }
+
     const newLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
-    ).bind(result.meta.last_row_id).first<HealthLog>();
+    ).bind(healthLogId).first<HealthLog>();
 
     return c.json<ApiResponse<HealthLog>>({
       success: true,
       data: newLog as HealthLog,
     });
   } catch (error) {
+    console.error('ログ作成エラー:', error);
     return c.json<ApiResponse>({ success: false, error: 'ログの作成に失敗しました' }, 500);
   }
 });
@@ -180,11 +245,11 @@ healthLogs.put('/:id', async (c) => {
       return c.json<ApiResponse>({ success: false, error: 'ログが見つかりません' }, 404);
     }
 
+    // 1. health_logsレコードを更新（食事データは除外）
     await c.env.DB.prepare(`
       UPDATE health_logs SET
         weight = ?, body_fat_percentage = ?, body_temperature = ?,
-        sleep_hours = ?, meal_calories = ?, meal_protein = ?,
-        meal_carbs = ?, meal_fat = ?, exercise_minutes = ?,
+        sleep_hours = ?, exercise_minutes = ?,
         condition_rating = ?, condition_note = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).bind(
@@ -192,15 +257,51 @@ healthLogs.put('/:id', async (c) => {
       body.body_fat_percentage || null,
       body.body_temperature || null,
       body.sleep_hours || null,
-      body.meal_calories || null,
-      body.meal_protein || null,
-      body.meal_carbs || null,
-      body.meal_fat || null,
       body.exercise_minutes || null,
       body.condition_rating || 3,
       body.condition_note || null,
       logId
     ).run();
+
+    // 2. 既存のmealsレコードを削除して再作成（簡略化のため）
+    await c.env.DB.prepare('DELETE FROM meals WHERE health_log_id = ?').bind(logId).run();
+
+    // 3. mealsレコードを作成（breakfast, lunch, dinner）
+    if (body.meals) {
+      for (const [mealType, mealData] of Object.entries(body.meals)) {
+        if (mealData && typeof mealData === 'object') {
+          const meal: any = mealData;
+          const mealResult = await c.env.DB.prepare(`
+            INSERT INTO meals (
+              health_log_id, meal_type, calories, protein, carbs, fat,
+              ai_analysis_text, ai_confidence, input_method
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            logId,
+            mealType,
+            meal.calories || 0,
+            meal.protein || 0,
+            meal.carbs || 0,
+            meal.fat || 0,
+            meal.ai_analysis_text || null,
+            meal.ai_confidence || null,
+            meal.input_method || 'manual'
+          ).run();
+
+          const mealId = mealResult.meta.last_row_id;
+
+          // 4. meal_photosレコードを作成（複数写真対応）
+          if (meal.photos && Array.isArray(meal.photos)) {
+            for (let i = 0; i < meal.photos.length; i++) {
+              await c.env.DB.prepare(`
+                INSERT INTO meal_photos (meal_id, photo_url, photo_order)
+                VALUES (?, ?, ?)
+              `).bind(mealId, meal.photos[i], i + 1).run();
+            }
+          }
+        }
+      }
+    }
 
     const updatedLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
@@ -211,6 +312,7 @@ healthLogs.put('/:id', async (c) => {
       data: updatedLog as HealthLog,
     });
   } catch (error) {
+    console.error('ログ更新エラー:', error);
     return c.json<ApiResponse>({ success: false, error: 'ログの更新に失敗しました' }, 500);
   }
 });
