@@ -287,8 +287,8 @@ function renderHealthLogSection() {
           
           <!-- ========== STEP 1: 今日の状況（一目でわかる） ========== -->
           ${currentUser ? `
-            <div class="mb-8">
-              <h3 class="text-2xl font-bold text-gray-800 mb-4">
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-800 mb-3">
                 <i class="fas fa-chart-pie mr-2" style="color: var(--color-primary)"></i>
                 今日の状況
               </h3>
@@ -345,44 +345,44 @@ function renderHealthLogSection() {
           
           <!-- ========== STEP 2: かんたん記録（毎日の基本） ========== -->
           <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-2xl font-bold text-gray-800">
-                <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
-                今日の記録
-              </h3>
-              
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="changeLogDate(-1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <i class="fas fa-calendar-alt text-primary text-sm"></i>
-                  <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                    onchange="changeLogDateFromPicker(this.value)"
-                    class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
-                </div>
-                <button type="button" onclick="changeLogDate(1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-                <button type="button" onclick="goToToday()" class="px-3 py-2 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm">
-                  今日
-                </button>
+            <!-- タイトル -->
+            <h3 class="text-2xl font-bold text-gray-800 mb-3">
+              <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
+              今日の記録
+            </h3>
+            
+            <!-- 日付選択 -->
+            <div class="flex items-center justify-center gap-2 mb-4">
+              <button type="button" onclick="changeLogDate(-1)" class="w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary"></i>
+                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                  onchange="changeLogDateFromPicker(this.value)"
+                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
               </div>
+              <button type="button" onclick="changeLogDate(1)" class="w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              <button type="button" onclick="goToToday()" class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium">
+                今日
+              </button>
             </div>
           
             <!-- スタッフコメント（最新1件） -->
             ${latestStaffComment ? `
-              <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm">
+              <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg shadow-sm">
                 <div class="flex items-start gap-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                    <i class="fas fa-user-nurse text-white"></i>
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user-nurse text-white text-sm"></i>
                   </div>
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
                       <span class="text-sm font-bold text-blue-700">スタッフからのコメント</span>
                       <span class="text-xs text-gray-500">${latestStaffComment.staff_name} • ${formatRelativeTime(latestStaffComment.created_at)}</span>
                     </div>
-                    <p class="text-sm text-gray-700">${latestStaffComment.comment}</p>
+                    <p class="text-sm text-gray-700 leading-relaxed">${latestStaffComment.comment}</p>
                   </div>
                 </div>
               </div>
@@ -390,28 +390,29 @@ function renderHealthLogSection() {
             
             <form id="health-log-form" class="space-y-4">
               <!-- 【重要】必須項目（大きく目立つ） -->
-              <div class="bg-gradient-to-br from-primary/5 to-pink-50 p-5 rounded-2xl shadow-md border-2 border-primary/20">
+              <div class="bg-gradient-to-br from-primary/5 to-pink-50 p-5 rounded-xl shadow-sm">
                 <div class="flex items-center gap-2 mb-4">
                   <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                     <i class="fas fa-star text-white text-sm"></i>
                   </div>
                   <h4 class="text-lg font-bold text-gray-800">毎日の基本（必須）</h4>
                 </div>
+                <div class="space-y-4">
                   <!-- 体重（大きく表示） -->
-                  <div class="sm:col-span-2">
+                  <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">
                       <i class="fas fa-weight mr-2 text-primary"></i>体重
                     </label>
                     <div class="relative">
                       <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
                         placeholder="例: 65.5"
-                        class="w-full px-4 py-3 text-2xl font-bold bg-white text-gray-800 rounded-xl focus:outline-none focus:ring-3 focus:ring-primary shadow-sm border-2 border-gray-200">
+                        class="w-full px-4 py-3 text-2xl font-bold bg-white text-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary shadow-sm border-2 border-gray-200">
                       <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-gray-500 font-medium">kg</span>
                     </div>
                   </div>
                   
                   <!-- 体調評価（大きく表示） -->
-                  <div class="sm:col-span-2">
+                  <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">
                       <i class="fas fa-smile mr-2 text-primary"></i>今日の体調
                     </label>
@@ -440,10 +441,10 @@ function renderHealthLogSection() {
               </div>
             
               <!-- 食事記録（簡潔に） -->
-              <div class="bg-white p-5 rounded-xl shadow-sm">
-                <div class="flex items-center justify-between mb-4">
+              <div class="bg-white p-4 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between mb-3">
                   <h4 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-utensils text-accent"></i>
+                    <i class="fas fa-utensils text-accent text-sm"></i>
                     食事記録
                   </h4>
                   <span class="text-xs text-gray-500">写真を撮るだけでOK</span>
@@ -533,14 +534,14 @@ function renderHealthLogSection() {
               </div>
             
               <!-- ========== STEP 3: 詳細記録（任意・折りたたみ可能） ========== -->
-              <div class="bg-white p-5 rounded-xl shadow-sm">
+              <div class="bg-white p-4 rounded-xl shadow-sm">
                 <button type="button" onclick="toggleDetailedInputs()" 
                   class="w-full flex items-center justify-between text-left group">
                   <h4 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-primary group-hover:text-pink-500 transition"></i>
+                    <i class="fas fa-plus-circle text-primary group-hover:text-pink-500 transition text-sm"></i>
                     詳細記録（任意）
                   </h4>
-                  <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="detailed-inputs-arrow"></i>
+                  <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
                 </button>
                 
                 <div id="detailed-inputs" class="hidden mt-4 space-y-4">
@@ -597,7 +598,7 @@ function renderHealthLogSection() {
               </div>
               
               <!-- 保存ボタン（大きく目立つ） -->
-              <button type="submit" class="w-full btn-primary px-6 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transition transform hover:scale-102">
+              <button type="submit" class="w-full btn-primary px-6 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition">
                 <i class="fas fa-save mr-2"></i>
                 今日の記録を保存
               </button>
@@ -606,14 +607,14 @@ function renderHealthLogSection() {
           </div>
           
           <!-- ========== STEP 4: 質問・相談（別セクション） ========== -->
-          <div class="mt-8">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">
+          <div class="mt-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-3">
               <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
               質問・相談
             </h3>
             
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl shadow-sm">
-              <p class="text-sm text-gray-600 mb-4">
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl shadow-sm">
+              <p class="text-sm text-gray-600 mb-3">
                 トレーニングや食事、健康に関する質問をお気軽にどうぞ。専門スタッフが丁寧に回答します。
               </p>
               
@@ -633,7 +634,7 @@ function renderHealthLogSection() {
                   onclick="submitQuestion()" 
                   class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
                 >
-                  <i class="fas fa-paper-plane mr-2"></i>
+                  <i class="fas fa-paper-plane mr-1"></i>
                   質問を送信
                 </button>
               </div>
@@ -641,11 +642,11 @@ function renderHealthLogSection() {
           </div>
           
           <!-- マイページへの誘導 -->
-          <div class="mt-6 text-center">
-            <a href="/mypage" class="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 rounded-xl shadow-sm hover:shadow-md transition font-medium text-gray-700">
+          <div class="mt-4 text-center">
+            <a href="/mypage" class="inline-flex items-center gap-2 px-6 py-2 bg-white hover:bg-gray-50 rounded-lg shadow-sm hover:shadow transition text-sm font-medium text-gray-700">
               <i class="fas fa-chart-line text-primary"></i>
               マイページで詳しい分析を見る
-              <i class="fas fa-arrow-right text-primary"></i>
+              <i class="fas fa-arrow-right text-primary text-xs"></i>
             </a>
           </div>
         </div>
