@@ -283,11 +283,16 @@ function renderHealthLogSection() {
   return `
     <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-12">
       <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-5xl mx-auto">
           
-          <!-- 今日の統計ダッシュボード（新機能） -->
+          <!-- ========== STEP 1: 今日の状況（一目でわかる） ========== -->
           ${currentUser ? `
-            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="mb-8">
+              <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-pie mr-2" style="color: var(--color-primary)"></i>
+                今日の状況
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <!-- 総カロリー -->
               <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
                 <div class="flex items-center gap-2 mb-1">
@@ -336,396 +341,312 @@ function renderHealthLogSection() {
                 <div class="text-xs text-gray-500">日連続達成中</div>
               </div>
             </div>
-            
-            <!-- クイックアクション（新機能） -->
-            <div class="mb-6 bg-white p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-2">
-                <i class="fas fa-bolt mr-1 text-yellow-500"></i>
-                クイックアクション
-              </h4>
-              <div class="grid grid-cols-3 gap-2">
-                <button onclick="showMealModal('breakfast')" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 rounded-lg transition">
-                  <i class="fas fa-camera text-orange-500 text-lg"></i>
-                  <span class="text-xs font-medium text-gray-700">朝食撮影</span>
-                </button>
-                <button onclick="document.getElementById('exercise-minutes').focus()" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 rounded-lg transition">
-                  <i class="fas fa-running text-blue-500 text-lg"></i>
-                  <span class="text-xs font-medium text-gray-700">運動記録</span>
-                </button>
-                <button onclick="document.getElementById('question-input').focus()" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-lg transition">
-                  <i class="fas fa-question text-purple-500 text-lg"></i>
-                  <span class="text-xs font-medium text-gray-700">質問する</span>
-                </button>
-              </div>
-            </div>
-            
-            <!-- 週間目標進捗（新機能） -->
-            <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-xl shadow-sm">
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="text-sm font-bold text-gray-700">
-                  <i class="fas fa-chart-line mr-1" style="color: var(--color-primary)"></i>
-                  今週の進捗
-                </h4>
-                <span class="text-xs text-gray-600" id="weekly-progress-text">4/7日達成</span>
-              </div>
-              <div class="w-full bg-white rounded-full h-3 mb-2 overflow-hidden">
-                <div class="bg-gradient-to-r from-primary to-purple-500 h-full rounded-full transition-all duration-500" style="width: 57%" id="weekly-progress-bar"></div>
-              </div>
-              <div class="grid grid-cols-7 gap-1">
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
-                    <i class="fas fa-check text-white text-xs"></i>
-                  </div>
-                  <span class="text-xs text-gray-500">月</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
-                    <i class="fas fa-check text-white text-xs"></i>
-                  </div>
-                  <span class="text-xs text-gray-500">火</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
-                    <i class="fas fa-check text-white text-xs"></i>
-                  </div>
-                  <span class="text-xs text-gray-500">水</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
-                    <i class="fas fa-check text-white text-xs"></i>
-                  </div>
-                  <span class="text-xs text-gray-500">木</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center mb-1">
-                    <i class="fas fa-times text-white text-xs"></i>
-                  </div>
-                  <span class="text-xs text-gray-500">金</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mb-1">
-                    <span class="text-xs text-gray-400">?</span>
-                  </div>
-                  <span class="text-xs text-gray-500">土</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mb-1">
-                    <span class="text-xs text-gray-400">?</span>
-                  </div>
-                  <span class="text-xs text-gray-500">日</span>
-                </div>
-              </div>
-            </div>
           ` : ''}
           
-          <!-- タイトルと日付選択 -->
-          <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-800 mb-3 sm:mb-0">
-              <i class="fas fa-clipboard-list mr-2" style="color: var(--color-primary)"></i>
-              健康ログ
+          <!-- ========== STEP 2: かんたん記録（毎日の基本） ========== -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-2xl font-bold text-gray-800">
+                <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
+                今日の記録
+              </h3>
+              
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="changeLogDate(-1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                  <i class="fas fa-calendar-alt text-primary text-sm"></i>
+                  <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                    onchange="changeLogDateFromPicker(this.value)"
+                    class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
+                </div>
+                <button type="button" onclick="changeLogDate(1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+                <button type="button" onclick="goToToday()" class="px-3 py-2 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm">
+                  今日
+                </button>
+              </div>
+            </div>
+          
+            <!-- スタッフコメント（最新1件） -->
+            ${latestStaffComment ? `
+              <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <i class="fas fa-user-nurse text-white"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-sm font-bold text-blue-700">スタッフからのコメント</span>
+                      <span class="text-xs text-gray-500">${latestStaffComment.staff_name} • ${formatRelativeTime(latestStaffComment.created_at)}</span>
+                    </div>
+                    <p class="text-sm text-gray-700">${latestStaffComment.comment}</p>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            
+            <form id="health-log-form" class="space-y-4">
+              <!-- 【重要】必須項目（大きく目立つ） -->
+              <div class="bg-gradient-to-br from-primary/5 to-pink-50 p-5 rounded-2xl shadow-md border-2 border-primary/20">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <i class="fas fa-star text-white text-sm"></i>
+                  </div>
+                  <h4 class="text-lg font-bold text-gray-800">毎日の基本（必須）</h4>
+                </div>
+                  <!-- 体重（大きく表示） -->
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                      <i class="fas fa-weight mr-2 text-primary"></i>体重
+                    </label>
+                    <div class="relative">
+                      <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
+                        placeholder="例: 65.5"
+                        class="w-full px-4 py-3 text-2xl font-bold bg-white text-gray-800 rounded-xl focus:outline-none focus:ring-3 focus:ring-primary shadow-sm border-2 border-gray-200">
+                      <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-gray-500 font-medium">kg</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 体調評価（大きく表示） -->
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                      <i class="fas fa-smile mr-2 text-primary"></i>今日の体調
+                    </label>
+                    <div class="flex items-center justify-between gap-2">
+                      ${[1, 2, 3, 4, 5].map(rating => {
+                        const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
+                        const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
+                        const labels = ['悪い', '微妙', '普通', '良い', '最高'];
+                        const isSelected = (todayLog?.condition_rating || 3) === rating;
+                        
+                        return `
+                          <label class="flex-1 cursor-pointer" onclick="selectConditionRating(${rating})">
+                            <input type="radio" name="condition_rating" value="${rating}" 
+                              ${isSelected ? 'checked' : ''}
+                              class="hidden" id="condition-rating-${rating}">
+                            <div class="flex flex-col items-center p-3 rounded-xl transition ${isSelected ? 'bg-white shadow-lg scale-105' : 'hover:bg-white/50'}" id="condition-rating-label-${rating}">
+                              <i class="fas ${icons[rating-1]} text-3xl ${isSelected ? colors[rating-1] : 'text-gray-300'} mb-1" id="condition-rating-icon-${rating}"></i>
+                              <span class="text-xs font-bold ${isSelected ? 'text-gray-800' : 'text-gray-400'}" id="condition-rating-text-${rating}">${labels[rating-1]}</span>
+                            </div>
+                          </label>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <!-- 食事記録（簡潔に） -->
+              <div class="bg-white p-5 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-utensils text-accent"></i>
+                    食事記録
+                  </h4>
+                  <span class="text-xs text-gray-500">写真を撮るだけでOK</span>
+                </div>
+              
+                <!-- 3食まとめて表示（コンパクト） -->
+                <div class="grid grid-cols-3 gap-2">
+                  <!-- 朝食 -->
+                  <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg text-center">
+                    <div class="text-xs font-bold text-gray-700 mb-2 flex items-center justify-center gap-1">
+                      <i class="fas fa-sun text-yellow-500"></i>朝食
+                    </div>
+                    <button type="button" onclick="showMealModal('breakfast')" 
+                      class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-orange-300">
+                      <div id="breakfast-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
+                      <i class="fas fa-camera text-orange-400 text-2xl" id="breakfast-camera-icon"></i>
+                    </button>
+                    <div class="text-base font-bold text-primary" id="breakfast-calories-display">-</div>
+                    <div class="text-xs text-gray-500">kcal</div>
+                  </div>
+              
+                  <!-- 昼食 -->
+                  <div class="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg text-center">
+                    <div class="text-xs font-bold text-gray-700 mb-2 flex items-center justify-center gap-1">
+                      <i class="fas fa-cloud-sun text-orange-500"></i>昼食
+                    </div>
+                    <button type="button" onclick="showMealModal('lunch')" 
+                      class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-red-300">
+                      <div id="lunch-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
+                      <i class="fas fa-camera text-red-400 text-2xl" id="lunch-camera-icon"></i>
+                    </button>
+                    <div class="text-base font-bold text-primary" id="lunch-calories-display">-</div>
+                    <div class="text-xs text-gray-500">kcal</div>
+                  </div>
+              
+                  <!-- 夕食 -->
+                  <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg text-center">
+                    <div class="text-xs font-bold text-gray-700 mb-2 flex items-center justify-center gap-1">
+                      <i class="fas fa-moon text-blue-500"></i>夕食
+                    </div>
+                    <button type="button" onclick="showMealModal('dinner')" 
+                      class="w-full aspect-square bg-white rounded-lg hover:bg-gray-50 transition flex items-center justify-center mb-2 border-2 border-dashed border-indigo-300">
+                      <div id="dinner-photos" class="w-full h-full grid grid-cols-1 gap-1 p-1"></div>
+                      <i class="fas fa-camera text-indigo-400 text-2xl" id="dinner-camera-icon"></i>
+                    </button>
+                    <div class="text-base font-bold text-primary" id="dinner-calories-display">-</div>
+                    <div class="text-xs text-gray-500">kcal</div>
+                  </div>
+                </div>
+                
+                <!-- 1日の合計（大きく表示） -->
+                <div class="mt-3 bg-gradient-to-br from-primary/10 to-pink-50 p-4 rounded-xl border-2 border-primary/20">
+                  <div class="text-center">
+                    <div class="text-xs text-gray-600 mb-1">今日の総カロリー</div>
+                    <div class="text-3xl font-bold text-primary mb-2" id="total-calories">0</div>
+                    <div class="text-xs text-gray-500 mb-3">kcal</div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                      <div class="bg-white/80 rounded py-1">
+                        <div class="font-bold text-green-600" id="total-protein">0</div>
+                        <div class="text-gray-500">P (g)</div>
+                      </div>
+                      <div class="bg-white/80 rounded py-1">
+                        <div class="font-bold text-yellow-600" id="total-fat">0</div>
+                        <div class="text-gray-500">F (g)</div>
+                      </div>
+                      <div class="bg-white/80 rounded py-1">
+                        <div class="font-bold text-blue-600" id="total-carbs">0</div>
+                        <div class="text-gray-500">C (g)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 隠し入力フィールド（従来の互換性のため） -->
+                <input type="number" id="breakfast-calories" value="0" class="hidden">
+                <input type="number" id="breakfast-protein" value="0" class="hidden">
+                <input type="number" id="breakfast-fat" value="0" class="hidden">
+                <input type="number" id="breakfast-carbs" value="0" class="hidden">
+                <input type="number" id="lunch-calories" value="0" class="hidden">
+                <input type="number" id="lunch-protein" value="0" class="hidden">
+                <input type="number" id="lunch-fat" value="0" class="hidden">
+                <input type="number" id="lunch-carbs" value="0" class="hidden">
+                <input type="number" id="dinner-calories" value="0" class="hidden">
+                <input type="number" id="dinner-protein" value="0" class="hidden">
+                <input type="number" id="dinner-fat" value="0" class="hidden">
+                <input type="number" id="dinner-carbs" value="0" class="hidden">
+              </div>
+            
+              <!-- ========== STEP 3: 詳細記録（任意・折りたたみ可能） ========== -->
+              <div class="bg-white p-5 rounded-xl shadow-sm">
+                <button type="button" onclick="toggleDetailedInputs()" 
+                  class="w-full flex items-center justify-between text-left group">
+                  <h4 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-primary group-hover:text-pink-500 transition"></i>
+                    詳細記録（任意）
+                  </h4>
+                  <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="detailed-inputs-arrow"></i>
+                </button>
+                
+                <div id="detailed-inputs" class="hidden mt-4 space-y-4">
+                  <!-- 体脂肪率・睡眠・運動時間 -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-600 mb-2">
+                        <i class="fas fa-percentage mr-1 text-primary"></i>体脂肪率
+                      </label>
+                      <div class="relative">
+                        <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
+                          placeholder="25.0"
+                          class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-600 mb-2">
+                        <i class="fas fa-bed mr-1 text-primary"></i>睡眠時間
+                      </label>
+                      <div class="relative">
+                        <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
+                          placeholder="7.5"
+                          class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">時間</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-600 mb-2">
+                        <i class="fas fa-running mr-1 text-primary"></i>運動時間
+                      </label>
+                      <div class="relative">
+                        <input type="number" name="exercise_minutes" id="exercise-minutes" value="${todayLog?.exercise_minutes || ''}"
+                          placeholder="30"
+                          class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">分</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- 運動メモ -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                      <i class="fas fa-dumbbell mr-1 text-primary"></i>運動の詳細（任意）
+                    </label>
+                    <textarea name="condition_note" rows="3" 
+                      placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット、ランニング5km（30分）"
+                      class="w-full px-4 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
+                    >${todayLog?.condition_note || ''}</textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 保存ボタン（大きく目立つ） -->
+              <button type="submit" class="w-full btn-primary px-6 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transition transform hover:scale-102">
+                <i class="fas fa-save mr-2"></i>
+                今日の記録を保存
+              </button>
+            </form>
+          
+          </div>
+          
+          <!-- ========== STEP 4: 質問・相談（別セクション） ========== -->
+          <div class="mt-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">
+              <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
+              質問・相談
             </h3>
             
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="changeLogDate(-1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                <i class="fas fa-calendar-alt text-primary text-sm"></i>
-                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                  onchange="changeLogDateFromPicker(this.value)"
-                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
-              </div>
-              <button type="button" onclick="changeLogDate(1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-              <button type="button" onclick="goToToday()" class="px-3 py-2 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm">
-                今日
-              </button>
-            </div>
-          </div>
-          
-          <!-- スタッフコメント（最新1件） -->
-          ${latestStaffComment ? `
-            <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm">
-              <div class="flex items-start gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                  <i class="fas fa-user-nurse text-white"></i>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-sm font-bold text-blue-700">スタッフからのコメント</span>
-                    <span class="text-xs text-gray-500">${latestStaffComment.staff_name} • ${formatRelativeTime(latestStaffComment.created_at)}</span>
-                  </div>
-                  <p class="text-sm text-gray-700">${latestStaffComment.comment}</p>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-          
-          <form id="health-log-form" class="space-y-6">
-            <!-- 基本データ -->
-            <div class="bg-white p-5 rounded-xl shadow-sm">
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-weight mr-1 text-primary"></i> 体重 (kg)
-                  </label>
-                  <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
-                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                </div>
-                
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-percentage mr-1 text-primary"></i> 体脂肪率 (%)
-                  </label>
-                  <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
-                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                </div>
-                
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-bed mr-1 text-primary"></i> 睡眠 (時間)
-                  </label>
-                  <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
-                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                </div>
-                
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-running mr-1 text-primary"></i> 運動 (分)
-                  </label>
-                  <input type="number" name="exercise_minutes" value="${todayLog?.exercise_minutes || ''}"
-                    class="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                </div>
-              </div>
-            </div>
-            
-            <!-- 食事記録 -->
-            <div class="bg-white p-5 rounded-xl shadow-sm">
-              <h4 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <i class="fas fa-utensils" style="color: var(--color-accent)"></i>
-                食事記録
-              </h4>
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl shadow-sm">
+              <p class="text-sm text-gray-600 mb-4">
+                トレーニングや食事、健康に関する質問をお気軽にどうぞ。専門スタッフが丁寧に回答します。
+              </p>
               
-              <!-- 朝食 -->
-              <div class="mb-3 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 rounded-lg">
-                <div class="flex items-center justify-between mb-2">
-                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
-                    <i class="fas fa-sun text-yellow-500"></i>朝食
-                  </h5>
-                  <button type="button" onclick="showMealModal('breakfast')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>追加
-                  </button>
-                </div>
-                <div id="breakfast-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
-                <div class="grid grid-cols-4 gap-1 text-xs">
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
-                    <input type="number" id="breakfast-calories" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
-                    <input type="number" id="breakfast-protein" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
-                    <input type="number" id="breakfast-fat" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
-                    <input type="number" id="breakfast-carbs" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                </div>
-              </div>
+              <textarea 
+                id="question-input" 
+                rows="4" 
+                class="w-full px-4 py-3 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition border border-purple-200 shadow-sm mb-3"
+                placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
+              ></textarea>
               
-              <!-- 昼食 -->
-              <div class="mb-3 bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg">
-                <div class="flex items-center justify-between mb-2">
-                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
-                    <i class="fas fa-cloud-sun text-orange-500"></i>昼食
-                  </h5>
-                  <button type="button" onclick="showMealModal('lunch')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>追加
-                  </button>
-                </div>
-                <div id="lunch-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
-                <div class="grid grid-cols-4 gap-1 text-xs">
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
-                    <input type="number" id="lunch-calories" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
-                    <input type="number" id="lunch-protein" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
-                    <input type="number" id="lunch-fat" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
-                    <input type="number" id="lunch-carbs" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                </div>
-              </div>
-              
-              <!-- 夕食 -->
-              <div class="mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
-                <div class="flex items-center justify-between mb-2">
-                  <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1">
-                    <i class="fas fa-moon text-blue-500"></i>夕食
-                  </h5>
-                  <button type="button" onclick="showMealModal('dinner')" class="text-xs px-3 py-1 bg-accent text-white rounded hover:bg-opacity-90">
-                    <i class="fas fa-camera mr-1"></i>追加
-                  </button>
-                </div>
-                <div id="dinner-photos" class="grid grid-cols-3 gap-1 mb-2"></div>
-                <div class="grid grid-cols-4 gap-1 text-xs">
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">cal</label>
-                    <input type="number" id="dinner-calories" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">P</label>
-                    <input type="number" id="dinner-protein" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">F</label>
-                    <input type="number" id="dinner-fat" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                  <div>
-                    <label class="block text-xs text-gray-600 mb-0.5">C</label>
-                    <input type="number" id="dinner-carbs" readonly 
-                      class="w-full px-1.5 py-0.5 border rounded text-center bg-white text-xs">
-                  </div>
-                </div>
-              </div>
-              
-              <!-- 合計 -->
-              <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-3 rounded-lg border border-gray-200">
-                <h5 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                  <i class="fas fa-calculator" style="color: var(--color-primary)"></i>1日の合計
-                </h5>
-                <div class="grid grid-cols-4 gap-2">
-                  <div class="text-center bg-white rounded p-2">
-                    <div class="text-lg font-bold text-primary" id="total-calories">0</div>
-                    <div class="text-xs text-gray-600">kcal</div>
-                  </div>
-                  <div class="text-center bg-white rounded p-2">
-                    <div class="text-lg font-bold text-green-600" id="total-protein">0</div>
-                    <div class="text-xs text-gray-600">P (g)</div>
-                  </div>
-                  <div class="text-center bg-white rounded p-2">
-                    <div class="text-lg font-bold text-yellow-600" id="total-fat">0</div>
-                    <div class="text-xs text-gray-600">F (g)</div>
-                  </div>
-                  <div class="text-center bg-white rounded p-2">
-                    <div class="text-lg font-bold text-blue-600" id="total-carbs">0</div>
-                    <div class="text-xs text-gray-600">C (g)</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 5段階体調評価 -->
-            <div class="bg-white p-5 rounded-xl shadow-sm">
-              <label class="block text-sm font-medium text-gray-700 mb-3">
-                <i class="fas fa-smile mr-1 text-primary"></i> 今日の体調
-              </label>
-              <div class="flex items-center justify-between gap-2">
-                ${[1, 2, 3, 4, 5].map(rating => {
-                  const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
-                  const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
-                  const labels = ['とても悪い', '悪い', '普通', '良い', 'とても良い'];
-                  const isSelected = (todayLog?.condition_rating || 3) === rating;
-                  
-                  return `
-                    <label class="flex-1 cursor-pointer" onclick="selectConditionRating(${rating})">
-                      <input type="radio" name="condition_rating" value="${rating}" 
-                        ${isSelected ? 'checked' : ''}
-                        class="hidden" id="condition-rating-${rating}">
-                      <div class="flex flex-col items-center p-3 rounded-lg transition ${isSelected ? 'bg-white shadow-md' : 'hover:bg-white hover:bg-opacity-50'}" id="condition-rating-label-${rating}">
-                        <i class="fas ${icons[rating-1]} text-3xl ${isSelected ? colors[rating-1] : 'text-gray-400'} mb-1" id="condition-rating-icon-${rating}"></i>
-                        <span class="text-xs font-medium ${isSelected ? 'text-gray-800' : 'text-gray-500'}" id="condition-rating-text-${rating}">${labels[rating-1]}</span>
-                      </div>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-            
-            <div class="bg-white p-5 rounded-xl shadow-sm">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-dumbbell mr-1 text-primary"></i> 運動記録
-              </label>
-              <textarea name="condition_note" rows="3" 
-                placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット、ランニング5km（30分）"
-                class="w-full px-4 py-2 bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
-              >${todayLog?.condition_note || ''}</textarea>
-            </div>
-            
-            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition">
-              <i class="fas fa-save mr-2"></i>
-              保存する
-            </button>
-          </form>
-          
-          <!-- マイページへのリンク -->
-          <div class="mt-4 text-center">
-            <a href="/mypage" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
-              <i class="fas fa-chart-line"></i>
-              マイページで詳細を確認
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-          
-          <!-- 質問・相談 -->
-          <div class="mt-6">
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-lg font-bold text-gray-800 mb-3">
-                <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
-                質問・相談
-              </h4>
-              
-              <!-- 質問入力フォーム（アイコン削除、幅広く） -->
-              <div class="mb-3">
-                <textarea 
-                  id="question-input" 
-                  rows="4" 
-                  class="w-full px-4 py-3 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition border border-purple-200 shadow-sm"
-                  placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
-                ></textarea>
-                <div class="flex justify-end mt-2">
-                  <button 
-                    onclick="submitQuestion()" 
-                    class="px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-                  >
-                    <i class="fas fa-paper-plane mr-1"></i>
-                    質問を送信
-                  </button>
-                </div>
-              </div>
-              
-              <!-- 過去の質問と回答を見るリンク -->
-              <div class="text-center">
-                <a href="/mypage#qa-section" class="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
-                  <i class="fas fa-history"></i>
-                  過去の質問と回答を見る
-                  <i class="fas fa-arrow-right"></i>
+              <div class="flex items-center justify-between">
+                <a href="/mypage#qa-section" class="text-sm text-primary hover:underline font-medium">
+                  <i class="fas fa-history mr-1"></i>
+                  過去の質問を見る
                 </a>
+                <button 
+                  onclick="submitQuestion()" 
+                  class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                >
+                  <i class="fas fa-paper-plane mr-2"></i>
+                  質問を送信
+                </button>
               </div>
             </div>
+          </div>
+          
+          <!-- マイページへの誘導 -->
+          <div class="mt-6 text-center">
+            <a href="/mypage" class="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 rounded-xl shadow-sm hover:shadow-md transition font-medium text-gray-700">
+              <i class="fas fa-chart-line text-primary"></i>
+              マイページで詳しい分析を見る
+              <i class="fas fa-arrow-right text-primary"></i>
+            </a>
           </div>
         </div>
       </div>
@@ -1403,8 +1324,9 @@ async function analyzeMealPhotos(mealType) {
       carbs: total.carbs
     };
     
-    // UI更新
+    // UI更新（新レイアウト対応）
     updateMealDisplay(mealType);
+    updateMealPhotosDisplay();
     updateTotalNutrition();
     
     showToast(`${files.length}枚の写真を解析しました`, 'success');
@@ -2136,6 +2058,62 @@ function saveGoalSettings() {
   }));
   
   showToast('目標を保存しました', 'success');
+}
+
+// 詳細入力の折りたたみトグル（新機能）
+function toggleDetailedInputs() {
+  const detailedInputs = document.getElementById('detailed-inputs');
+  const arrow = document.getElementById('detailed-inputs-arrow');
+  
+  if (detailedInputs && arrow) {
+    if (detailedInputs.classList.contains('hidden')) {
+      detailedInputs.classList.remove('hidden');
+      arrow.classList.add('rotate-180');
+    } else {
+      detailedInputs.classList.add('hidden');
+      arrow.classList.remove('rotate-180');
+    }
+  }
+}
+
+// 食事写真表示の更新（新レイアウト対応）
+function updateMealPhotosDisplay() {
+  ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
+    const photosDiv = document.getElementById(`${mealType}-photos`);
+    const cameraIcon = document.getElementById(`${mealType}-camera-icon`);
+    const caloriesDisplay = document.getElementById(`${mealType}-calories-display`);
+    const meal = mealData[mealType];
+    
+    if (!photosDiv) return;
+    
+    if (meal.photos && meal.photos.length > 0) {
+      // 写真がある場合
+      photosDiv.innerHTML = meal.photos.map(photo => `
+        <div class="relative w-full h-full">
+          <img src="${photo}" class="w-full h-full object-cover rounded-lg">
+        </div>
+      `).join('');
+      if (cameraIcon) cameraIcon.classList.add('hidden');
+    } else {
+      // 写真がない場合
+      photosDiv.innerHTML = '';
+      if (cameraIcon) cameraIcon.classList.remove('hidden');
+    }
+    
+    // カロリー表示更新
+    if (caloriesDisplay) {
+      caloriesDisplay.textContent = meal.calories > 0 ? meal.calories : '-';
+    }
+    
+    // 隠しフィールドも更新
+    ['calories', 'protein', 'fat', 'carbs'].forEach(field => {
+      const input = document.getElementById(`${mealType}-${field}`);
+      if (input) input.value = meal[field] || 0;
+    });
+  });
+  
+  // 合計カロリー更新
+  updateTotalCalories();
 }
 
 
