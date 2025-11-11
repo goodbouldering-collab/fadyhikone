@@ -149,7 +149,7 @@ function renderHeader() {
                   マイページ
                 </a>
                 <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
-                  <i class="fas fa-sign-out-alt"></i>
+                  ログアウト
                 </button>
               </div>
             ` : `
