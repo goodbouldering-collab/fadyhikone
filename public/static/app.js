@@ -6,7 +6,6 @@ let currentAdvices = [];
 let todayLog = null;
 let announcements = [];
 let latestStaffComment = null;
-let userOpinions = [];
 let selectedDate = null; // 選択された日付（YYYY-MM-DD形式）
 
 // 食事記録データ
@@ -28,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadAdvices();
     await loadLogForDate(selectedDate);
     await loadLatestStaffComment();
-    await loadUserOpinions();
   }
 });
 
@@ -524,51 +522,33 @@ function renderHealthLogSection() {
           <div class="mt-4 text-center">
             <a href="/mypage" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
               <i class="fas fa-chart-line"></i>
-              マイページへ
+              マイページで詳細を確認
               <i class="fas fa-arrow-right"></i>
             </a>
           </div>
           
-          <!-- スタッフに質問・相談する -->
+          <!-- 質問・相談はマイページへ -->
           <div class="mt-6 border-t pt-6">
-            <h4 class="text-lg font-bold text-gray-800 mb-4">
-              <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
-              スタッフに質問・相談する
-            </h4>
-            <div>
-              <textarea 
-                id="opinion-question-top" 
-                rows="3" 
-                placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              ></textarea>
-              <div class="flex justify-end mt-2">
-                <button 
-                  type="button"
-                  onclick="submitOpinionFromTop()" 
-                  class="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-opacity-90 transition"
-                >
-                  <i class="fas fa-paper-plane mr-1"></i>
-                  質問を送信
-                </button>
+            <div class="bg-gradient-to-br from-purple-50 to-white p-6 rounded-lg border border-purple-100">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-comments text-2xl" style="color: var(--color-primary)"></i>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-lg font-bold text-gray-800 mb-2">
+                    スタッフに質問・相談する
+                  </h4>
+                  <p class="text-sm text-gray-600 mb-4">
+                    トレーニングや食事、健康に関するご質問はマイページから投稿できます。<br>
+                    過去の質問と回答の履歴もマイページでご確認いただけます。
+                  </p>
+                  <a href="/mypage" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                    <i class="fas fa-arrow-right"></i>
+                    マイページで質問する
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <!-- 過去の質問と回答 -->
-          <div class="mt-6">
-            <h4 class="text-lg font-bold text-gray-800 mb-4">
-              <i class="fas fa-history mr-2" style="color: var(--color-primary)"></i>
-              過去の質問と回答
-            </h4>
-            ${userOpinions.length > 0 ? renderOpinionHistory() : `
-              <div class="text-center py-8">
-                <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <i class="fas fa-inbox text-4xl text-gray-300"></i>
-                </div>
-                <p class="text-gray-500 text-sm">まだ質問・相談を投稿していません</p>
-              </div>
-            `}
           </div>
         </div>
       </div>
@@ -1695,106 +1675,4 @@ async function loadLatestStaffComment() {
   }
 }
 
-// ユーザーのオピニオンをロード
-async function loadUserOpinions() {
-  try {
-    const response = await apiCall(`/api/opinions/user/${currentUser.id}`);
-    if (response.success) {
-      userOpinions = response.data;
-    }
-  } catch (error) {
-    console.error('オピニオンの取得に失敗:', error);
-  }
-}
 
-// オピニオン履歴レンダリング
-function renderOpinionHistory() {
-  const pendingOpinions = userOpinions.filter(op => op.status === 'pending');
-  const answeredOpinions = userOpinions.filter(op => op.status === 'answered');
-  
-  // 全ての質問を時系列で表示（未回答と回答済みを混ぜて表示）
-  const allOpinions = [...userOpinions].sort((a, b) => 
-    new Date(b.created_at) - new Date(a.created_at)
-  );
-  
-  return `
-    <div class="space-y-4">
-      ${allOpinions.slice(0, 5).map(opinion => {
-        const isPending = opinion.status === 'pending';
-        return `
-          <div class="bg-gray-50 p-4 rounded-lg border ${isPending ? 'border-orange-300' : 'border-green-300'}">
-            <!-- 質問部分 -->
-            <div class="mb-3">
-              <div class="flex justify-between items-start mb-2">
-                <span class="text-xs text-gray-500">
-                  <i class="fas fa-clock mr-1"></i>${formatDateTime(opinion.created_at)}
-                </span>
-                <span class="px-2 py-1 text-xs rounded ${isPending ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">
-                  ${isPending ? '回答待ち' : '回答済み'}
-                </span>
-              </div>
-              <div class="bg-white p-3 rounded border border-gray-200">
-                <p class="text-sm text-gray-800">${opinion.question}</p>
-              </div>
-            </div>
-            
-            <!-- 回答部分 -->
-            ${!isPending ? `
-              <div class="bg-blue-50 p-3 rounded border border-blue-200">
-                <div class="flex items-center gap-2 mb-2">
-                  <i class="fas fa-user-nurse text-blue-600 text-sm"></i>
-                  <span class="text-sm font-medium text-blue-700">${opinion.answered_by}</span>
-                  <span class="text-xs text-gray-500">• ${formatDateTime(opinion.answered_at)}</span>
-                </div>
-                <p class="text-sm text-gray-700 whitespace-pre-wrap">${opinion.answer}</p>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('')}
-      
-      ${allOpinions.length > 5 ? `
-        <div class="text-center">
-          <a href="/mypage" class="inline-block px-4 py-2 text-sm text-primary hover:underline">
-            <i class="fas fa-list mr-1"></i>
-            すべての質問を見る（${allOpinions.length}件）
-          </a>
-        </div>
-      ` : allOpinions.length > 0 ? `
-        <div class="text-center">
-          <a href="/mypage" class="inline-block px-4 py-2 text-sm text-primary hover:underline">
-            <i class="fas fa-list mr-1"></i>
-            マイページで詳細を確認
-          </a>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-// トップページからオピニオン送信
-async function submitOpinionFromTop() {
-  const questionElement = document.getElementById('opinion-question-top');
-  const question = questionElement.value.trim();
-  
-  if (!question) {
-    showToast('質問を入力してください', 'warning');
-    return;
-  }
-  
-  try {
-    const response = await apiCall('/api/opinions', {
-      method: 'POST',
-      data: { question }
-    });
-    
-    if (response.success) {
-      showToast('質問を送信しました', 'success');
-      questionElement.value = '';
-      await loadUserOpinions();
-      renderPage();
-    }
-  } catch (error) {
-    showToast('送信に失敗しました', 'error');
-  }
-}
