@@ -66,12 +66,18 @@ function renderPage() {
     ${renderChartsSection()}
     ${renderHealthLogsTable()}
     ${renderOpinionBox()}
+    ${renderSettingsSection()}
   `;
   
   // グラフ描画
   setTimeout(() => {
     renderCharts();
   }, 100);
+  
+  // デフォルトで基本情報タブを表示
+  setTimeout(() => {
+    showSettingsTab('profile');
+  }, 150);
 }
 
 // 共通ヘッダー
@@ -805,6 +811,345 @@ async function submitOpinion() {
     }
   } catch (error) {
     showToast('送信に失敗しました', 'error');
+  }
+}
+
+// 個人データ設定セクション
+function renderSettingsSection() {
+  return `
+    <section class="bg-gradient-to-br from-blue-50 to-white py-8">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-cog mr-2" style="color: var(--color-primary)"></i>
+            個人データ設定
+          </h3>
+          
+          <!-- タブナビゲーション -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="flex border-b border-gray-200">
+              <button onclick="showSettingsTab('profile')" id="settings-tab-profile" 
+                class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                <i class="fas fa-user-circle mr-2"></i>
+                基本情報
+              </button>
+              <button onclick="showSettingsTab('body')" id="settings-tab-body" 
+                class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                <i class="fas fa-heartbeat mr-2"></i>
+                身体情報
+              </button>
+              ${currentUser?.auth_provider === 'email' ? `
+                <button onclick="showSettingsTab('password')" id="settings-tab-password" 
+                  class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                  <i class="fas fa-lock mr-2"></i>
+                  パスワード変更
+                </button>
+              ` : ''}
+            </div>
+            
+            <div id="settings-content" class="p-6">
+              <!-- コンテンツはJavaScriptで動的に表示 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 設定タブ切り替え
+function showSettingsTab(tab) {
+  // タブボタンのアクティブ状態を更新
+  document.querySelectorAll('.settings-tab').forEach(btn => {
+    btn.classList.remove('border-primary', 'text-primary');
+    btn.classList.add('border-transparent', 'text-gray-600');
+  });
+  
+  const activeTab = document.getElementById(`settings-tab-${tab}`);
+  if (activeTab) {
+    activeTab.classList.remove('border-transparent', 'text-gray-600');
+    activeTab.classList.add('border-primary', 'text-primary');
+  }
+  
+  // コンテンツを切り替え
+  const content = document.getElementById('settings-content');
+  if (tab === 'profile') {
+    content.innerHTML = renderProfileSettings();
+  } else if (tab === 'body') {
+    content.innerHTML = renderBodySettings();
+  } else if (tab === 'password') {
+    content.innerHTML = renderPasswordSettings();
+  }
+}
+
+// 基本情報設定フォーム
+function renderProfileSettings() {
+  return `
+    <form id="profile-form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-user mr-1"></i> お名前 <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="profile-name" value="${currentUser?.name || ''}" required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-envelope mr-1"></i> メールアドレス <span class="text-red-500">*</span>
+          </label>
+          <input type="email" id="profile-email" value="${currentUser?.email || ''}" required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-phone mr-1"></i> 電話番号
+          </label>
+          <input type="tel" id="profile-phone" value="${currentUser?.phone || ''}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="090-1234-5678">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-birthday-cake mr-1"></i> 生年月日
+          </label>
+          <input type="date" id="profile-birthday" value="${currentUser?.birthday || ''}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-venus-mars mr-1"></i> 性別
+          </label>
+          <select id="profile-gender" 
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            <option value="">選択してください</option>
+            <option value="female" ${currentUser?.gender === 'female' ? 'selected' : ''}>女性</option>
+            <option value="male" ${currentUser?.gender === 'male' ? 'selected' : ''}>男性</option>
+            <option value="other" ${currentUser?.gender === 'other' ? 'selected' : ''}>その他</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button type="button" onclick="loadAllData(); renderPage();" 
+          class="px-6 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+          <i class="fas fa-times mr-2"></i>
+          キャンセル
+        </button>
+        <button type="submit" 
+          class="px-6 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+          <i class="fas fa-save mr-2"></i>
+          保存する
+        </button>
+      </div>
+    </form>
+    
+    <script>
+      document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await updateProfile();
+      });
+    </script>
+  `;
+}
+
+// 身体情報設定フォーム
+function renderBodySettings() {
+  return `
+    <form id="body-form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-ruler-vertical mr-1"></i> 身長 (cm)
+          </label>
+          <input type="number" id="body-height" value="${currentUser?.height || ''}" step="0.1" min="0" max="300"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="160.0">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-weight mr-1"></i> 体重 (kg)
+          </label>
+          <input type="number" id="body-weight" value="${currentUser?.weight || ''}" step="0.1" min="0" max="500"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="55.0">
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-bullseye mr-1"></i> 目標・備考
+        </label>
+        <textarea id="body-goal" rows="4"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          placeholder="ダイエット、筋力アップ、健康維持など、あなたの目標を記入してください...">${currentUser?.goal || ''}</textarea>
+      </div>
+      
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button type="button" onclick="loadAllData(); renderPage();" 
+          class="px-6 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+          <i class="fas fa-times mr-2"></i>
+          キャンセル
+        </button>
+        <button type="submit" 
+          class="px-6 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+          <i class="fas fa-save mr-2"></i>
+          保存する
+        </button>
+      </div>
+    </form>
+    
+    <script>
+      document.getElementById('body-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await updateProfile();
+      });
+    </script>
+  `;
+}
+
+// パスワード変更フォーム
+function renderPasswordSettings() {
+  return `
+    <form id="password-form" class="space-y-4 max-w-md">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+        <div class="flex items-start gap-2">
+          <i class="fas fa-info-circle text-yellow-600 mt-1"></i>
+          <div class="text-sm text-yellow-800">
+            <p class="font-medium mb-1">パスワード変更について</p>
+            <p>セキュリティ保護のため、現在のパスワードが必要です。新しいパスワードは8文字以上を推奨します。</p>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-lock mr-1"></i> 現在のパスワード <span class="text-red-500">*</span>
+        </label>
+        <input type="password" id="password-current" required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          placeholder="現在のパスワードを入力">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-key mr-1"></i> 新しいパスワード <span class="text-red-500">*</span>
+        </label>
+        <input type="password" id="password-new" required minlength="6"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          placeholder="新しいパスワードを入力（6文字以上）">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-check-circle mr-1"></i> 新しいパスワード（確認） <span class="text-red-500">*</span>
+        </label>
+        <input type="password" id="password-confirm" required minlength="6"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          placeholder="もう一度入力してください">
+      </div>
+      
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button type="button" onclick="document.getElementById('password-form').reset();" 
+          class="px-6 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+          <i class="fas fa-times mr-2"></i>
+          キャンセル
+        </button>
+        <button type="submit" 
+          class="px-6 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+          <i class="fas fa-shield-alt mr-2"></i>
+          パスワードを変更
+        </button>
+      </div>
+    </form>
+    
+    <script>
+      document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await updatePassword();
+      });
+    </script>
+  `;
+}
+
+// プロフィール更新処理
+async function updateProfile() {
+  try {
+    // 基本情報
+    const name = document.getElementById('profile-name')?.value;
+    const email = document.getElementById('profile-email')?.value;
+    const phone = document.getElementById('profile-phone')?.value;
+    const birthday = document.getElementById('profile-birthday')?.value;
+    const gender = document.getElementById('profile-gender')?.value;
+    
+    // 身体情報
+    const height = document.getElementById('body-height')?.value;
+    const weight = document.getElementById('body-weight')?.value;
+    const goal = document.getElementById('body-goal')?.value;
+    
+    const response = await apiCall('/api/auth/profile', 'PUT', {
+      name: name || currentUser.name,
+      email: email || currentUser.email,
+      phone: phone || currentUser.phone || null,
+      birthday: birthday || currentUser.birthday || null,
+      gender: gender || currentUser.gender || null,
+      height: height ? parseFloat(height) : currentUser.height || null,
+      weight: weight ? parseFloat(weight) : currentUser.weight || null,
+      goal: goal || currentUser.goal || null,
+    });
+    
+    if (response.success) {
+      currentUser = response.data;
+      setUserData(currentUser);
+      showToast('プロフィールを更新しました', 'success');
+      await loadAllData();
+      renderPage();
+      // デフォルトタブを表示
+      setTimeout(() => showSettingsTab('profile'), 100);
+    }
+  } catch (error) {
+    showToast('更新に失敗しました', 'error');
+  }
+}
+
+// パスワード変更処理
+async function updatePassword() {
+  try {
+    const currentPassword = document.getElementById('password-current').value;
+    const newPassword = document.getElementById('password-new').value;
+    const confirmPassword = document.getElementById('password-confirm').value;
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast('すべての項目を入力してください', 'warning');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      showToast('新しいパスワードが一致しません', 'warning');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      showToast('パスワードは6文字以上にしてください', 'warning');
+      return;
+    }
+    
+    const response = await apiCall('/api/auth/password', 'PUT', {
+      currentPassword,
+      newPassword,
+    });
+    
+    if (response.success) {
+      showToast('パスワードを変更しました', 'success');
+      document.getElementById('password-form').reset();
+    }
+  } catch (error) {
+    showToast('パスワード変更に失敗しました', 'error');
   }
 }
 
