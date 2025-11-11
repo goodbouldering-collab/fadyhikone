@@ -178,25 +178,32 @@ function renderHero() {
             `}
           </div>
           
-          <!-- お知らせ（枠なし、小さく） -->
+          <!-- お知らせ（最新のみ表示） -->
           ${announcements.length > 0 ? `
-            <div class="mt-8 space-y-2">
-              ${announcements.map(announcement => `
-                <div class="flex gap-2 items-start bg-white bg-opacity-10 backdrop-blur-sm p-2 rounded hover:bg-opacity-20 transition cursor-pointer"
-                     onclick="showAnnouncementDetail(${announcement.id})">
-                  ${announcement.image_url ? `
-                    <img src="${announcement.image_url}" alt="${announcement.title}" 
-                      class="w-10 h-10 object-cover rounded flex-shrink-0">
-                  ` : ''}
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-0.5">
-                      <i class="fas fa-bullhorn text-xs"></i>
-                      <h4 class="text-xs font-bold truncate">${announcement.title}</h4>
+            <div class="mt-8">
+              <div class="space-y-2 mb-3">
+                ${announcements.slice(0, 3).map(announcement => `
+                  <div class="flex gap-2 items-start bg-white bg-opacity-10 backdrop-blur-sm p-2 rounded hover:bg-opacity-20 transition cursor-pointer"
+                       onclick="showAnnouncementDetail(${announcement.id})">
+                    ${announcement.image_url ? `
+                      <img src="${announcement.image_url}" alt="${announcement.title}" 
+                        class="w-10 h-10 object-cover rounded flex-shrink-0">
+                    ` : ''}
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-0.5">
+                        <i class="fas fa-bullhorn text-xs"></i>
+                        <h4 class="text-xs font-bold truncate">${announcement.title}</h4>
+                      </div>
+                      <p class="text-xs opacity-90 line-clamp-1 leading-tight">${announcement.content}</p>
                     </div>
-                    <p class="text-xs opacity-90 line-clamp-1 leading-tight">${announcement.content}</p>
                   </div>
-                </div>
-              `).join('')}
+                `).join('')}
+              </div>
+              <div class="text-center">
+                <button onclick="showAllAnnouncements()" class="text-sm text-white hover:text-opacity-80 transition underline">
+                  全て見る →
+                </button>
+              </div>
             </div>
           ` : ''}
         </div>
@@ -1617,6 +1624,58 @@ function showAnnouncementDetail(id) {
       
       <div class="mt-4 text-xs text-gray-500 text-right">
         ${formatDateTime(announcement.published_at)}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// 全てのお知らせを表示
+function showAllAnnouncements() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-5 max-w-3xl max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 sticky top-0 bg-white pb-3 border-b">
+        <h3 class="text-xl font-bold text-gray-800">
+          <i class="fas fa-bullhorn mr-2 text-primary"></i>
+          お知らせ一覧
+        </h3>
+        <button onclick="this.closest('.modal-backdrop').remove()" 
+          class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-3">
+        ${announcements.length > 0 ? announcements.map(announcement => `
+          <div class="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+               onclick="showAnnouncementDetail(${announcement.id}); this.closest('.modal-backdrop').remove();">
+            <div class="flex gap-3">
+              ${announcement.image_url ? `
+                <img src="${announcement.image_url}" alt="${announcement.title}" 
+                  class="w-20 h-20 object-cover rounded flex-shrink-0">
+              ` : ''}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <i class="fas fa-bullhorn text-primary text-sm"></i>
+                  <h4 class="text-base font-bold text-gray-800">${announcement.title}</h4>
+                </div>
+                <p class="text-sm text-gray-600 line-clamp-2 mb-2">${announcement.content}</p>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-clock mr-1"></i>
+                  ${formatDateTime(announcement.published_at)}
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('') : `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-3"></i>
+            <p>お知らせはありません</p>
+          </div>
+        `}
       </div>
     </div>
   `;
