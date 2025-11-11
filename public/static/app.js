@@ -316,7 +316,7 @@ function renderHealthLogSection() {
           
           <!-- 今日の状況カード -->
           ${currentUser ? `
-            <div class="mb-6 grid grid-cols-4 gap-3">
+            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
               <!-- 総カロリー -->
               <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
                 <div class="flex items-center gap-2 mb-1">
