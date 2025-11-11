@@ -46,12 +46,13 @@ async function checkAdminAuth() {
 // 管理者データロード
 async function loadAdminData() {
   try {
-    const [usersRes, inquiriesRes, statsRes, opinionsRes, opinionCountRes] = await Promise.all([
+    const [usersRes, inquiriesRes, statsRes, opinionsRes, opinionCountRes, announcementsRes] = await Promise.all([
       apiCall('/api/admin/users'),
       apiCall('/api/admin/inquiries'),
       apiCall('/api/admin/stats'),
       apiCall('/api/opinions/admin'),
       apiCall('/api/opinions/admin/unprocessed-count'),
+      apiCall('/api/announcements'),
     ]);
     
     if (usersRes.success) users = usersRes.data;
@@ -59,6 +60,7 @@ async function loadAdminData() {
     if (statsRes.success) stats = statsRes.data;
     if (opinionsRes.success) opinions = opinionsRes.data;
     if (opinionCountRes.success) unprocessedOpinionCount = opinionCountRes.count;
+    if (announcementsRes.success) announcements = announcementsRes.data;
   } catch (error) {
     showToast('データの読み込みに失敗しました', 'error');
   }
@@ -185,6 +187,10 @@ function renderTabs() {
               class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
               <i class="fas fa-envelope mr-1"></i>問い合わせ
             </button>
+            <button onclick="showTab('announcements')" id="tab-announcements" 
+              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
+              <i class="fas fa-bullhorn mr-1"></i>お知らせ
+            </button>
             <button onclick="showTab('settings')" id="tab-settings" 
               class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
               <i class="fas fa-cog mr-1"></i>管理設定
@@ -212,6 +218,8 @@ function showTab(tab) {
     content.innerHTML = renderOpinionsTab();
   } else if (tab === 'inquiries') {
     content.innerHTML = renderInquiriesTab();
+  } else if (tab === 'announcements') {
+    content.innerHTML = renderAnnouncementsTab();
   } else if (tab === 'settings') {
     loadSettingsData().then(() => {
       content.innerHTML = renderSettingsTab();
@@ -1407,4 +1415,205 @@ async function deleteOpinion(opinionId) {
       }
     }
   );
+}
+
+// お知らせタブ
+function renderAnnouncementsTab() {
+  return `
+    <section class="bg-gray-50 py-6">
+      <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">お知らせ管理</h2>
+            <button onclick="showAddAnnouncementModal()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+              <i class="fas fa-plus mr-1"></i>新規お知らせ
+            </button>
+          </div>
+          
+          <div class="space-y-3">
+            ${announcements.length > 0 ? announcements.map(announcement => `
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex gap-4">
+                  ${announcement.image_url ? `
+                    <img src="${announcement.image_url}" alt="${announcement.title}" 
+                      class="w-24 h-24 object-cover rounded flex-shrink-0">
+                  ` : ''}
+                  <div class="flex-1">
+                    <div class="flex justify-between items-start mb-2">
+                      <h3 class="text-lg font-bold text-gray-800">${announcement.title}</h3>
+                      <div class="flex gap-2">
+                        <button onclick="showEditAnnouncementModal(${announcement.id})" class="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition">
+                          <i class="fas fa-edit mr-1"></i>編集
+                        </button>
+                        <button onclick="deleteAnnouncement(${announcement.id})" class="text-sm px-3 py-1 text-red-600 hover:bg-red-50 rounded transition">
+                          <i class="fas fa-trash mr-1"></i>削除
+                        </button>
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2 line-clamp-2">${announcement.content}</p>
+                    <div class="text-xs text-gray-500">
+                      <i class="fas fa-clock mr-1"></i>
+                      公開日: ${formatDateTime(announcement.published_at)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('') : `
+              <div class="bg-white p-8 rounded-lg text-center text-gray-500">
+                <i class="fas fa-bullhorn text-4xl mb-3"></i>
+                <p>お知らせはまだありません</p>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// お知らせ追加モーダル
+function showAddAnnouncementModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-5 max-w-2xl">
+      <h3 class="text-lg font-bold mb-3">新規お知らせ</h3>
+      <form id="add-announcement-form" class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">タイトル</label>
+          <input type="text" name="title" required class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">内容</label>
+          <textarea name="content" rows="4" required class="w-full px-3 py-2 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">画像URL（任意）</label>
+          <input type="url" name="image_url" class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" onclick="this.closest('.modal-backdrop').remove()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+            キャンセル
+          </button>
+          <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90">
+            作成
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('add-announcement-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      image_url: formData.get('image_url') || null,
+    };
+    
+    try {
+      const response = await apiCall('/api/announcements', {
+        method: 'POST',
+        data
+      });
+      
+      if (response.success) {
+        showToast('お知らせを作成しました', 'success');
+        modal.remove();
+        await loadAdminData();
+        renderPage();
+        showTab('announcements');
+      }
+    } catch (error) {
+      showToast('作成に失敗しました', 'error');
+    }
+  });
+}
+
+// お知らせ編集モーダル
+function showEditAnnouncementModal(id) {
+  const announcement = announcements.find(a => a.id === id);
+  if (!announcement) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-5 max-w-2xl">
+      <h3 class="text-lg font-bold mb-3">お知らせ編集</h3>
+      <form id="edit-announcement-form" class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">タイトル</label>
+          <input type="text" name="title" value="${announcement.title}" required class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">内容</label>
+          <textarea name="content" rows="4" required class="w-full px-3 py-2 border rounded-lg">${announcement.content}</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">画像URL（任意）</label>
+          <input type="url" name="image_url" value="${announcement.image_url || ''}" class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" onclick="this.closest('.modal-backdrop').remove()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+            キャンセル
+          </button>
+          <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90">
+            更新
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('edit-announcement-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      image_url: formData.get('image_url') || null,
+    };
+    
+    try {
+      const response = await apiCall(`/api/announcements/${id}`, {
+        method: 'PUT',
+        data
+      });
+      
+      if (response.success) {
+        showToast('お知らせを更新しました', 'success');
+        modal.remove();
+        await loadAdminData();
+        renderPage();
+        showTab('announcements');
+      }
+    } catch (error) {
+      showToast('更新に失敗しました', 'error');
+    }
+  });
+}
+
+// お知らせ削除
+async function deleteAnnouncement(id) {
+  if (!confirm('このお知らせを削除してもよろしいですか？')) return;
+  
+  try {
+    const response = await apiCall(`/api/announcements/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.success) {
+      showToast('お知らせを削除しました', 'success');
+      await loadAdminData();
+      renderPage();
+      showTab('announcements');
+    }
+  } catch (error) {
+    showToast('削除に失敗しました', 'error');
+  }
 }

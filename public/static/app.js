@@ -182,7 +182,7 @@ function renderHero() {
           ${announcements.length > 0 ? `
             <div class="mt-8">
               <div class="space-y-2 mb-3">
-                ${announcements.slice(0, 3).map(announcement => `
+                ${announcements.slice(0, 2).map(announcement => `
                   <div class="flex gap-2 items-start bg-white bg-opacity-10 backdrop-blur-sm p-2 rounded hover:bg-opacity-20 transition cursor-pointer"
                        onclick="showAnnouncementDetail(${announcement.id})">
                     ${announcement.image_url ? `
