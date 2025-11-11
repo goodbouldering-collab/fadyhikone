@@ -1630,119 +1630,45 @@ async function handleContactSubmit(e) {
 }
 
 // ログイン/新規登録モーダル表示
-function showLoginModal() {
+function showLoginModal(showAdminOption = false) {
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
   modal.innerHTML = `
     <div class="modal-content p-8 max-w-md">
       <div class="text-center mb-6">
-        <h3 class="text-2xl font-bold mb-2">ログイン / 新規登録</h3>
-        <p class="text-gray-600">以下の方法でアクセスしてください</p>
+        <h3 class="text-2xl font-bold mb-2">ログイン</h3>
+        <p class="text-gray-600">SNSアカウントでログイン</p>
       </div>
       
-      <!-- タブ切り替え -->
-      <div class="flex mb-6 bg-gray-100 p-1 rounded-lg">
-        <button onclick="switchAuthTab('oauth')" id="auth-tab-oauth" class="flex-1 py-2 px-4 rounded-md font-medium transition bg-white shadow">
-          SNSログイン
+      <!-- OAuth認証 (常に表示) -->
+      <div class="space-y-3 mb-6">
+        <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
+          <i class="fab fa-google text-xl" style="color: #DB4437"></i>
+          <span class="font-medium">Googleでログイン</span>
         </button>
-        <button onclick="switchAuthTab('email')" id="auth-tab-email" class="flex-1 py-2 px-4 rounded-md font-medium transition text-gray-600">
-          メール登録
+        
+        <button onclick="loginWithLine()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
+          <i class="fab fa-line text-xl" style="color: #00B900"></i>
+          <span class="font-medium">LINEでログイン</span>
         </button>
-        <button onclick="switchAuthTab('admin')" id="auth-tab-admin" class="flex-1 py-2 px-4 rounded-md font-medium transition text-gray-600">
-          管理者
-        </button>
       </div>
       
-      <!-- OAuth認証 -->
-      <div id="auth-content-oauth" class="auth-content">
-        <div class="space-y-3">
-          <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
-            <i class="fab fa-google text-xl" style="color: #DB4437"></i>
-            <span class="font-medium">Googleでログイン</span>
-          </button>
-          
-          <button onclick="loginWithLine()" class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-300 hover:border-primary rounded-lg transition">
-            <i class="fab fa-line text-xl" style="color: #00B900"></i>
-            <span class="font-medium">LINEでログイン</span>
-          </button>
-        </div>
-        <p class="text-xs text-gray-500 text-center mt-4">
-          初めての方は自動的に新規登録されます
-        </p>
-      </div>
+      <p class="text-xs text-gray-500 text-center mb-4">
+        初めての方は自動的に新規登録されます
+      </p>
       
-      <!-- メール新規登録 -->
-      <div id="auth-content-email" class="auth-content hidden">
-        <form id="email-register-form" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">お名前 *</label>
-            <input type="text" name="name" required 
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium mb-1">メールアドレス *</label>
-            <input type="email" name="email" required 
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium mb-1">パスワード *</label>
-            <div class="relative">
-              <input type="password" name="password" id="register-password" required minlength="6"
-                class="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              <button type="button" onclick="togglePasswordVisibility('register-password')"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-eye" id="register-password-icon"></i>
-              </button>
-            </div>
-          </div>
-          
-          <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold">
-            <i class="fas fa-user-plus mr-2"></i>
-            新規登録
-          </button>
-        </form>
-        <p class="text-xs text-gray-500 text-center mt-4">
-          登録後、自動的にログインされます
-        </p>
-      </div>
-      
-      <!-- 管理者ログイン -->
-      <div id="auth-content-admin" class="auth-content hidden">
-        <form id="admin-login-form" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">管理者メールアドレス *</label>
-            <input type="email" name="email" required value="admin@furdi.jp"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium mb-1">パスワード *</label>
-            <div class="relative">
-              <input type="password" name="password" id="admin-password" required value="admin123"
-                class="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-              <button type="button" onclick="togglePasswordVisibility('admin-password')"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-eye" id="admin-password-icon"></i>
-              </button>
-            </div>
-          </div>
-          
-          <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold">
-            <i class="fas fa-shield-alt mr-2"></i>
+      ${showAdminOption ? `
+        <!-- 管理者ログインオプション (失敗時のみ表示) -->
+        <div class="border-t pt-4 mt-4">
+          <p class="text-xs text-gray-600 text-center mb-3">
+            <i class="fas fa-shield-alt mr-1"></i>
+            管理者の方はこちら
+          </p>
+          <button onclick="showAdminLoginModal()" class="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">
             管理者ログイン
           </button>
-        </form>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-          <p class="text-xs text-yellow-800">
-            <i class="fas fa-info-circle mr-1"></i>
-            <strong>デモ用管理者アカウント:</strong><br>
-            メール: admin@furdi.jp<br>
-            パスワード: admin123
-          </p>
         </div>
-      </div>
+      ` : ''}
       
       <button onclick="this.closest('.modal-backdrop').remove()" class="mt-6 w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
         キャンセル
@@ -1752,8 +1678,74 @@ function showLoginModal() {
   
   document.body.appendChild(modal);
   
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  };
+}
+
+// 管理者ログインモーダル (ログイン失敗時のみ)
+function showAdminLoginModal() {
+  // 既存のモーダルを閉じる
+  document.querySelector('.modal-backdrop')?.remove();
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-8 max-w-md">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-bold mb-2">
+          <i class="fas fa-shield-alt text-primary mr-2"></i>
+          管理者ログイン
+        </h3>
+        <p class="text-gray-600">管理者アカウントでログイン</p>
+      </div>
+      
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">メールアドレス *</label>
+          <input type="email" name="email" required value="admin@furdi.jp"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">パスワード *</label>
+          <div class="relative">
+            <input type="password" name="password" id="admin-password" required value="admin123"
+              class="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            <button type="button" onclick="togglePasswordVisibility('admin-password')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+              <i class="fas fa-eye" id="admin-password-icon"></i>
+            </button>
+          </div>
+        </div>
+        
+        <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold">
+          <i class="fas fa-sign-in-alt mr-2"></i>
+          ログイン
+        </button>
+      </form>
+      
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+        <p class="text-xs text-yellow-800">
+          <i class="fas fa-info-circle mr-1"></i>
+          <strong>デモ用管理者アカウント:</strong><br>
+          メール: admin@furdi.jp<br>
+          パスワード: admin123
+        </p>
+      </div>
+      
+      <button onclick="showLoginModal()" class="mt-4 w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+        <i class="fas fa-arrow-left mr-2"></i>
+        通常ログインに戻る
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
   // イベントリスナー設定
-  document.getElementById('email-register-form')?.addEventListener('submit', handleEmailRegister);
   document.getElementById('admin-login-form')?.addEventListener('submit', handleAdminLogin);
   
   modal.onclick = (e) => {
@@ -1763,24 +1755,7 @@ function showLoginModal() {
   };
 }
 
-// 認証タブ切り替え
-function switchAuthTab(tab) {
-  // タブボタンの状態更新
-  ['oauth', 'email', 'admin'].forEach(t => {
-    const btn = document.getElementById(`auth-tab-${t}`);
-    const content = document.getElementById(`auth-content-${t}`);
-    
-    if (t === tab) {
-      btn.classList.add('bg-white', 'shadow');
-      btn.classList.remove('text-gray-600');
-      content.classList.remove('hidden');
-    } else {
-      btn.classList.remove('bg-white', 'shadow');
-      btn.classList.add('text-gray-600');
-      content.classList.add('hidden');
-    }
-  });
-}
+// 認証タブ切り替え (削除 - タブなしのシンプルなUIに変更)
 
 // Google認証 (モック)
 async function loginWithGoogle() {
@@ -1800,6 +1775,9 @@ async function loginWithGoogle() {
   } catch (error) {
     hideLoading();
     showToast('ログインに失敗しました', 'error');
+    // ログイン失敗時、管理者ログインオプションを表示
+    document.querySelector('.modal-backdrop')?.remove();
+    showLoginModal(true);
   }
 }
 
@@ -1821,6 +1799,9 @@ async function loginWithLine() {
   } catch (error) {
     hideLoading();
     showToast('ログインに失敗しました', 'error');
+    // ログイン失敗時、管理者ログインオプションを表示
+    document.querySelector('.modal-backdrop')?.remove();
+    showLoginModal(true);
   }
 }
 
