@@ -1517,6 +1517,24 @@ function toggleMealPFC(mealType) {
   }
 }
 
+// パスワード表示/非表示切替
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(`${inputId}-icon`);
+  
+  if (!input || !icon) return;
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
 // 食事カロリー手動更新 (旧関数 - 互換性維持)
 function updateMealCalories(mealType, calories) {
   updateMealNutrition(mealType, 'calories', calories);
@@ -1670,8 +1688,14 @@ function showLoginModal() {
           
           <div>
             <label class="block text-sm font-medium mb-1">パスワード *</label>
-            <input type="password" name="password" required minlength="6"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            <div class="relative">
+              <input type="password" name="password" id="register-password" required minlength="6"
+                class="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              <button type="button" onclick="togglePasswordVisibility('register-password')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-eye" id="register-password-icon"></i>
+              </button>
+            </div>
           </div>
           
           <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold">
@@ -1695,8 +1719,14 @@ function showLoginModal() {
           
           <div>
             <label class="block text-sm font-medium mb-1">パスワード *</label>
-            <input type="password" name="password" required value="admin123"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            <div class="relative">
+              <input type="password" name="password" id="admin-password" required value="admin123"
+                class="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+              <button type="button" onclick="togglePasswordVisibility('admin-password')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-eye" id="admin-password-icon"></i>
+              </button>
+            </div>
           </div>
           
           <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold">
