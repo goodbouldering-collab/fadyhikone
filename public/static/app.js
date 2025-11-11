@@ -118,6 +118,11 @@ function renderPage() {
   
   // イベントリスナー設定
   setupEventListeners();
+  
+  // ダッシュボード更新
+  if (currentUser) {
+    updateDashboard();
+  }
 }
 
 // 共通ヘッダー
@@ -278,6 +283,140 @@ function renderHealthLogSection() {
     <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-12">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
+          
+          <!-- 今日の統計ダッシュボード（新機能） -->
+          ${currentUser ? `
+            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+              <!-- 総カロリー -->
+              <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-fire text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs font-medium text-gray-600">カロリー</span>
+                </div>
+                <div class="text-xl font-bold text-gray-800" id="dashboard-calories">-</div>
+                <div class="text-xs text-gray-500">目標: 2000kcal</div>
+              </div>
+              
+              <!-- 運動時間 -->
+              <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-running text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs font-medium text-gray-600">運動</span>
+                </div>
+                <div class="text-xl font-bold text-gray-800" id="dashboard-exercise">-</div>
+                <div class="text-xs text-gray-500">目標: 30分</div>
+              </div>
+              
+              <!-- 体重変化 -->
+              <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-weight text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs font-medium text-gray-600">体重</span>
+                </div>
+                <div class="text-xl font-bold text-gray-800" id="dashboard-weight">-</div>
+                <div class="text-xs text-gray-500" id="dashboard-weight-change">前回比: -</div>
+              </div>
+              
+              <!-- 連続記録日数 -->
+              <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-xl shadow-sm">
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-trophy text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs font-medium text-gray-600">連続記録</span>
+                </div>
+                <div class="text-xl font-bold text-gray-800" id="dashboard-streak">-</div>
+                <div class="text-xs text-gray-500">日連続達成中</div>
+              </div>
+            </div>
+            
+            <!-- クイックアクション（新機能） -->
+            <div class="mb-6 bg-white p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-2">
+                <i class="fas fa-bolt mr-1 text-yellow-500"></i>
+                クイックアクション
+              </h4>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="showMealModal('breakfast')" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 rounded-lg transition">
+                  <i class="fas fa-camera text-orange-500 text-lg"></i>
+                  <span class="text-xs font-medium text-gray-700">朝食撮影</span>
+                </button>
+                <button onclick="document.getElementById('exercise-minutes').focus()" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 rounded-lg transition">
+                  <i class="fas fa-running text-blue-500 text-lg"></i>
+                  <span class="text-xs font-medium text-gray-700">運動記録</span>
+                </button>
+                <button onclick="document.getElementById('question-input').focus()" class="flex flex-col items-center gap-1 p-2 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-lg transition">
+                  <i class="fas fa-question text-purple-500 text-lg"></i>
+                  <span class="text-xs font-medium text-gray-700">質問する</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 週間目標進捗（新機能） -->
+            <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-xl shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-bold text-gray-700">
+                  <i class="fas fa-chart-line mr-1" style="color: var(--color-primary)"></i>
+                  今週の進捗
+                </h4>
+                <span class="text-xs text-gray-600" id="weekly-progress-text">4/7日達成</span>
+              </div>
+              <div class="w-full bg-white rounded-full h-3 mb-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-primary to-purple-500 h-full rounded-full transition-all duration-500" style="width: 57%" id="weekly-progress-bar"></div>
+              </div>
+              <div class="grid grid-cols-7 gap-1">
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
+                    <i class="fas fa-check text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs text-gray-500">月</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
+                    <i class="fas fa-check text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs text-gray-500">火</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
+                    <i class="fas fa-check text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs text-gray-500">水</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mb-1">
+                    <i class="fas fa-check text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs text-gray-500">木</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center mb-1">
+                    <i class="fas fa-times text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs text-gray-500">金</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mb-1">
+                    <span class="text-xs text-gray-400">?</span>
+                  </div>
+                  <span class="text-xs text-gray-500">土</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mb-1">
+                    <span class="text-xs text-gray-400">?</span>
+                  </div>
+                  <span class="text-xs text-gray-500">日</span>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+          
           <!-- タイトルと日付選択 -->
           <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-gray-800 mb-3 sm:mb-0">
@@ -552,44 +691,39 @@ function renderHealthLogSection() {
           
           <!-- 質問・相談 -->
           <div class="mt-6">
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl shadow-sm">
-              <h4 class="text-xl font-bold text-gray-800 mb-4">
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-lg font-bold text-gray-800 mb-3">
                 <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
                 質問・相談
               </h4>
               
-              <!-- 質問入力フォーム -->
-              <div class="bg-white p-5 rounded-xl shadow-sm mb-4">
-                <div class="flex items-start gap-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                    <i class="fas fa-question text-white"></i>
-                  </div>
-                  <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      スタッフに質問・相談する
-                    </label>
-                    <textarea 
-                      id="question-input" 
-                      rows="3" 
-                      class="w-full px-4 py-3 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
-                      placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
-                    ></textarea>
-                    <div class="flex justify-end mt-2">
-                      <button 
-                        onclick="submitQuestion()" 
-                        class="px-5 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-                      >
-                        <i class="fas fa-paper-plane mr-2"></i>
-                        質問を送信
-                      </button>
-                    </div>
+              <!-- 質問入力フォーム（シンプル化） -->
+              <div class="flex items-start gap-2 mb-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                  <i class="fas fa-question text-white text-sm"></i>
+                </div>
+                <div class="flex-1">
+                  <textarea 
+                    id="question-input" 
+                    rows="3" 
+                    class="w-full px-3 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition border border-purple-100"
+                    placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
+                  ></textarea>
+                  <div class="flex justify-end mt-2">
+                    <button 
+                      onclick="submitQuestion()" 
+                      class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                    >
+                      <i class="fas fa-paper-plane mr-1"></i>
+                      質問を送信
+                    </button>
                   </div>
                 </div>
               </div>
               
               <!-- 過去の質問と回答を見るリンク -->
               <div class="text-center">
-                <a href="/mypage#qa-section" class="inline-flex items-center gap-2 text-primary hover:underline font-medium">
+                <a href="/mypage#qa-section" class="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
                   <i class="fas fa-history"></i>
                   過去の質問と回答を見る
                   <i class="fas fa-arrow-right"></i>
@@ -1747,6 +1881,47 @@ async function submitQuestion() {
     }
   } catch (error) {
     showToast('送信に失敗しました', 'error');
+  }
+}
+
+// ダッシュボード更新（新機能）
+function updateDashboard() {
+  if (!todayLog) return;
+  
+  // 総カロリー
+  const totalCalories = (todayLog.meal_calories || 0);
+  const dashboardCalories = document.getElementById('dashboard-calories');
+  if (dashboardCalories) {
+    dashboardCalories.textContent = totalCalories > 0 ? `${totalCalories}kcal` : '-';
+  }
+  
+  // 運動時間
+  const exerciseMinutes = todayLog.exercise_minutes || 0;
+  const dashboardExercise = document.getElementById('dashboard-exercise');
+  if (dashboardExercise) {
+    dashboardExercise.textContent = exerciseMinutes > 0 ? `${exerciseMinutes}分` : '-';
+  }
+  
+  // 体重
+  const weight = todayLog.weight;
+  const dashboardWeight = document.getElementById('dashboard-weight');
+  const dashboardWeightChange = document.getElementById('dashboard-weight-change');
+  if (dashboardWeight) {
+    dashboardWeight.textContent = weight ? `${weight}kg` : '-';
+  }
+  
+  // 体重変化（前日比）を計算（仮データ）
+  if (dashboardWeightChange && weight) {
+    const change = -0.3; // 実際は前日のデータと比較
+    const changeText = change > 0 ? `+${change}kg` : `${change}kg`;
+    const changeColor = change > 0 ? 'text-red-600' : 'text-green-600';
+    dashboardWeightChange.innerHTML = `前回比: <span class="${changeColor} font-bold">${changeText}</span>`;
+  }
+  
+  // 連続記録日数（仮データ - 実際はAPIから取得）
+  const dashboardStreak = document.getElementById('dashboard-streak');
+  if (dashboardStreak) {
+    dashboardStreak.innerHTML = `<span class="text-primary">7</span>`;
   }
 }
 

@@ -62,6 +62,7 @@ function renderPage() {
   root.innerHTML = `
     ${renderHeader()}
     ${renderUserProfile()}
+    ${renderStatsSection()}
     ${renderAdvicesList()}
     ${renderChartsSection()}
     ${renderHealthLogsTable()}
@@ -165,6 +166,188 @@ function renderUserProfile() {
   `;
 }
 
+// 統計・分析セクション（新機能）
+function renderStatsSection() {
+  // 週間統計を計算
+  const last7Days = healthLogs.slice(0, 7);
+  const weeklyCalories = last7Days.reduce((sum, log) => sum + (log.meal_calories || 0), 0);
+  const weeklyExercise = last7Days.reduce((sum, log) => sum + (log.exercise_minutes || 0), 0);
+  const avgCalories = last7Days.length > 0 ? Math.round(weeklyCalories / last7Days.length) : 0;
+  const avgExercise = last7Days.length > 0 ? Math.round(weeklyExercise / last7Days.length) : 0;
+  
+  // 月間統計を計算
+  const last30Days = healthLogs.slice(0, 30);
+  const monthlyLogs = last30Days.length;
+  const consistencyRate = Math.round((monthlyLogs / 30) * 100);
+  
+  // 健康スコアを計算（簡易版）
+  const latestLog = healthLogs[0];
+  let healthScore = 0;
+  if (latestLog) {
+    if (latestLog.weight) healthScore += 20;
+    if (latestLog.meal_calories) healthScore += 20;
+    if (latestLog.exercise_minutes && latestLog.exercise_minutes >= 30) healthScore += 30;
+    if (latestLog.sleep_hours && latestLog.sleep_hours >= 7) healthScore += 30;
+  }
+  
+  return `
+    <section class="bg-gradient-to-b from-white to-gray-50 py-6">
+      <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto">
+          
+          <!-- 週間・月間統計 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+            <!-- 週間カロリー平均 -->
+            <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                <i class="fas fa-fire text-primary text-sm"></i>
+                週間平均カロリー
+              </h4>
+              <div class="flex items-end gap-2">
+                <div class="text-3xl font-bold text-gray-800">${avgCalories}</div>
+                <div class="text-sm text-gray-600 mb-1">kcal/日</div>
+              </div>
+              <div class="mt-2 text-xs text-gray-600">
+                今週合計: ${weeklyCalories}kcal
+              </div>
+            </div>
+            
+            <!-- 週間運動平均 -->
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                <i class="fas fa-running text-blue-500 text-sm"></i>
+                週間平均運動時間
+              </h4>
+              <div class="flex items-end gap-2">
+                <div class="text-3xl font-bold text-gray-800">${avgExercise}</div>
+                <div class="text-sm text-gray-600 mb-1">分/日</div>
+              </div>
+              <div class="mt-2 text-xs text-gray-600">
+                今週合計: ${weeklyExercise}分
+              </div>
+            </div>
+            
+            <!-- 記録継続率 -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                <i class="fas fa-calendar-check text-green-500 text-sm"></i>
+                記録継続率（30日間）
+              </h4>
+              <div class="flex items-end gap-2">
+                <div class="text-3xl font-bold text-gray-800">${consistencyRate}</div>
+                <div class="text-sm text-gray-600 mb-1">%</div>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-white rounded-full h-2">
+                  <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full" style="width: ${consistencyRate}%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 健康スコアと目標達成 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+            <!-- 健康スコア -->
+            <div class="bg-white p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1">
+                <i class="fas fa-star text-yellow-500 text-sm"></i>
+                今日の健康スコア
+              </h4>
+              <div class="flex items-center gap-4">
+                <div class="relative w-24 h-24">
+                  <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" fill="none" stroke="#e5e7eb" stroke-width="8"></circle>
+                    <circle cx="48" cy="48" r="40" fill="none" stroke="url(#gradient)" stroke-width="8" 
+                      stroke-dasharray="${2 * Math.PI * 40}" 
+                      stroke-dashoffset="${2 * Math.PI * 40 * (1 - healthScore / 100)}"
+                      stroke-linecap="round"></circle>
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:var(--color-primary);stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-2xl font-bold text-gray-800">${healthScore}</div>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                      <i class="fas ${latestLog?.weight ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                      <span class="text-xs text-gray-600">体重記録 (20点)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <i class="fas ${latestLog?.meal_calories ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                      <span class="text-xs text-gray-600">食事記録 (20点)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <i class="fas ${(latestLog?.exercise_minutes && latestLog.exercise_minutes >= 30) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                      <span class="text-xs text-gray-600">運動30分以上 (30点)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <i class="fas ${(latestLog?.sleep_hours && latestLog.sleep_hours >= 7) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                      <span class="text-xs text-gray-600">睡眠7時間以上 (30点)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- おすすめアクション -->
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1">
+                <i class="fas fa-lightbulb text-yellow-500 text-sm"></i>
+                おすすめアクション
+              </h4>
+              <div class="space-y-2">
+                ${!latestLog || !latestLog.weight ? `
+                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
+                    <i class="fas fa-weight text-primary text-sm mt-0.5"></i>
+                    <div class="flex-1">
+                      <div class="text-xs font-medium text-gray-800">体重を記録しましょう</div>
+                      <a href="/#health-log-section" class="text-xs text-primary hover:underline">今すぐ記録 →</a>
+                    </div>
+                  </div>
+                ` : ''}
+                ${!latestLog || !latestLog.meal_calories ? `
+                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
+                    <i class="fas fa-utensils text-orange-500 text-sm mt-0.5"></i>
+                    <div class="flex-1">
+                      <div class="text-xs font-medium text-gray-800">今日の食事を記録しましょう</div>
+                      <a href="/#health-log-section" class="text-xs text-primary hover:underline">今すぐ記録 →</a>
+                    </div>
+                  </div>
+                ` : ''}
+                ${!latestLog || !latestLog.exercise_minutes || latestLog.exercise_minutes < 30 ? `
+                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
+                    <i class="fas fa-running text-blue-500 text-sm mt-0.5"></i>
+                    <div class="flex-1">
+                      <div class="text-xs font-medium text-gray-800">30分の運動を目指しましょう</div>
+                      <div class="text-xs text-gray-600">現在: ${latestLog?.exercise_minutes || 0}分</div>
+                    </div>
+                  </div>
+                ` : ''}
+                ${healthScore >= 80 ? `
+                  <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-2 rounded-lg flex items-start gap-2">
+                    <i class="fas fa-trophy text-yellow-500 text-sm mt-0.5"></i>
+                    <div class="flex-1">
+                      <div class="text-xs font-bold text-green-800">素晴らしい！</div>
+                      <div class="text-xs text-green-700">この調子で続けましょう！</div>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 // アドバイス一覧
 function renderAdvicesList() {
   if (advices.length === 0) {
@@ -229,16 +412,13 @@ function renderOpinionBox() {
             質問・相談
           </h3>
           
-          <!-- 質問フォーム -->
-          <div class="bg-white p-5 rounded-xl shadow-sm mb-4">
-            <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                <i class="fas fa-question text-white"></i>
+          <!-- 質問フォーム（簡素化） -->
+          <div class="bg-white p-3 rounded-xl shadow-sm mb-3">
+            <div class="flex items-start gap-2">
+              <div class="w-9 h-9 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                <i class="fas fa-question text-white text-sm"></i>
               </div>
               <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  スタッフに質問・相談する
-                </label>
                 <textarea 
                   id="opinion-question" 
                   rows="3" 
@@ -248,7 +428,7 @@ function renderOpinionBox() {
                 <div class="flex justify-end mt-2">
                   <button 
                     onclick="submitOpinion()" 
-                    class="px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm"
+                    class="px-4 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
                   >
                     <i class="fas fa-paper-plane mr-1"></i>
                     送信
@@ -268,17 +448,17 @@ function renderOpinionBox() {
                     <i class="fas fa-hourglass-half text-orange-500"></i>
                     回答待ち（${pendingOpinions.length}件）
                   </h4>
-                  <div class="space-y-3">
+                  <div class="space-y-2">
                     ${pendingOpinions.map(opinion => `
-                      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-400">
-                        <div class="flex justify-between items-start mb-1.5">
-                          <div class="flex items-center gap-1.5">
+                      <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-400">
+                        <div class="flex justify-between items-start mb-1">
+                          <div class="flex items-center gap-1">
                             <i class="fas fa-clock text-orange-500 text-xs"></i>
                             <span class="text-xs text-gray-500">${formatDateTime(opinion.created_at)}</span>
                           </div>
                           <span class="badge badge-warning text-xs">回答待ち</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded mb-1.5">
+                        <div class="bg-gray-50 p-2 rounded mb-1">
                           <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
                         </div>
                         <p class="text-xs text-gray-500 italic">スタッフが確認中です。しばらくお待ちください。</p>
@@ -295,23 +475,23 @@ function renderOpinionBox() {
                     <i class="fas fa-check-circle text-green-500"></i>
                     回答済み（${answeredOpinions.length}件）
                   </h4>
-                  <div class="space-y-3">
+                  <div class="space-y-2">
                     ${answeredOpinions.map(opinion => `
-                      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-400">
-                        <div class="flex justify-between items-start mb-2">
-                          <div class="flex items-center gap-1.5">
+                      <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-400">
+                        <div class="flex justify-between items-start mb-1">
+                          <div class="flex items-center gap-1">
                             <i class="fas fa-calendar text-green-500 text-xs"></i>
                             <span class="text-xs text-gray-500">質問: ${formatDateTime(opinion.created_at)}</span>
                           </div>
                           <span class="badge badge-success text-xs">回答済み</span>
                         </div>
                         
-                        <div class="bg-gray-50 p-2 rounded mb-2">
+                        <div class="bg-gray-50 p-2 rounded mb-1.5">
                           <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
                         </div>
                         
                         <div class="bg-green-50 p-2 rounded border-l-2 border-green-500">
-                          <div class="flex items-center gap-1.5 mb-1.5">
+                          <div class="flex items-center gap-1 mb-1">
                             <i class="fas fa-user-nurse text-green-600 text-xs"></i>
                             <span class="text-xs font-medium text-green-700">${opinion.answered_by} からの回答:</span>
                             <span class="text-xs text-gray-500">${formatDateTime(opinion.answered_at)}</span>
@@ -325,9 +505,9 @@ function renderOpinionBox() {
               ` : ''}
             </div>
           ` : `
-            <div class="bg-white p-8 rounded-xl shadow-sm text-center">
-              <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-comments text-3xl text-gray-300"></i>
+            <div class="bg-white p-6 rounded-xl shadow-sm text-center">
+              <div class="w-14 h-14 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-comments text-2xl text-gray-300"></i>
               </div>
               <p class="text-sm text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
             </div>
@@ -831,25 +1011,25 @@ function renderSettingsSection() {
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="flex border-b border-gray-200">
               <button onclick="showSettingsTab('profile')" id="settings-tab-profile" 
-                class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
-                <i class="fas fa-user-circle mr-2"></i>
+                class="settings-tab flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                <i class="fas fa-user-circle mr-1"></i>
                 基本情報
               </button>
               <button onclick="showSettingsTab('body')" id="settings-tab-body" 
-                class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
-                <i class="fas fa-heartbeat mr-2"></i>
+                class="settings-tab flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                <i class="fas fa-heartbeat mr-1"></i>
                 身体情報
               </button>
               ${currentUser?.auth_provider === 'email' ? `
                 <button onclick="showSettingsTab('password')" id="settings-tab-password" 
-                  class="settings-tab flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
-                  <i class="fas fa-lock mr-2"></i>
+                  class="settings-tab flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">
+                  <i class="fas fa-lock mr-1"></i>
                   パスワード変更
                 </button>
               ` : ''}
             </div>
             
-            <div id="settings-content" class="p-6">
+            <div id="settings-content" class="p-4">
               <!-- コンテンツはJavaScriptで動的に表示 -->
             </div>
           </div>
