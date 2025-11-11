@@ -1,4 +1,33 @@
--- Sample announcements
-INSERT OR IGNORE INTO announcements (id, title, content, image_url, is_published) VALUES 
-  (1, '春の入会キャンペーン開催中！', '3月末まで入会金無料！さらに初月会費50%オフの特別キャンペーンを実施中です。AIパーソナルトレーニングで理想のボディを手に入れましょう。', 'https://via.placeholder.com/400x300/FF6B9D/ffffff?text=Campaign', 1),
-  (2, '新プログラム「朝活フィットネス」スタート', '平日朝6:00-8:00の時間帯に新プログラムがスタート！朝から代謝を上げて、1日を元気にスタートしませんか？早朝割引適用で通常より20%お得です。', 'https://via.placeholder.com/400x300/4A5568/ffffff?text=Morning+Fitness', 1);
+-- お知らせサンプルデータ（ファディー彦根店）
+-- 実行方法: npx wrangler d1 execute furdi-hikone-production --local --file=./seed_announcements.sql
+
+INSERT INTO announcements (title, content, image_url, created_at, updated_at) VALUES
+('【11月限定】入会金無料＋2ヶ月間500円キャンペーン実施中！', 
+'通常8,778円の月会費が2ヶ月間なんと500円（税込）！さらに事務手数料5,500円も無料に。この機会にAIパーソナルトレーニングで理想のボディを手に入れませんか？女性専用・予約不要・通い放題で続けやすい！無料体験も受付中です。', 
+'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800', 
+datetime('now'), 
+datetime('now')),
+
+('友達紹介キャンペーン開催中🎁両方に豪華特典！', 
+'お友達やご家族をご紹介いただくと、紹介者様にも入会者様にも嬉しい特典をプレゼント！紹介者様には月会費1ヶ月分キャッシュバック、ご入会者様には美肌エステ2回無料券をプレゼント。一緒にトレーニングして、健康的な毎日を始めましょう！', 
+'https://images.unsplash.com/photo-1524863479829-916d8e77f114?w=800', 
+datetime('now', '-2 days'), 
+datetime('now', '-2 days')),
+
+('【期間限定】無料体験＋豪華3大特典プレゼント🎉', 
+'無料体験にお越しいただいた方全員に①AIによる体組成分析レポート ②パーソナルトレーニングプログラム作成 ③栄養アドバイスブックをプレゼント！まずは1回30分の無料体験で、あなたに合ったトレーニングを実感してください。完全予約制・女性専用で安心です。', 
+'https://images.unsplash.com/photo-1549576490-b0b4831ef60a?w=800', 
+datetime('now', '-5 days'), 
+datetime('now', '-5 days')),
+
+('U-18学割プラン新登場！月額5,478円で通い放題✨', 
+'15歳〜18歳の学生さん限定の特別プラン開始！通常より3,300円もお得な月額5,478円（税込）で365日通い放題。部活動との両立、受験勉強のストレス解消、健康的なダイエットに最適。保護者の方もご一緒に体験可能です。学生証のご提示が必要となります。', 
+'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800', 
+datetime('now', '-7 days'), 
+datetime('now', '-7 days')),
+
+('【新機能】健康ログアプリリリース記念キャンペーン📱', 
+'会員様専用の健康管理アプリがついに登場！日々のトレーニング記録、体調管理、食事記録、スタッフからのアドバイスをアプリで一元管理。リリース記念として、アプリ登録＋初回ログ入力で「プロテインドリンク1杯無料券」をプレゼント！彦根店でしか使えないオリジナルアプリで、あなたの健康をサポートします。', 
+'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800', 
+datetime('now', '-10 days'), 
+datetime('now', '-10 days'));
