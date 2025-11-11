@@ -109,6 +109,48 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// メールログイン
+auth.post('/login', async (c) => {
+  try {
+    const { email, password } = await c.req.json();
+    
+    if (!email || !password) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスとパスワードを入力してください' }, 400);
+    }
+    
+    // ユーザー取得
+    const user = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE email = ? AND auth_provider = ?'
+    ).bind(email, 'email').first<User>();
+    
+    if (!user) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスまたはパスワードが正しくありません' }, 401);
+    }
+    
+    // パスワード検証
+    const hashedPassword = await hashPassword(password);
+    if (user.auth_provider_id !== hashedPassword) {
+      return c.json<ApiResponse>({ success: false, error: 'メールアドレスまたはパスワードが正しくありません' }, 401);
+    }
+    
+    // JWTトークン生成
+    const jwtToken = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return c.json<ApiResponse<{ token: string; user: User }>>({
+      success: true,
+      data: { token: jwtToken, user },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+    return c.json<ApiResponse>({ success: false, error: `ログインに失敗しました: ${errorMessage}` }, 500);
+  }
+});
+
 // メール新規登録
 auth.post('/register', async (c) => {
   try {
