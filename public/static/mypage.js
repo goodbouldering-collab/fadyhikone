@@ -412,29 +412,22 @@ function renderOpinionBox() {
             質問・相談
           </h3>
           
-          <!-- 質問フォーム（簡素化） -->
+          <!-- 質問フォーム（アイコン削除、幅広く） -->
           <div class="bg-white p-3 rounded-xl shadow-sm mb-3">
-            <div class="flex items-start gap-2">
-              <div class="w-9 h-9 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                <i class="fas fa-question text-white text-sm"></i>
-              </div>
-              <div class="flex-1">
-                <textarea 
-                  id="opinion-question" 
-                  rows="3" 
-                  class="w-full px-3 py-2 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
-                  placeholder="トレーニングや食事、健康に関する質問・相談をお気軽にどうぞ..."
-                ></textarea>
-                <div class="flex justify-end mt-2">
-                  <button 
-                    onclick="submitOpinion()" 
-                    class="px-4 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-                  >
-                    <i class="fas fa-paper-plane mr-1"></i>
-                    送信
-                  </button>
-                </div>
-              </div>
+            <textarea 
+              id="opinion-question" 
+              rows="4" 
+              class="w-full px-4 py-3 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition border border-purple-100 shadow-sm"
+              placeholder="トレーニングや食事、健康に関する質問・相談をお気軽にどうぞ..."
+            ></textarea>
+            <div class="flex justify-end mt-2">
+              <button 
+                onclick="submitOpinion()" 
+                class="px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+              >
+                <i class="fas fa-paper-plane mr-1"></i>
+                送信
+              </button>
             </div>
           </div>
           
@@ -540,15 +533,64 @@ function renderHealthLogsTable() {
     <section class="bg-gray-50 py-8">
       <div class="container mx-auto px-4">
         <div class="max-w-7xl mx-auto">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">
-              <i class="fas fa-table mr-2" style="color: var(--color-primary)"></i>
-              健康ログ履歴
-            </h3>
-            <button onclick="showAddLogModal()" class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-              <i class="fas fa-plus mr-1"></i>
-              ログを追加
-            </button>
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-table mr-2" style="color: var(--color-primary)"></i>
+                健康ログ履歴
+              </h3>
+              <div class="flex gap-2">
+                <button onclick="exportHealthLogs()" class="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                  <i class="fas fa-download mr-1"></i>
+                  CSVエクスポート
+                </button>
+                <button onclick="showAddLogModal()" class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+                  <i class="fas fa-plus mr-1"></i>
+                  ログを追加
+                </button>
+              </div>
+            </div>
+            
+            <!-- フィルター機能 -->
+            <div class="bg-white p-3 rounded-lg shadow-sm flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-600">期間:</label>
+                <select id="log-filter-period" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="all">全期間</option>
+                  <option value="7">過去7日</option>
+                  <option value="30" selected>過去30日</option>
+                  <option value="90">過去90日</option>
+                </select>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-600">運動:</label>
+                <select id="log-filter-exercise" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="all">すべて</option>
+                  <option value="yes">あり</option>
+                  <option value="no">なし</option>
+                </select>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-600">体重記録:</label>
+                <select id="log-filter-weight" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                  <option value="all">すべて</option>
+                  <option value="yes">あり</option>
+                  <option value="no">なし</option>
+                </select>
+              </div>
+              
+              <button onclick="resetFilters()" class="ml-auto text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                <i class="fas fa-undo mr-1"></i>
+                リセット
+              </button>
+              
+              <div class="w-full mt-2 text-xs text-gray-600">
+                <i class="fas fa-info-circle mr-1"></i>
+                表示中: <span id="filtered-count" class="font-bold text-primary">${healthLogs.length}</span> 件 / 全 ${healthLogs.length} 件
+              </div>
+            </div>
           </div>
           
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -1344,4 +1386,122 @@ function getAdviceTypeLabel(type) {
 function getAdviceColor(type) {
   const colors = { diet: 'success', exercise: 'warning', general: 'primary' };
   return colors[type] || 'primary';
+}
+
+// フィルター機能（新機能）
+let filteredLogs = healthLogs;
+
+function filterHealthLogs() {
+  const period = document.getElementById('log-filter-period').value;
+  const exercise = document.getElementById('log-filter-exercise').value;
+  const weight = document.getElementById('log-filter-weight').value;
+  
+  filteredLogs = healthLogs.filter(log => {
+    // 期間フィルター
+    if (period !== 'all') {
+      const logDate = dayjs(log.log_date);
+      const cutoffDate = dayjs().subtract(parseInt(period), 'day');
+      if (logDate.isBefore(cutoffDate)) return false;
+    }
+    
+    // 運動フィルター
+    if (exercise === 'yes' && (!log.exercise_minutes || log.exercise_minutes === 0)) return false;
+    if (exercise === 'no' && log.exercise_minutes && log.exercise_minutes > 0) return false;
+    
+    // 体重フィルター
+    if (weight === 'yes' && !log.weight) return false;
+    if (weight === 'no' && log.weight) return false;
+    
+    return true;
+  });
+  
+  // 表示を更新
+  updateLogTable();
+  updateFilterCount();
+}
+
+function resetFilters() {
+  document.getElementById('log-filter-period').value = '30';
+  document.getElementById('log-filter-exercise').value = 'all';
+  document.getElementById('log-filter-weight').value = 'all';
+  filterHealthLogs();
+}
+
+function updateFilterCount() {
+  const countSpan = document.getElementById('filtered-count');
+  if (countSpan) {
+    countSpan.textContent = filteredLogs.length;
+  }
+}
+
+function updateLogTable() {
+  // テーブルのtbodyを更新
+  const tbody = document.querySelector('.table tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = filteredLogs.map(log => `
+    <tr>
+      <td class="sticky left-0 bg-white z-10 font-medium">${formatDate(log.log_date)}</td>
+      <td>${log.weight ? log.weight + ' kg' : '--'}</td>
+      <td>${log.body_fat_percentage ? log.body_fat_percentage + ' %' : '--'}</td>
+      <td>${log.body_temperature ? log.body_temperature + ' ℃' : '--'}</td>
+      <td>${log.sleep_hours ? log.sleep_hours + ' 時間' : '--'}</td>
+      <td>${log.meal_calories ? log.meal_calories + ' kcal' : '--'}</td>
+      <td>${log.exercise_minutes ? log.exercise_minutes + ' 分' : '--'}</td>
+      <td class="max-w-xs truncate">${log.condition_note || '--'}</td>
+      <td class="sticky right-0 bg-white z-10">
+        <button onclick="editLog(${log.id})" class="text-blue-500 hover:underline text-xs mr-2">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button onclick="deleteLog(${log.id})" class="text-red-500 hover:underline text-xs">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// CSVエクスポート機能（新機能）
+function exportHealthLogs() {
+  if (healthLogs.length === 0) {
+    showToast('エクスポートするデータがありません', 'warning');
+    return;
+  }
+  
+  // CSVヘッダー
+  const headers = ['日付', '体重(kg)', '体脂肪率(%)', '体温(℃)', '睡眠(時間)', 'カロリー(kcal)', '運動(分)', '体調評価', 'メモ'];
+  
+  // CSVデータ行
+  const rows = filteredLogs.map(log => [
+    log.log_date,
+    log.weight || '',
+    log.body_fat_percentage || '',
+    log.body_temperature || '',
+    log.sleep_hours || '',
+    log.meal_calories || '',
+    log.exercise_minutes || '',
+    log.condition_rating || '',
+    (log.condition_note || '').replace(/,/g, '、')  // カンマをエスケープ
+  ]);
+  
+  // CSV文字列生成
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  // BOM付きUTF-8でダウンロード
+  const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+  const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', `health_logs_${dayjs().format('YYYYMMDD')}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('CSVファイルをダウンロードしました', 'success');
 }

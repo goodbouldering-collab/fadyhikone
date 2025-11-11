@@ -109,6 +109,7 @@ function renderPage() {
     ${renderHero()}
     ${currentUser ? renderAdviceSection() : ''}
     ${currentUser ? renderHealthLogSection() : ''}
+    ${renderQuickToolsSection()}
     ${renderFeaturesSection()}
     ${renderFAQSection()}
     ${renderGymIntroSection()}
@@ -697,27 +698,22 @@ function renderHealthLogSection() {
                 質問・相談
               </h4>
               
-              <!-- 質問入力フォーム（シンプル化） -->
-              <div class="flex items-start gap-2 mb-3">
-                <div class="w-9 h-9 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                  <i class="fas fa-question text-white text-sm"></i>
-                </div>
-                <div class="flex-1">
-                  <textarea 
-                    id="question-input" 
-                    rows="3" 
-                    class="w-full px-3 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition border border-purple-100"
-                    placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
-                  ></textarea>
-                  <div class="flex justify-end mt-2">
-                    <button 
-                      onclick="submitQuestion()" 
-                      class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-                    >
-                      <i class="fas fa-paper-plane mr-1"></i>
-                      質問を送信
-                    </button>
-                  </div>
+              <!-- 質問入力フォーム（アイコン削除、幅広く） -->
+              <div class="mb-3">
+                <textarea 
+                  id="question-input" 
+                  rows="4" 
+                  class="w-full px-4 py-3 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition border border-purple-200 shadow-sm"
+                  placeholder="例：効果的な筋トレ方法を教えてください、プロテインのタイミングは？など..."
+                ></textarea>
+                <div class="flex justify-end mt-2">
+                  <button 
+                    onclick="submitQuestion()" 
+                    class="px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                  >
+                    <i class="fas fa-paper-plane mr-1"></i>
+                    質問を送信
+                  </button>
                 </div>
               </div>
               
@@ -728,6 +724,111 @@ function renderHealthLogSection() {
                   過去の質問と回答を見る
                   <i class="fas fa-arrow-right"></i>
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 便利機能ウィジェット（新機能）
+function renderQuickToolsSection() {
+  if (!currentUser) return '';
+  
+  return `
+    <section class="bg-white py-8">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-magic mr-2" style="color: var(--color-primary)"></i>
+            便利ツール
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- お気に入り運動メニュー -->
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
+                <i class="fas fa-running text-blue-500 text-sm"></i>
+                クイック運動記録
+              </h4>
+              <div class="space-y-2">
+                <button onclick="quickExercise('筋トレ', 30)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
+                  <span><i class="fas fa-dumbbell mr-2 text-blue-600"></i>筋トレ</span>
+                  <span class="text-xs text-gray-500">30分</span>
+                </button>
+                <button onclick="quickExercise('ジョギング', 20)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
+                  <span><i class="fas fa-shoe-prints mr-2 text-green-600"></i>ジョギング</span>
+                  <span class="text-xs text-gray-500">20分</span>
+                </button>
+                <button onclick="quickExercise('ストレッチ', 15)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
+                  <span><i class="fas fa-spa mr-2 text-purple-600"></i>ストレッチ</span>
+                  <span class="text-xs text-gray-500">15分</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- カロリー計算機 -->
+            <div class="bg-gradient-to-br from-orange-50 to-yellow-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
+                <i class="fas fa-calculator text-orange-500 text-sm"></i>
+                カロリー計算
+              </h4>
+              <div class="space-y-2">
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">運動時間 (分)</label>
+                  <input type="number" id="calc-minutes" value="30" 
+                    class="w-full px-2 py-1.5 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">運動強度</label>
+                  <select id="calc-intensity" 
+                    class="w-full px-2 py-1.5 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="3">軽い (3 MET)</option>
+                    <option value="5" selected>普通 (5 MET)</option>
+                    <option value="7">激しい (7 MET)</option>
+                  </select>
+                </div>
+                <button onclick="calculateCalories()" 
+                  class="w-full px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm font-medium">
+                  <i class="fas fa-fire mr-1"></i>
+                  消費カロリー計算
+                </button>
+                <div id="calorie-result" class="text-center text-sm font-bold text-orange-600 mt-2"></div>
+              </div>
+            </div>
+            
+            <!-- 目標設定ウィジェット -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
+              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
+                <i class="fas fa-bullseye text-green-500 text-sm"></i>
+                今週の目標
+              </h4>
+              <div class="space-y-2">
+                <div class="bg-white p-2 rounded-lg">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600">運動</span>
+                    <span class="text-xs font-bold text-green-600">4/7日</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-green-500 h-full rounded-full" style="width: 57%"></div>
+                  </div>
+                </div>
+                <div class="bg-white p-2 rounded-lg">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600">体重記録</span>
+                    <span class="text-xs font-bold text-green-600">5/7日</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-green-500 h-full rounded-full" style="width: 71%"></div>
+                  </div>
+                </div>
+                <button onclick="openGoalSettings()" 
+                  class="w-full px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">
+                  <i class="fas fa-cog mr-1"></i>
+                  目標を変更
+                </button>
               </div>
             </div>
           </div>
@@ -1923,6 +2024,118 @@ function updateDashboard() {
   if (dashboardStreak) {
     dashboardStreak.innerHTML = `<span class="text-primary">7</span>`;
   }
+}
+
+// クイック運動記録（新機能）
+function quickExercise(type, minutes) {
+  const exerciseInput = document.getElementById('exercise-minutes');
+  const exerciseNote = document.querySelector('textarea[name="condition_note"]');
+  
+  if (exerciseInput) {
+    const currentValue = parseInt(exerciseInput.value) || 0;
+    exerciseInput.value = currentValue + minutes;
+    exerciseInput.focus();
+    
+    // スクロール
+    exerciseInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  
+  if (exerciseNote) {
+    const currentNote = exerciseNote.value;
+    const newNote = currentNote ? `${currentNote}\n${type}を${minutes}分実施` : `${type}を${minutes}分実施`;
+    exerciseNote.value = newNote;
+  }
+  
+  showToast(`${type} ${minutes}分を追加しました`, 'success');
+}
+
+// カロリー計算（新機能）
+function calculateCalories() {
+  const minutes = parseInt(document.getElementById('calc-minutes').value) || 0;
+  const intensity = parseInt(document.getElementById('calc-intensity').value) || 5;
+  const weight = currentUser?.weight || 60; // デフォルト60kg
+  
+  // 消費カロリー = MET × 体重(kg) × 時間(h) × 1.05
+  const calories = Math.round(intensity * weight * (minutes / 60) * 1.05);
+  
+  const resultDiv = document.getElementById('calorie-result');
+  if (resultDiv) {
+    resultDiv.innerHTML = `
+      <div class="bg-white p-2 rounded-lg mt-2">
+        <div class="text-2xl font-bold text-orange-600">${calories}</div>
+        <div class="text-xs text-gray-600">kcal 消費</div>
+      </div>
+    `;
+  }
+}
+
+// 目標設定モーダル（新機能）
+function openGoalSettings() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-4 max-w-md">
+      <h3 class="text-lg font-bold mb-3">
+        <i class="fas fa-bullseye mr-2 text-green-500"></i>
+        週間目標設定
+      </h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="text-sm font-medium text-gray-700 block mb-1">
+            運動回数（週）
+          </label>
+          <input type="number" id="goal-exercise" value="5" min="1" max="7"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div>
+          <label class="text-sm font-medium text-gray-700 block mb-1">
+            体重記録回数（週）
+          </label>
+          <input type="number" id="goal-weight" value="7" min="1" max="7"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div>
+          <label class="text-sm font-medium text-gray-700 block mb-1">
+            目標体重（kg）
+          </label>
+          <input type="number" step="0.1" id="goal-target-weight" value="${currentUser?.weight || 60}"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+      </div>
+      
+      <div class="flex gap-2 mt-4">
+        <button onclick="saveGoalSettings(); this.closest('.modal-backdrop').remove();" 
+          class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition font-medium">
+          保存
+        </button>
+        <button onclick="this.closest('.modal-backdrop').remove();" 
+          class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// 目標保存（新機能）
+function saveGoalSettings() {
+  const exerciseGoal = document.getElementById('goal-exercise').value;
+  const weightGoal = document.getElementById('goal-weight').value;
+  const targetWeight = document.getElementById('goal-target-weight').value;
+  
+  // LocalStorage に保存
+  localStorage.setItem('weeklyGoals', JSON.stringify({
+    exercise: exerciseGoal,
+    weight: weightGoal,
+    targetWeight: targetWeight
+  }));
+  
+  showToast('目標を保存しました', 'success');
 }
 
 
