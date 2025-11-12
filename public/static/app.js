@@ -281,14 +281,14 @@ function renderAdviceSection() {
 // 健康ログ入力セクション
 function renderHealthLogSection() {
   return `
-    <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-8">
+    <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-6">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           
           <!-- タイトルと日付選択 -->
-          <div class="mb-6">
-            <div class="text-center mb-4">
-              <h3 class="text-2xl font-bold text-gray-800">
+          <div class="mb-4">
+            <div class="text-center mb-3">
+              <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
                 今日の記録
               </h3>
@@ -316,7 +316,7 @@ function renderHealthLogSection() {
           
           <!-- 今日の状況カード -->
           ${currentUser ? `
-            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
               <!-- 総カロリー -->
               <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
                 <div class="flex items-center gap-2 mb-1">
@@ -369,7 +369,7 @@ function renderHealthLogSection() {
           
           <!-- スタッフコメント -->
           ${latestStaffComment ? `
-            <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg shadow-sm">
+            <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg shadow-sm">
               <div class="flex items-start gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <i class="fas fa-user-nurse text-white text-sm"></i>
@@ -386,26 +386,26 @@ function renderHealthLogSection() {
           ` : ''}
             
           <!-- 入力フォーム -->
-          <form id="health-log-form" class="space-y-4">
+          <form id="health-log-form" class="space-y-3">
             <!-- 体重と体調（横並び） -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <!-- 体重 -->
-              <div class="bg-white p-4 rounded-lg shadow-sm">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+              <div class="bg-white p-3 rounded-lg shadow-sm">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                   <i class="fas fa-weight text-primary"></i>
                   体重
                 </label>
                 <div class="relative">
                   <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
                     placeholder="65.5"
-                    class="w-full px-4 py-3 text-xl font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                    class="w-full px-4 py-2.5 text-xl font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
                   <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">kg</span>
                 </div>
               </div>
               
               <!-- 体調 -->
-              <div class="bg-white p-4 rounded-lg shadow-sm">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+              <div class="bg-white p-3 rounded-lg shadow-sm">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                   <i class="fas fa-smile text-primary"></i>
                   今日の体調
                 </label>
@@ -433,17 +433,17 @@ function renderHealthLogSection() {
             </div>
             
             <!-- 食事記録 -->
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+            <div class="bg-white p-3 rounded-lg shadow-sm">
+              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <i class="fas fa-utensils text-accent"></i>
                 食事記録
               </label>
               
               <!-- 3食 -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                 <!-- 朝食 -->
-                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-2.5 rounded-lg">
+                  <div class="flex items-center justify-between mb-1.5">
                     <div class="text-sm font-bold text-gray-700">
                       <i class="fas fa-sun text-yellow-500 mr-1"></i>朝食
                     </div>
@@ -454,12 +454,12 @@ function renderHealthLogSection() {
                   </div>
                   
                   <!-- カロリー -->
-                  <div class="relative mb-2">
+                  <div class="relative mb-1.5">
                     <input type="number" id="breakfast-calories" value="${mealData?.breakfast?.calories || 0}"
                       oninput="updateMealNutrition('breakfast', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-lg font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-base font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
@@ -498,8 +498,8 @@ function renderHealthLogSection() {
                 </div>
                 
                 <!-- 昼食 -->
-                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
+                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-2.5 rounded-lg">
+                  <div class="flex items-center justify-between mb-1.5">
                     <div class="text-sm font-bold text-gray-700">
                       <i class="fas fa-cloud-sun text-orange-500 mr-1"></i>昼食
                     </div>
@@ -510,12 +510,12 @@ function renderHealthLogSection() {
                   </div>
                   
                   <!-- カロリー -->
-                  <div class="relative mb-2">
+                  <div class="relative mb-1.5">
                     <input type="number" id="lunch-calories" value="${mealData?.lunch?.calories || 0}"
                       oninput="updateMealNutrition('lunch', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-base font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
@@ -554,8 +554,8 @@ function renderHealthLogSection() {
                 </div>
                 
                 <!-- 夕食 -->
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-2.5 rounded-lg">
+                  <div class="flex items-center justify-between mb-1.5">
                     <div class="text-sm font-bold text-gray-700">
                       <i class="fas fa-moon text-blue-500 mr-1"></i>夕食
                     </div>
@@ -566,12 +566,12 @@ function renderHealthLogSection() {
                   </div>
                   
                   <!-- カロリー -->
-                  <div class="relative mb-2">
+                  <div class="relative mb-1.5">
                     <input type="number" id="dinner-calories" value="${mealData?.dinner?.calories || 0}"
                       oninput="updateMealNutrition('dinner', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-3 py-2 bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center text-lg font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-1">kcal</div>
+                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center text-base font-bold">
+                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
@@ -621,76 +621,270 @@ function renderHealthLogSection() {
               
             </div>
             
-            <!-- 詳細（折りたたみ） -->
-            <div class="bg-white p-4 rounded-lg shadow-sm">
+            <!-- 詳細・便利ツール（折りたたみ） -->
+            <div class="bg-white p-3 rounded-lg shadow-sm">
               <button type="button" onclick="toggleDetailedInputs()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
-                  <i class="fas fa-plus-circle text-primary group-hover:text-pink-500 transition"></i>
-                  詳細記録（任意）
+                  <i class="fas fa-tools text-primary group-hover:text-pink-500 transition"></i>
+                  詳細記録 & 便利ツール
                 </label>
                 <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
               </button>
                 
-              <div id="detailed-inputs" class="hidden mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <!-- 体脂肪率 -->
-                <div>
-                  <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-percentage text-primary"></i>
-                    体脂肪率
-                  </label>
-                  <div class="relative">
-                    <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
-                      placeholder="25.0"
-                      class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
+              <div id="detailed-inputs" class="hidden mt-4 space-y-5">
+                <!-- 詳細記録 -->
+                <div class="border-b pb-4 mb-4">
+                  <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
+                    <i class="fas fa-clipboard-list text-primary"></i>
+                    詳細記録
+                  </h4>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- 体脂肪率 -->
+                    <div>
+                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
+                        <i class="fas fa-percentage text-primary"></i>
+                        体脂肪率
+                      </label>
+                      <div class="relative">
+                        <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
+                          placeholder="25.0"
+                          class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
+                      </div>
+                    </div>
+                    
+                    <!-- 睡眠 -->
+                    <div>
+                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
+                        <i class="fas fa-bed text-primary"></i>
+                        睡眠時間
+                      </label>
+                      <div class="relative">
+                        <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
+                          placeholder="7.5"
+                          class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
+                      </div>
+                    </div>
+                    
+                    <!-- 運動 -->
+                    <div>
+                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
+                        <i class="fas fa-running text-primary"></i>
+                        運動時間
+                      </label>
+                      <div class="relative">
+                        <input type="number" name="exercise_minutes" id="exercise-minutes" value="${todayLog?.exercise_minutes || ''}"
+                          placeholder="30"
+                          class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
+                      </div>
+                    </div>
+                    
+                    <!-- 運動メモ（全幅） -->
+                    <div class="sm:col-span-3">
+                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
+                        <i class="fas fa-dumbbell text-primary"></i>
+                        運動の詳細
+                      </label>
+                      <textarea name="condition_note" rows="2" 
+                        placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
+                        class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
+                      >${todayLog?.condition_note || ''}</textarea>
+                    </div>
                   </div>
                 </div>
                 
-                <!-- 睡眠 -->
+                <!-- 便利ツール -->
                 <div>
-                  <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-bed text-primary"></i>
-                    睡眠時間
-                  </label>
-                  <div class="relative">
-                    <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
-                      placeholder="7.5"
-                      class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
+                  <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
+                    <i class="fas fa-magic text-primary"></i>
+                    便利ツール
+                  </h4>
+                  
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- クイック運動記録 -->
+                    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-running text-blue-500"></i>
+                        クイック運動
+                      </h5>
+                      <div class="space-y-1.5">
+                        <button type="button" onclick="quickExercise('筋トレ', 30)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-dumbbell mr-1 text-blue-600"></i>筋トレ</span>
+                          <span class="text-gray-500">30分</span>
+                        </button>
+                        <button type="button" onclick="quickExercise('ジョギング', 20)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-shoe-prints mr-1 text-green-600"></i>ジョギング</span>
+                          <span class="text-gray-500">20分</span>
+                        </button>
+                        <button type="button" onclick="quickExercise('ストレッチ', 15)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-spa mr-1 text-purple-600"></i>ストレッチ</span>
+                          <span class="text-gray-500">15分</span>
+                        </button>
+                        <button type="button" onclick="quickExercise('ヨガ', 25)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-om mr-1 text-indigo-600"></i>ヨガ</span>
+                          <span class="text-gray-500">25分</span>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <!-- カロリー計算機 -->
+                    <div class="bg-gradient-to-br from-orange-50 to-yellow-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-calculator text-orange-500"></i>
+                        カロリー計算
+                      </h5>
+                      <div class="space-y-2">
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">運動時間</label>
+                          <input type="number" id="calc-minutes" value="30" 
+                            class="w-full px-2 py-1 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">運動強度</label>
+                          <select id="calc-intensity" 
+                            class="w-full px-2 py-1 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="3">軽い (3 MET)</option>
+                            <option value="5" selected>普通 (5 MET)</option>
+                            <option value="7">激しい (7 MET)</option>
+                            <option value="10">非常に激しい (10 MET)</option>
+                          </select>
+                        </div>
+                        <button type="button" onclick="calculateCalories()" 
+                          class="w-full px-2 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 transition text-xs font-medium">
+                          <i class="fas fa-fire mr-1"></i>計算
+                        </button>
+                        <div id="calorie-result" class="text-center text-xs font-bold text-orange-600"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- 今週の目標 -->
+                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-bullseye text-green-500"></i>
+                        今週の目標
+                      </h5>
+                      <div class="space-y-2">
+                        <div class="bg-white p-2 rounded">
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs text-gray-600">運動</span>
+                            <span class="text-xs font-bold text-green-600">4/7日</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-full rounded-full" style="width: 57%"></div>
+                          </div>
+                        </div>
+                        <div class="bg-white p-2 rounded">
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs text-gray-600">体重記録</span>
+                            <span class="text-xs font-bold text-green-600">5/7日</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-full rounded-full" style="width: 71%"></div>
+                          </div>
+                        </div>
+                        <button type="button" onclick="openGoalSettings()" 
+                          class="w-full px-2 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition text-xs font-medium">
+                          <i class="fas fa-cog mr-1"></i>目標を変更
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <!-- BMI計算機 -->
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-chart-line text-purple-500"></i>
+                        BMI計算
+                      </h5>
+                      <div class="space-y-2">
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">身長 (cm)</label>
+                          <input type="number" id="bmi-height" value="${currentUser?.height || ''}" 
+                            class="w-full px-2 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">体重 (kg)</label>
+                          <input type="number" id="bmi-weight" value="${todayLog?.weight || ''}" step="0.1"
+                            class="w-full px-2 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <button type="button" onclick="calculateBMI()" 
+                          class="w-full px-2 py-1.5 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-xs font-medium">
+                          <i class="fas fa-calculator mr-1"></i>計算
+                        </button>
+                        <div id="bmi-result" class="text-center text-xs font-bold text-purple-600"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- PFC目標計算 -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-balance-scale text-indigo-500"></i>
+                        PFC目標計算
+                      </h5>
+                      <div class="space-y-2">
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">目標カロリー</label>
+                          <input type="number" id="target-calories" value="2000" 
+                            class="w-full px-2 py-1 text-xs border border-indigo-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                          <label class="text-xs text-gray-600 block mb-1">目標タイプ</label>
+                          <select id="pfc-goal-type" 
+                            class="w-full px-2 py-1 text-xs border border-indigo-200 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="maintain">維持 (P:30% F:25% C:45%)</option>
+                            <option value="lose">減量 (P:35% F:20% C:45%)</option>
+                            <option value="gain">増量 (P:30% F:30% C:40%)</option>
+                          </select>
+                        </div>
+                        <button type="button" onclick="calculatePFCGoal()" 
+                          class="w-full px-2 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition text-xs font-medium">
+                          <i class="fas fa-chart-pie mr-1"></i>計算
+                        </button>
+                        <div id="pfc-result" class="text-xs text-gray-700"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- 水分補給リマインダー -->
+                    <div class="bg-gradient-to-br from-cyan-50 to-teal-50 p-3 rounded-lg">
+                      <h5 class="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1">
+                        <i class="fas fa-tint text-cyan-500"></i>
+                        水分補給
+                      </h5>
+                      <div class="space-y-2">
+                        <div class="bg-white p-2 rounded">
+                          <div class="text-xs text-gray-600 mb-1">今日の水分</div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-lg font-bold text-cyan-600" id="water-intake">0</span>
+                            <span class="text-xs text-gray-500">/ 2000 ml</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div id="water-progress" class="bg-cyan-500 h-full rounded-full" style="width: 0%"></div>
+                          </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1">
+                          <button type="button" onclick="addWater(200)" 
+                            class="px-2 py-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition text-xs">
+                            +200ml
+                          </button>
+                          <button type="button" onclick="addWater(500)" 
+                            class="px-2 py-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition text-xs">
+                            +500ml
+                          </button>
+                        </div>
+                        <button type="button" onclick="resetWater()" 
+                          class="w-full px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition text-xs">
+                          <i class="fas fa-redo mr-1"></i>リセット
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <!-- 運動 -->
-                <div>
-                  <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-running text-primary"></i>
-                    運動時間
-                  </label>
-                  <div class="relative">
-                    <input type="number" name="exercise_minutes" id="exercise-minutes" value="${todayLog?.exercise_minutes || ''}"
-                      placeholder="30"
-                      class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
-                  </div>
-                </div>
-                
-                <!-- 運動メモ（全幅） -->
-                <div class="sm:col-span-3">
-                  <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                    <i class="fas fa-dumbbell text-primary"></i>
-                    運動の詳細
-                  </label>
-                  <textarea name="condition_note" rows="2" 
-                    placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
-                    class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
-                  >${todayLog?.condition_note || ''}</textarea>
                 </div>
               </div>
-            </div>
               
             <!-- 保存ボタン -->
-            <button type="submit" class="w-full btn-primary px-6 py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition">
+            <button type="submit" class="w-full btn-primary px-5 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
               <i class="fas fa-save mr-2"></i>
               今日の記録を保存
             </button>
@@ -699,16 +893,16 @@ function renderHealthLogSection() {
           </div>
           
           <!-- 質問・相談 -->
-          <div class="mt-6 bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg shadow-sm">
-            <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+          <div class="mt-4 bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg shadow-sm">
+            <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
               <i class="fas fa-comments text-primary"></i>
               質問・相談
             </label>
             
             <textarea 
               id="question-input" 
-              rows="3" 
-              class="w-full px-4 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition mb-3"
+              rows="2" 
+              class="w-full px-3 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition mb-2"
               placeholder="トレーニングや食事に関する質問をどうぞ..."
             ></textarea>
             
@@ -719,7 +913,7 @@ function renderHealthLogSection() {
               </a>
               <button 
                 onclick="submitQuestion()" 
-                class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
               >
                 <i class="fas fa-paper-plane mr-1"></i>
                 送信
@@ -728,7 +922,7 @@ function renderHealthLogSection() {
           </div>
           
           <!-- マイページリンク -->
-          <div class="mt-4 text-center">
+          <div class="mt-3 text-center">
             <a href="/mypage" class="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
               <i class="fas fa-chart-line"></i>
               マイページで詳しい分析を見る
@@ -742,108 +936,9 @@ function renderHealthLogSection() {
 }
 
 // 便利機能ウィジェット（新機能）
+// Note: この関数は廃止されました。便利ツールは詳細記録セクション内に統合されています。
 function renderQuickToolsSection() {
-  if (!currentUser) return '';
-  
-  return `
-    <section class="bg-white py-8">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
-          <h3 class="text-xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-magic mr-2" style="color: var(--color-primary)"></i>
-            便利ツール
-          </h3>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <!-- お気に入り運動メニュー -->
-            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
-                <i class="fas fa-running text-blue-500 text-sm"></i>
-                クイック運動記録
-              </h4>
-              <div class="space-y-2">
-                <button onclick="quickExercise('筋トレ', 30)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
-                  <span><i class="fas fa-dumbbell mr-2 text-blue-600"></i>筋トレ</span>
-                  <span class="text-xs text-gray-500">30分</span>
-                </button>
-                <button onclick="quickExercise('ジョギング', 20)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
-                  <span><i class="fas fa-shoe-prints mr-2 text-green-600"></i>ジョギング</span>
-                  <span class="text-xs text-gray-500">20分</span>
-                </button>
-                <button onclick="quickExercise('ストレッチ', 15)" class="w-full text-left px-3 py-2 bg-white hover:bg-blue-50 rounded-lg transition text-sm flex items-center justify-between">
-                  <span><i class="fas fa-spa mr-2 text-purple-600"></i>ストレッチ</span>
-                  <span class="text-xs text-gray-500">15分</span>
-                </button>
-              </div>
-            </div>
-            
-            <!-- カロリー計算機 -->
-            <div class="bg-gradient-to-br from-orange-50 to-yellow-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
-                <i class="fas fa-calculator text-orange-500 text-sm"></i>
-                カロリー計算
-              </h4>
-              <div class="space-y-2">
-                <div>
-                  <label class="text-xs text-gray-600 block mb-1">運動時間 (分)</label>
-                  <input type="number" id="calc-minutes" value="30" 
-                    class="w-full px-2 py-1.5 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
-                </div>
-                <div>
-                  <label class="text-xs text-gray-600 block mb-1">運動強度</label>
-                  <select id="calc-intensity" 
-                    class="w-full px-2 py-1.5 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option value="3">軽い (3 MET)</option>
-                    <option value="5" selected>普通 (5 MET)</option>
-                    <option value="7">激しい (7 MET)</option>
-                  </select>
-                </div>
-                <button onclick="calculateCalories()" 
-                  class="w-full px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm font-medium">
-                  <i class="fas fa-fire mr-1"></i>
-                  消費カロリー計算
-                </button>
-                <div id="calorie-result" class="text-center text-sm font-bold text-orange-600 mt-2"></div>
-              </div>
-            </div>
-            
-            <!-- 目標設定ウィジェット -->
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1">
-                <i class="fas fa-bullseye text-green-500 text-sm"></i>
-                今週の目標
-              </h4>
-              <div class="space-y-2">
-                <div class="bg-white p-2 rounded-lg">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-gray-600">運動</span>
-                    <span class="text-xs font-bold text-green-600">4/7日</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-1.5">
-                    <div class="bg-green-500 h-full rounded-full" style="width: 57%"></div>
-                  </div>
-                </div>
-                <div class="bg-white p-2 rounded-lg">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-gray-600">体重記録</span>
-                    <span class="text-xs font-bold text-green-600">5/7日</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-1.5">
-                    <div class="bg-green-500 h-full rounded-full" style="width: 71%"></div>
-                  </div>
-                </div>
-                <button onclick="openGoalSettings()" 
-                  class="w-full px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">
-                  <i class="fas fa-cog mr-1"></i>
-                  目標を変更
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
+  return ''; // 便利ツールは詳細記録の折りたたみセクション内に移動
 }
 
 // 特徴セクション
@@ -2355,6 +2450,154 @@ function updateMealPhotosDisplay() {
   
   // 合計カロリー更新
   updateTotalNutrition();
+}
+
+// =============================================================================
+// 便利ツール関数
+// =============================================================================
+
+// クイック運動記録
+function quickExercise(exerciseType, minutes) {
+  const exerciseInput = document.getElementById('exercise-minutes');
+  if (exerciseInput) {
+    exerciseInput.value = minutes;
+    showToast(`${exerciseType} ${minutes}分を記録しました`, 'success');
+  }
+}
+
+// カロリー計算機
+function calculateCalories() {
+  const minutes = parseFloat(document.getElementById('calc-minutes')?.value || 0);
+  const intensity = parseFloat(document.getElementById('calc-intensity')?.value || 5);
+  const weight = currentUser?.weight || 60; // ユーザーの体重（デフォルト60kg）
+  
+  if (minutes <= 0) {
+    showToast('運動時間を入力してください', 'warning');
+    return;
+  }
+  
+  // MET計算式: カロリー = MET × 体重(kg) × 時間(h) × 1.05
+  const calories = Math.round(intensity * weight * (minutes / 60) * 1.05);
+  
+  const resultDiv = document.getElementById('calorie-result');
+  if (resultDiv) {
+    resultDiv.textContent = `約 ${calories} kcal`;
+  }
+  
+  showToast(`消費カロリー: 約${calories}kcal`, 'success');
+}
+
+// BMI計算
+function calculateBMI() {
+  const height = parseFloat(document.getElementById('bmi-height')?.value || 0);
+  const weight = parseFloat(document.getElementById('bmi-weight')?.value || 0);
+  
+  if (height <= 0 || weight <= 0) {
+    showToast('身長と体重を入力してください', 'warning');
+    return;
+  }
+  
+  const heightM = height / 100; // cmをmに変換
+  const bmi = (weight / (heightM * heightM)).toFixed(1);
+  
+  let category = '';
+  let color = '';
+  
+  if (bmi < 18.5) {
+    category = '低体重';
+    color = 'text-blue-600';
+  } else if (bmi < 25) {
+    category = '普通体重';
+    color = 'text-green-600';
+  } else if (bmi < 30) {
+    category = '肥満(1度)';
+    color = 'text-orange-600';
+  } else {
+    category = '肥満(2度以上)';
+    color = 'text-red-600';
+  }
+  
+  const resultDiv = document.getElementById('bmi-result');
+  if (resultDiv) {
+    resultDiv.innerHTML = `BMI: <span class="${color}">${bmi}</span><br><span class="text-xs ${color}">${category}</span>`;
+  }
+}
+
+// PFC目標計算
+function calculatePFCGoal() {
+  const targetCalories = parseFloat(document.getElementById('target-calories')?.value || 2000);
+  const goalType = document.getElementById('pfc-goal-type')?.value || 'maintain';
+  
+  let ratios = { protein: 0.30, fat: 0.25, carbs: 0.45 }; // デフォルト: 維持
+  
+  if (goalType === 'lose') {
+    ratios = { protein: 0.35, fat: 0.20, carbs: 0.45 };
+  } else if (goalType === 'gain') {
+    ratios = { protein: 0.30, fat: 0.30, carbs: 0.40 };
+  }
+  
+  // カロリーをグラムに変換 (P: 4kcal/g, F: 9kcal/g, C: 4kcal/g)
+  const protein = Math.round((targetCalories * ratios.protein) / 4);
+  const fat = Math.round((targetCalories * ratios.fat) / 9);
+  const carbs = Math.round((targetCalories * ratios.carbs) / 4);
+  
+  const resultDiv = document.getElementById('pfc-result');
+  if (resultDiv) {
+    resultDiv.innerHTML = `
+      <div class="mt-2 space-y-1">
+        <div class="flex justify-between">
+          <span>タンパク質:</span>
+          <span class="font-bold text-blue-600">${protein}g</span>
+        </div>
+        <div class="flex justify-between">
+          <span>脂質:</span>
+          <span class="font-bold text-yellow-600">${fat}g</span>
+        </div>
+        <div class="flex justify-between">
+          <span>炭水化物:</span>
+          <span class="font-bold text-orange-600">${carbs}g</span>
+        </div>
+      </div>
+    `;
+  }
+  
+  showToast('PFC目標を計算しました', 'success');
+}
+
+// 水分補給追加
+let waterIntakeToday = 0;
+
+function addWater(amount) {
+  waterIntakeToday += amount;
+  updateWaterDisplay();
+  showToast(`+${amount}ml 記録しました`, 'success');
+}
+
+function resetWater() {
+  waterIntakeToday = 0;
+  updateWaterDisplay();
+  showToast('水分記録をリセットしました', 'info');
+}
+
+function updateWaterDisplay() {
+  const waterIntakeEl = document.getElementById('water-intake');
+  const waterProgressEl = document.getElementById('water-progress');
+  const targetWater = 2000;
+  
+  if (waterIntakeEl) {
+    waterIntakeEl.textContent = waterIntakeToday;
+  }
+  
+  if (waterProgressEl) {
+    const percentage = Math.min((waterIntakeToday / targetWater) * 100, 100);
+    waterProgressEl.style.width = `${percentage}%`;
+  }
+}
+
+// 目標設定を開く
+function openGoalSettings() {
+  showToast('目標設定機能は開発中です', 'info');
+  // TODO: 目標設定モーダルを実装
 }
 
 
