@@ -641,7 +641,21 @@ function renderHealthLogSection() {
               
             </div>
             
-            <!-- 運動トラッカー（折りたたみ） -->
+            <!-- 隠しフィールド（詳細記録用） -->
+            <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
+            <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
+            <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
+            <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
+            
+            <!-- 保存ボタン -->
+            <button type="submit" class="w-full btn-primary px-5 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
+              <i class="fas fa-save mr-2"></i>
+              今日の記録を保存
+            </button>
+          </form>
+          
+          <!-- 運動トラッカー（フォーム外・独立） -->
+          <div class="mt-4">
             <div class="bg-white p-3 rounded-lg shadow-sm">
               <button type="button" onclick="toggleExerciseTracker()" 
                 class="w-full flex items-center justify-between text-left group">
@@ -710,8 +724,9 @@ function renderHealthLogSection() {
                       <i class="fas fa-pencil-alt text-primary"></i>
                       運動メモ
                     </label>
-                    <textarea name="condition_note" rows="2" 
+                    <textarea id="condition-note-input" rows="2" 
                       placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
+                      oninput="syncHiddenField('condition-note-input', 'condition-note-hidden')"
                       class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
                     >${todayLog?.condition_note || ''}</textarea>
                   </div>
@@ -740,8 +755,9 @@ function renderHealthLogSection() {
                         体脂肪率
                       </label>
                       <div class="relative">
-                        <input type="number" step="0.1" name="body_fat_percentage" value="${todayLog?.body_fat_percentage || ''}"
+                        <input type="number" step="0.1" id="body-fat-input" value="${todayLog?.body_fat_percentage || ''}"
                           placeholder="25.0"
+                          oninput="syncHiddenField('body-fat-input', 'body-fat-hidden')"
                           class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
                       </div>
@@ -754,8 +770,9 @@ function renderHealthLogSection() {
                         睡眠時間
                       </label>
                       <div class="relative">
-                        <input type="number" step="0.5" name="sleep_hours" value="${todayLog?.sleep_hours || ''}"
+                        <input type="number" step="0.5" id="sleep-hours-input" value="${todayLog?.sleep_hours || ''}"
                           placeholder="7.5"
+                          oninput="syncHiddenField('sleep-hours-input', 'sleep-hours-hidden')"
                           class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
                       </div>
@@ -949,13 +966,8 @@ function renderHealthLogSection() {
                   </div>
                 </div>
               </div>
-              
-            <!-- 保存ボタン -->
-            <button type="submit" class="w-full btn-primary px-5 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
-              <i class="fas fa-save mr-2"></i>
-              今日の記録を保存
-            </button>
-          </form>
+            </div>
+          </div>
           
           </div>
           
@@ -2537,6 +2549,16 @@ function scrollToForm() {
   }
 }
 
+// 隠しフィールドと同期
+function syncHiddenField(sourceId, targetId) {
+  const source = document.getElementById(sourceId);
+  const target = document.getElementById(targetId);
+  
+  if (source && target) {
+    target.value = source.value;
+  }
+}
+
 // 運動トラッカーの折りたたみトグル
 function toggleExerciseTracker() {
   const tracker = document.getElementById('exercise-tracker');
@@ -2689,10 +2711,10 @@ function updateExerciseSummary() {
   if (totalTimeEl) totalTimeEl.textContent = totalTime;
   if (totalCaloriesEl) totalCaloriesEl.textContent = totalCalories;
   
-  // 運動時間フィールドも更新（フォーム送信用）
-  const exerciseMinutesInput = document.getElementById('exercise-minutes');
-  if (exerciseMinutesInput) {
-    exerciseMinutesInput.value = totalTime;
+  // 隠しフィールドも更新（フォーム送信用）
+  const exerciseMinutesHidden = document.getElementById('exercise-minutes-hidden');
+  if (exerciseMinutesHidden) {
+    exerciseMinutesHidden.value = totalTime;
   }
 }
 

@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function checkAdminAuth() {
   const token = getToken();
   if (!token) {
-    showToast('ログインが必要です', 'warning');
-    setTimeout(() => window.location.href = '/', 1500);
+    // トークンがない場合はログインフォームを表示
+    renderLoginPage();
     return;
   }
   
@@ -34,12 +34,16 @@ async function checkAdminAuth() {
       await loadAdminData();
       renderPage();
     } else {
+      // 管理者権限がない場合もログインフォームを表示
       showToast('管理者権限が必要です', 'error');
-      setTimeout(() => window.location.href = '/', 1500);
+      clearToken();
+      renderLoginPage();
     }
   } catch (error) {
+    // 認証エラーの場合もログインフォームを表示
     showToast('認証エラーが発生しました', 'error');
-    setTimeout(() => window.location.href = '/', 1500);
+    clearToken();
+    renderLoginPage();
   }
 }
 
@@ -1615,5 +1619,121 @@ async function deleteAnnouncement(id) {
     }
   } catch (error) {
     showToast('削除に失敗しました', 'error');
+  }
+}
+
+// 管理者ログインページ
+function renderLoginPage() {
+  const root = document.getElementById('root');
+  root.innerHTML = `
+    <div class="min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+      <div class="max-w-md w-full">
+        <!-- ロゴ・タイトル -->
+        <div class="text-center mb-8 text-white">
+          <i class="fas fa-shield-alt text-6xl mb-4 opacity-90"></i>
+          <h1 class="text-3xl font-bold mb-2">管理者ログイン</h1>
+          <p class="text-sm opacity-80">ファディー彦根 管理画面</p>
+        </div>
+        
+        <!-- ログインフォーム -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+          <form id="admin-login-form" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-envelope text-primary mr-2"></i>
+                メールアドレス
+              </label>
+              <input type="email" name="email" required value="admin@furdi.jp"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                placeholder="admin@furdi.jp">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-lock text-primary mr-2"></i>
+                パスワード
+              </label>
+              <div class="relative">
+                <input type="password" name="password" id="admin-password" required value="admin123"
+                  class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                  placeholder="パスワードを入力">
+                <button type="button" onclick="toggleAdminPasswordVisibility()"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition">
+                  <i class="fas fa-eye" id="admin-password-icon"></i>
+                </button>
+              </div>
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary to-pink-500 text-white font-bold rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              ログイン
+            </button>
+          </form>
+          
+          <!-- デモアカウント情報 -->
+          <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-2">
+              <i class="fas fa-info-circle text-yellow-600 mt-0.5"></i>
+              <div class="text-xs text-yellow-800">
+                <strong class="block mb-1">デモ用管理者アカウント</strong>
+                <div class="space-y-0.5 font-mono">
+                  <div>メール: admin@furdi.jp</div>
+                  <div>パスワード: admin123</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- トップページへ戻る -->
+          <div class="mt-6 text-center">
+            <a href="/" class="text-sm text-gray-600 hover:text-primary transition">
+              <i class="fas fa-arrow-left mr-1"></i>
+              トップページへ戻る
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // ログインフォーム送信処理
+  document.getElementById('admin-login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+      email: formData.get('email'),
+      password: formData.get('password')
+    };
+    
+    try {
+      const response = await axios.post('/api/auth/admin-login', data);
+      
+      if (response.data.success) {
+        setToken(response.data.token);
+        showToast('ログインしました', 'success');
+        
+        // 認証チェックを再実行
+        await checkAdminAuth();
+      } else {
+        showToast(response.data.message || 'ログインに失敗しました', 'error');
+      }
+    } catch (error) {
+      showToast('ログインエラーが発生しました', 'error');
+    }
+  });
+}
+
+// パスワード表示切替
+function toggleAdminPasswordVisibility() {
+  const passwordInput = document.getElementById('admin-password');
+  const icon = document.getElementById('admin-password-icon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    passwordInput.type = 'password';
+    icon.className = 'fas fa-eye';
   }
 }
