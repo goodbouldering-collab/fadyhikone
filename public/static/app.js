@@ -181,7 +181,7 @@ function renderHero() {
               </p>
               <div class="flex justify-center gap-3">
                 <a href="#health-log" onclick="document.getElementById('health-log-section').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3 bg-white text-primary hover:bg-opacity-90 rounded-lg font-medium transition shadow-lg">
-                  <i class="fas fa-edit mr-2"></i>今日の記録
+                  <i class="fas fa-edit mr-2"></i>健康ログ
                 </a>
                 <a href="/mypage" class="px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 border-2 border-white rounded-lg font-medium transition">
                   <i class="fas fa-chart-line mr-2"></i>詳細を見る
@@ -290,7 +290,7 @@ function renderHealthLogSection() {
             <div class="text-center mb-3">
               <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
-                今日の記録
+                健康ログ
               </h3>
             </div>
             
@@ -392,7 +392,7 @@ function renderHealthLogSection() {
             <div class="mb-4 text-center">
               <button type="button" onclick="scrollToForm()" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-pink-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                 <i class="fas fa-edit text-xl"></i>
-                今日の記録を始める
+                記録を始める
                 <i class="fas fa-arrow-down text-sm animate-bounce"></i>
               </button>
             </div>
@@ -650,7 +650,7 @@ function renderHealthLogSection() {
             <!-- 保存ボタン -->
             <button type="submit" class="w-full btn-primary px-5 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
               <i class="fas fa-save mr-2"></i>
-              今日の記録を保存
+              記録を保存
             </button>
           </form>
           
