@@ -684,6 +684,7 @@ function renderHealthLogSection() {
                   <!-- 運動種目リスト -->
                   <div class="space-y-1.5">
                     ${[
+                      { id: 'furdi', name: 'ファディー', icon: 'fa-dumbbell', met: 5, color: 'pink', time: 30 },
                       { id: 'weight-training', name: '筋トレ', icon: 'fa-dumbbell', met: 6, color: 'blue', time: 30 },
                       { id: 'running', name: 'ランニング', icon: 'fa-running', met: 8, color: 'green', time: 30 },
                       { id: 'jogging', name: 'ジョギング', icon: 'fa-shoe-prints', met: 5, color: 'teal', time: 20 },
@@ -795,19 +796,23 @@ function renderHealthLogSection() {
                         クイック運動
                       </h5>
                       <div class="space-y-1.5">
+                        <button type="button" onclick="quickExercise('ファディー', 30)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-pink-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-dumbbell mr-1 text-pink-600"></i>ファディー</span>
+                          <span class="text-gray-500">30分</span>
+                        </button>
                         <button type="button" onclick="quickExercise('筋トレ', 30)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
                           <span><i class="fas fa-dumbbell mr-1 text-blue-600"></i>筋トレ</span>
                           <span class="text-gray-500">30分</span>
                         </button>
-                        <button type="button" onclick="quickExercise('ジョギング', 20)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                        <button type="button" onclick="quickExercise('ストレッチ', 15)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-purple-50 rounded transition text-xs flex items-center justify-between">
+                          <span><i class="fas fa-child mr-1 text-purple-600"></i>ストレッチ</span>
+                          <span class="text-gray-500">15分</span>
+                        </button>
+                        <button type="button" onclick="quickExercise('ジョギング', 20)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-green-50 rounded transition text-xs flex items-center justify-between">
                           <span><i class="fas fa-shoe-prints mr-1 text-green-600"></i>ジョギング</span>
                           <span class="text-gray-500">20分</span>
                         </button>
-                        <button type="button" onclick="quickExercise('ストレッチ', 15)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
-                          <span><i class="fas fa-spa mr-1 text-purple-600"></i>ストレッチ</span>
-                          <span class="text-gray-500">15分</span>
-                        </button>
-                        <button type="button" onclick="quickExercise('ヨガ', 25)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-blue-50 rounded transition text-xs flex items-center justify-between">
+                        <button type="button" onclick="quickExercise('ヨガ', 25)" class="w-full text-left px-2 py-1.5 bg-white hover:bg-indigo-50 rounded transition text-xs flex items-center justify-between">
                           <span><i class="fas fa-om mr-1 text-indigo-600"></i>ヨガ</span>
                           <span class="text-gray-500">25分</span>
                         </button>
@@ -2629,6 +2634,7 @@ function updateMealPhotosDisplay() {
 
 // 運動データ
 const exerciseMET = {
+  'furdi': 5,
   'weight-training': 6,
   'running': 8,
   'jogging': 5,

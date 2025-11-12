@@ -1316,15 +1316,18 @@ async function updateProfile() {
     const weight = document.getElementById('body-weight')?.value;
     const goal = document.getElementById('body-goal')?.value;
     
-    const response = await apiCall('/api/auth/profile', 'PUT', {
-      name: name || currentUser.name,
-      email: email || currentUser.email,
-      phone: phone || currentUser.phone || null,
-      birthday: birthday || currentUser.birth_date || null,
-      gender: gender || currentUser.gender || null,
-      height: height ? parseFloat(height) : currentUser.height || null,
-      weight: weight ? parseFloat(weight) : currentUser.weight || null,
-      goal: goal || currentUser.goal || null,
+    const response = await apiCall('/api/auth/profile', {
+      method: 'PUT',
+      data: {
+        name: name || currentUser.name,
+        email: email || currentUser.email,
+        phone: phone || currentUser.phone || null,
+        birthday: birthday || currentUser.birth_date || null,
+        gender: gender || currentUser.gender || null,
+        height: height ? parseFloat(height) : currentUser.height || null,
+        weight: weight ? parseFloat(weight) : currentUser.weight || null,
+        goal: goal || currentUser.goal || null,
+      }
     });
     
     if (response.success) {
@@ -1363,9 +1366,12 @@ async function updatePassword() {
       return;
     }
     
-    const response = await apiCall('/api/auth/password', 'PUT', {
-      currentPassword,
-      newPassword,
+    const response = await apiCall('/api/auth/password', {
+      method: 'PUT',
+      data: {
+        currentPassword,
+        newPassword,
+      }
     });
     
     if (response.success) {
