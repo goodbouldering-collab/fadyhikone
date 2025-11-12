@@ -302,10 +302,10 @@ auth.put('/profile', async (c) => {
       }
     }
     
-    // プロフィール更新
+    // プロフィール更新（birthdayはbirth_dateとして保存）
     await c.env.DB.prepare(`
       UPDATE users 
-      SET name = ?, email = ?, phone = ?, height = ?, weight = ?, goal = ?, birthday = ?, gender = ?, updated_at = datetime('now')
+      SET name = ?, email = ?, phone = ?, height = ?, weight = ?, goal = ?, birth_date = ?, gender = ?, updated_at = datetime('now')
       WHERE id = ?
     `).bind(name, email, phone, height, weight, goal, birthday, gender, payload.userId).run();
 

@@ -1140,7 +1140,7 @@ function renderProfileSettings() {
           <label class="block text-sm font-medium text-gray-700 mb-2">
             <i class="fas fa-birthday-cake mr-1"></i> 生年月日
           </label>
-          <input type="date" id="profile-birthday" value="${currentUser?.birthday || ''}"
+          <input type="date" id="profile-birthday" value="${currentUser?.birth_date || ''}"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
         </div>
         
@@ -1320,7 +1320,7 @@ async function updateProfile() {
       name: name || currentUser.name,
       email: email || currentUser.email,
       phone: phone || currentUser.phone || null,
-      birthday: birthday || currentUser.birthday || null,
+      birthday: birthday || currentUser.birth_date || null,
       gender: gender || currentUser.gender || null,
       height: height ? parseFloat(height) : currentUser.height || null,
       weight: weight ? parseFloat(weight) : currentUser.weight || null,

@@ -14,10 +14,16 @@ export type User = {
   id: number;
   email: string;
   name: string;
-  auth_provider: 'google' | 'line';
+  auth_provider: 'google' | 'line' | 'email';
   auth_provider_id: string;
   role: 'user' | 'admin';
   avatar_url?: string;
+  phone?: string;
+  height?: number;
+  weight?: number;
+  goal?: string;
+  birth_date?: string;
+  gender?: 'male' | 'female' | 'other';
   created_at: string;
   updated_at: string;
 };
