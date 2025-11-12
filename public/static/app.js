@@ -1480,15 +1480,6 @@ async function handleHealthLogSubmit(e) {
       
       // 選択された日付のログを再読み込み
       await loadLogForDate(selectedDate);
-      
-      // 保存後にマイページへのリンクを表示
-      showModal(
-        '保存完了',
-        '健康ログを保存しました。マイページで詳細を確認しますか？',
-        () => {
-          window.location.href = '/mypage';
-        }
-      );
     }
   } catch (error) {
     showToast('保存に失敗しました', 'error');
