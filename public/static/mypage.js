@@ -1099,10 +1099,40 @@ function showSettingsTab(tab) {
   const content = document.getElementById('settings-content');
   if (tab === 'profile') {
     content.innerHTML = renderProfileSettings();
+    // イベントリスナーを手動で登録
+    setTimeout(() => {
+      const form = document.getElementById('profile-form');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await updateProfile();
+        });
+      }
+    }, 0);
   } else if (tab === 'body') {
     content.innerHTML = renderBodySettings();
+    // イベントリスナーを手動で登録
+    setTimeout(() => {
+      const form = document.getElementById('body-form');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await updateProfile();
+        });
+      }
+    }, 0);
   } else if (tab === 'password') {
     content.innerHTML = renderPasswordSettings();
+    // イベントリスナーを手動で登録
+    setTimeout(() => {
+      const form = document.getElementById('password-form');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await updatePassword();
+        });
+      }
+    }, 0);
   }
 }
 
@@ -1171,13 +1201,6 @@ function renderProfileSettings() {
         </button>
       </div>
     </form>
-    
-    <script>
-      document.getElementById('profile-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await updateProfile();
-      });
-    </script>
   `;
 }
 
@@ -1227,13 +1250,6 @@ function renderBodySettings() {
         </button>
       </div>
     </form>
-    
-    <script>
-      document.getElementById('body-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await updateProfile();
-      });
-    </script>
   `;
 }
 
@@ -1291,13 +1307,6 @@ function renderPasswordSettings() {
         </button>
       </div>
     </form>
-    
-    <script>
-      document.getElementById('password-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await updatePassword();
-      });
-    </script>
   `;
 }
 
