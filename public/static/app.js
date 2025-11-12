@@ -389,17 +389,24 @@ function renderHealthLogSection() {
           <form id="health-log-form" class="space-y-3">
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <!-- 体重 -->
+              <!-- 体重 & BMI -->
               <div class="bg-white p-3 rounded-lg shadow-sm">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                   <i class="fas fa-weight text-primary"></i>
-                  体重
+                  体重 & BMI
                 </label>
-                <div class="relative">
-                  <input type="number" step="0.1" name="weight" value="${todayLog?.weight || ''}" 
-                    placeholder="65.5"
-                    class="w-full px-4 py-2.5 text-xl font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">kg</span>
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <input type="number" step="0.1" name="weight" id="weight-input" value="${todayLog?.weight || ''}" 
+                      placeholder="65.5"
+                      oninput="updateBMIDisplay()"
+                      class="w-full px-4 py-2.5 text-xl font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">kg</span>
+                  </div>
+                  <div class="text-center px-3 py-2 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg min-w-[80px]">
+                    <div class="text-xs text-gray-600 mb-0.5">BMI</div>
+                    <div class="text-lg font-bold" id="bmi-display">-</div>
+                  </div>
                 </div>
               </div>
               
@@ -621,26 +628,19 @@ function renderHealthLogSection() {
               
             </div>
             
-            <!-- 詳細・便利ツール（折りたたみ） -->
+            <!-- 運動トラッカー（折りたたみ） -->
             <div class="bg-white p-3 rounded-lg shadow-sm">
-              <button type="button" onclick="toggleDetailedInputs()" 
+              <button type="button" onclick="toggleExerciseTracker()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
-                  <i class="fas fa-tools text-primary group-hover:text-pink-500 transition"></i>
-                  詳細記録 & 便利ツール
+                  <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
+                  運動トラッカー
                 </label>
-                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
+                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
               </button>
                 
-              <div id="detailed-inputs" class="hidden mt-4 space-y-6">
-                <!-- 運動トラッカー -->
-                <div class="pb-4 border-b border-gray-200">
-                  <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
-                    <i class="fas fa-running text-primary"></i>
-                    運動トラッカー
-                  </h4>
-                  
-                  <!-- 運動サマリー -->
+              <div id="exercise-tracker" class="hidden mt-4">
+                <!-- 運動サマリー -->
                   <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-blue-50 p-2 rounded-lg text-center">
                       <div class="text-xs text-gray-600 mb-0.5">合計時間</div>
@@ -702,14 +702,23 @@ function renderHealthLogSection() {
                       class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
                     >${todayLog?.condition_note || ''}</textarea>
                   </div>
-                </div>
-                
-                <!-- 詳細記録 -->
+              </div>
+            </div>
+            
+            <!-- 詳細記録 & 便利ツール（折りたたみ） -->
+            <div class="bg-white p-3 rounded-lg shadow-sm">
+              <button type="button" onclick="toggleDetailedInputs()" 
+                class="w-full flex items-center justify-between text-left group">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+                  <i class="fas fa-clipboard-list text-primary group-hover:text-pink-500 transition"></i>
+                  詳細記録 & 便利ツール
+                </label>
+                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
+              </button>
+              
+              <div id="detailed-inputs" class="hidden mt-4 space-y-6">
+                <!-- その他の記録 -->
                 <div class="pb-4 border-b border-gray-200">
-                  <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
-                    <i class="fas fa-clipboard-list text-primary"></i>
-                    その他の記録
-                  </h4>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <!-- 体脂肪率 -->
                     <div>
@@ -978,6 +987,9 @@ function renderHealthLogSection() {
       </div>
     </section>
   `;
+  
+  // レンダリング後にBMI更新
+  setTimeout(() => updateBMIDisplay(), 100);
 }
 
 // 便利機能ウィジェット（新機能）
@@ -1650,6 +1662,40 @@ function updateTotalCaloriesDisplay() {
   const breakdownEl = document.getElementById('total-calories-breakdown');
   if (breakdownEl) {
     breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories}`;
+  }
+}
+
+// BMI表示更新
+function updateBMIDisplay() {
+  const weightInput = document.getElementById('weight-input');
+  const bmiDisplay = document.getElementById('bmi-display');
+  
+  if (!weightInput || !bmiDisplay) return;
+  
+  const weight = parseFloat(weightInput.value) || 0;
+  const height = currentUser?.height || 0; // ユーザープロフィールの身長
+  
+  if (weight > 0 && height > 0) {
+    const heightM = height / 100; // cmをmに変換
+    const bmi = (weight / (heightM * heightM)).toFixed(1);
+    
+    // BMI判定と色分け
+    let color = 'text-gray-600';
+    if (bmi < 18.5) {
+      color = 'text-blue-600';
+    } else if (bmi < 25) {
+      color = 'text-green-600';
+    } else if (bmi < 30) {
+      color = 'text-orange-600';
+    } else {
+      color = 'text-red-600';
+    }
+    
+    bmiDisplay.textContent = bmi;
+    bmiDisplay.className = `text-lg font-bold ${color}`;
+  } else {
+    bmiDisplay.textContent = '-';
+    bmiDisplay.className = 'text-lg font-bold text-gray-400';
   }
 }
 
@@ -2470,7 +2516,23 @@ function saveGoalSettings() {
   showToast('目標を保存しました', 'success');
 }
 
-// 詳細入力の折りたたみトグル（新機能）
+// 運動トラッカーの折りたたみトグル
+function toggleExerciseTracker() {
+  const tracker = document.getElementById('exercise-tracker');
+  const arrow = document.getElementById('exercise-tracker-arrow');
+  
+  if (tracker && arrow) {
+    if (tracker.classList.contains('hidden')) {
+      tracker.classList.remove('hidden');
+      arrow.classList.add('rotate-180');
+    } else {
+      tracker.classList.add('hidden');
+      arrow.classList.remove('rotate-180');
+    }
+  }
+}
+
+// 詳細入力の折りたたみトグル
 function toggleDetailedInputs() {
   const detailedInputs = document.getElementById('detailed-inputs');
   const arrow = document.getElementById('detailed-inputs-arrow');
