@@ -440,181 +440,172 @@ function renderHealthLogSection() {
               </label>
               
               <!-- 3食 -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              <div class="space-y-2">
                 <!-- 朝食 -->
-                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-2.5 rounded-lg">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <div class="text-sm font-bold text-gray-700">
-                      <i class="fas fa-sun text-yellow-500 mr-1"></i>朝食
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-2 rounded-lg">
+                  <!-- タイトル・カロリー・撮影ボタンを1行に -->
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="text-xs font-bold text-gray-700 whitespace-nowrap">
+                      <i class="fas fa-sun text-yellow-500"></i> 朝食
                     </div>
-                    <button type="button" onclick="showMealModal('breakfast')" 
-                      class="px-2 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 transition">
-                      <i class="fas fa-camera mr-1"></i>撮影
-                    </button>
-                  </div>
-                  
-                  <!-- カロリー -->
-                  <div class="relative mb-1.5">
                     <input type="number" id="breakfast-calories" value="${mealData?.breakfast?.calories || 0}"
                       oninput="updateMealNutrition('breakfast', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-base font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
+                      class="flex-1 px-2 py-1 bg-white text-gray-800 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 text-center text-sm font-bold min-w-0">
+                    <span class="text-xs text-gray-500 whitespace-nowrap">kcal</span>
+                    <button type="button" onclick="showMealModal('breakfast')" 
+                      class="px-2 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 transition whitespace-nowrap flex-shrink-0">
+                      <i class="fas fa-camera"></i>
+                    </button>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
                   <button type="button" onclick="toggleMealPFC('breakfast')" 
-                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>PFC入力</span>
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-0.5">
+                    <i class="fas fa-plus-circle text-xs"></i>
+                    <span>PFC</span>
                     <i class="fas fa-chevron-down text-xs" id="breakfast-pfc-arrow"></i>
                   </button>
                   
-                  <div id="breakfast-pfc" class="hidden grid grid-cols-3 gap-1">
+                  <div id="breakfast-pfc" class="hidden grid grid-cols-3 gap-1 mt-1">
                     <div>
                       <input type="number" step="0.1" id="breakfast-protein" value="${mealData?.breakfast?.protein || 0}"
                         oninput="updateMealNutrition('breakfast', 'protein', this.value)"
                         placeholder="P"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-orange-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">P(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="breakfast-fat" value="${mealData?.breakfast?.fat || 0}"
                         oninput="updateMealNutrition('breakfast', 'fat', this.value)"
                         placeholder="F"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-orange-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">F(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="breakfast-carbs" value="${mealData?.breakfast?.carbs || 0}"
                         oninput="updateMealNutrition('breakfast', 'carbs', this.value)"
                         placeholder="C"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-orange-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">C(g)</div>
                     </div>
                   </div>
                   
-                  <div id="breakfast-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
+                  <div id="breakfast-photos" class="mt-1 text-xs text-gray-600 text-center"></div>
                 </div>
                 
                 <!-- 昼食 -->
-                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-2.5 rounded-lg">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <div class="text-sm font-bold text-gray-700">
-                      <i class="fas fa-cloud-sun text-orange-500 mr-1"></i>昼食
+                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-2 rounded-lg">
+                  <!-- タイトル・カロリー・撮影ボタンを1行に -->
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="text-xs font-bold text-gray-700 whitespace-nowrap">
+                      <i class="fas fa-cloud-sun text-orange-500"></i> 昼食
                     </div>
-                    <button type="button" onclick="showMealModal('lunch')" 
-                      class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition">
-                      <i class="fas fa-camera mr-1"></i>撮影
-                    </button>
-                  </div>
-                  
-                  <!-- カロリー -->
-                  <div class="relative mb-1.5">
                     <input type="number" id="lunch-calories" value="${mealData?.lunch?.calories || 0}"
                       oninput="updateMealNutrition('lunch', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-base font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
+                      class="flex-1 px-2 py-1 bg-white text-gray-800 rounded focus:outline-none focus:ring-1 focus:ring-red-500 text-center text-sm font-bold min-w-0">
+                    <span class="text-xs text-gray-500 whitespace-nowrap">kcal</span>
+                    <button type="button" onclick="showMealModal('lunch')" 
+                      class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition whitespace-nowrap flex-shrink-0">
+                      <i class="fas fa-camera"></i>
+                    </button>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
                   <button type="button" onclick="toggleMealPFC('lunch')" 
-                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>PFC入力</span>
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-0.5">
+                    <i class="fas fa-plus-circle text-xs"></i>
+                    <span>PFC</span>
                     <i class="fas fa-chevron-down text-xs" id="lunch-pfc-arrow"></i>
                   </button>
                   
-                  <div id="lunch-pfc" class="hidden grid grid-cols-3 gap-1">
+                  <div id="lunch-pfc" class="hidden grid grid-cols-3 gap-1 mt-1">
                     <div>
                       <input type="number" step="0.1" id="lunch-protein" value="${mealData?.lunch?.protein || 0}"
                         oninput="updateMealNutrition('lunch', 'protein', this.value)"
                         placeholder="P"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">P(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="lunch-fat" value="${mealData?.lunch?.fat || 0}"
                         oninput="updateMealNutrition('lunch', 'fat', this.value)"
                         placeholder="F"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">F(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="lunch-carbs" value="${mealData?.lunch?.carbs || 0}"
                         oninput="updateMealNutrition('lunch', 'carbs', this.value)"
                         placeholder="C"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">C(g)</div>
                     </div>
                   </div>
                   
-                  <div id="lunch-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
+                  <div id="lunch-photos" class="mt-1 text-xs text-gray-600 text-center"></div>
                 </div>
                 
                 <!-- 夕食 -->
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-2.5 rounded-lg">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <div class="text-sm font-bold text-gray-700">
-                      <i class="fas fa-moon text-blue-500 mr-1"></i>夕食
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-2 rounded-lg">
+                  <!-- タイトル・カロリー・撮影ボタンを1行に -->
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="text-xs font-bold text-gray-700 whitespace-nowrap">
+                      <i class="fas fa-moon text-blue-500"></i> 夕食
                     </div>
-                    <button type="button" onclick="showMealModal('dinner')" 
-                      class="px-2 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600 transition">
-                      <i class="fas fa-camera mr-1"></i>撮影
-                    </button>
-                  </div>
-                  
-                  <!-- カロリー -->
-                  <div class="relative mb-1.5">
                     <input type="number" id="dinner-calories" value="${mealData?.dinner?.calories || 0}"
                       oninput="updateMealNutrition('dinner', 'calories', this.value)"
                       placeholder="0"
-                      class="w-full px-2 py-1.5 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center text-base font-bold">
-                    <div class="text-xs text-gray-500 text-center mt-0.5">kcal</div>
+                      class="flex-1 px-2 py-1 bg-white text-gray-800 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 text-center text-sm font-bold min-w-0">
+                    <span class="text-xs text-gray-500 whitespace-nowrap">kcal</span>
+                    <button type="button" onclick="showMealModal('dinner')" 
+                      class="px-2 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600 transition whitespace-nowrap flex-shrink-0">
+                      <i class="fas fa-camera"></i>
+                    </button>
                   </div>
                   
                   <!-- PFC入力 (折りたたみ) -->
                   <button type="button" onclick="toggleMealPFC('dinner')" 
-                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 mb-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>PFC入力</span>
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-0.5">
+                    <i class="fas fa-plus-circle text-xs"></i>
+                    <span>PFC</span>
                     <i class="fas fa-chevron-down text-xs" id="dinner-pfc-arrow"></i>
                   </button>
                   
-                  <div id="dinner-pfc" class="hidden grid grid-cols-3 gap-1">
+                  <div id="dinner-pfc" class="hidden grid grid-cols-3 gap-1 mt-1">
                     <div>
                       <input type="number" step="0.1" id="dinner-protein" value="${mealData?.dinner?.protein || 0}"
                         oninput="updateMealNutrition('dinner', 'protein', this.value)"
                         placeholder="P"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">P(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">P(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="dinner-fat" value="${mealData?.dinner?.fat || 0}"
                         oninput="updateMealNutrition('dinner', 'fat', this.value)"
                         placeholder="F"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">F(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">F(g)</div>
                     </div>
                     <div>
                       <input type="number" step="0.1" id="dinner-carbs" value="${mealData?.dinner?.carbs || 0}"
                         oninput="updateMealNutrition('dinner', 'carbs', this.value)"
                         placeholder="C"
-                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs">
-                      <div class="text-xs text-gray-500 text-center">C(g)</div>
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">C(g)</div>
                     </div>
                   </div>
                   
-                  <div id="dinner-photos" class="mt-2 text-xs text-gray-600 text-center"></div>
+                  <div id="dinner-photos" class="mt-1 text-xs text-gray-600 text-center"></div>
                 </div>
               </div>
                 
               <!-- 合計 -->
-              <div class="mt-4 bg-gradient-to-br from-primary/10 to-pink-50 p-3 rounded-lg">
+              <div class="mt-3 bg-gradient-to-br from-primary/10 to-pink-50 p-2.5 rounded-lg">
                 <div class="text-center">
-                  <div class="text-xs text-gray-600 mb-1">今日の総カロリー</div>
-                  <div class="text-2xl font-bold text-primary" id="total-calories">0</div>
+                  <div class="text-xs text-gray-600 mb-0.5">今日の総カロリー</div>
+                  <div class="text-xl font-bold text-primary" id="total-calories">0</div>
                   <div class="text-xs text-gray-500">kcal</div>
                 </div>
               </div>
@@ -632,9 +623,9 @@ function renderHealthLogSection() {
                 <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
               </button>
                 
-              <div id="detailed-inputs" class="hidden mt-4 space-y-5">
+              <div id="detailed-inputs" class="hidden mt-4 space-y-6">
                 <!-- 詳細記録 -->
-                <div class="border-b pb-4 mb-4">
+                <div class="pb-4 border-b border-gray-200">
                   <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
                     <i class="fas fa-clipboard-list text-primary"></i>
                     詳細記録
