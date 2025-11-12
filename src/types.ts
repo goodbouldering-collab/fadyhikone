@@ -58,6 +58,10 @@ export type Advice = {
   title: string;
   content: string;
   is_read: boolean;
+  log_date?: string; // 対象日付 (YYYY-MM-DD)
+  advice_source?: 'ai' | 'staff'; // AIアドバイスかスタッフアドバイスか
+  ai_analysis_data?: string; // AI分析の詳細データ（JSON形式）
+  confidence_score?: number; // AI分析の信頼度スコア (0.0-1.0)
   created_at: string;
 };
 

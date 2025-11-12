@@ -38,6 +38,25 @@ advices.get('/', async (c) => {
   }
 });
 
+// 日付別アドバイス取得
+advices.get('/by-date/:date', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const date = c.req.param('date');
+    
+    const adviceList = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE user_id = ? AND log_date = ? ORDER BY advice_source ASC, created_at DESC'
+    ).bind(userId, date).all<Advice>();
+
+    return c.json<ApiResponse<Advice[]>>({
+      success: true,
+      data: adviceList.results,
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの取得に失敗しました' }, 500);
+  }
+});
+
 // アドバイスを既読にする
 advices.put('/:id/read', async (c) => {
   try {
