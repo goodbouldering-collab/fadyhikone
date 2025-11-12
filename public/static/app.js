@@ -314,55 +314,57 @@ function renderHealthLogSection() {
             </div>
           </div>
           
-          <!-- 今日の状況カード -->
+          <!-- 今日の状況カード - 横1列 -->
           ${currentUser ? `
-            <div class="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-              <!-- 総カロリー -->
-              <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-3 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                    <i class="fas fa-fire text-white text-xs"></i>
+            <div class="mb-4 bg-white p-3 rounded-xl shadow-sm">
+              <div class="grid grid-cols-4 gap-4">
+                <!-- 総カロリー -->
+                <div class="text-center">
+                  <div class="flex items-center justify-center gap-2 mb-1">
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                      <i class="fas fa-fire text-white text-xs"></i>
+                    </div>
+                    <span class="text-xs font-medium text-gray-600">カロリー</span>
                   </div>
-                  <span class="text-xs font-medium text-gray-600">カロリー</span>
+                  <div class="text-2xl font-bold text-gray-800" id="dashboard-calories">-</div>
+                  <div class="text-xs text-gray-500 mt-0.5">目標: 2000kcal</div>
                 </div>
-                <div class="text-xl font-bold text-gray-800" id="dashboard-calories">-</div>
-                <div class="text-xs text-gray-500">目標: 2000kcal</div>
-              </div>
-              
-              <!-- 運動時間 -->
-              <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
-                    <i class="fas fa-running text-white text-xs"></i>
+                
+                <!-- 運動時間 -->
+                <div class="text-center border-l border-gray-200 pl-2">
+                  <div class="flex items-center justify-center gap-2 mb-1">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
+                      <i class="fas fa-running text-white text-xs"></i>
+                    </div>
+                    <span class="text-xs font-medium text-gray-600">運動</span>
                   </div>
-                  <span class="text-xs font-medium text-gray-600">運動</span>
+                  <div class="text-2xl font-bold text-gray-800" id="dashboard-exercise">-</div>
+                  <div class="text-xs text-gray-500 mt-0.5">目標: 30分</div>
                 </div>
-                <div class="text-xl font-bold text-gray-800" id="dashboard-exercise">-</div>
-                <div class="text-xs text-gray-500">目標: 30分</div>
-              </div>
-              
-              <!-- 体重変化 -->
-              <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                    <i class="fas fa-weight text-white text-xs"></i>
+                
+                <!-- 体重変化 -->
+                <div class="text-center border-l border-gray-200 pl-2">
+                  <div class="flex items-center justify-center gap-2 mb-1">
+                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                      <i class="fas fa-weight text-white text-xs"></i>
+                    </div>
+                    <span class="text-xs font-medium text-gray-600">体重</span>
                   </div>
-                  <span class="text-xs font-medium text-gray-600">体重</span>
+                  <div class="text-2xl font-bold text-gray-800" id="dashboard-weight">-</div>
+                  <div class="text-xs text-gray-500 mt-0.5" id="dashboard-weight-change">前回比: -</div>
                 </div>
-                <div class="text-xl font-bold text-gray-800" id="dashboard-weight">-</div>
-                <div class="text-xs text-gray-500" id="dashboard-weight-change">前回比: -</div>
-              </div>
-              
-              <!-- 連続記録日数 -->
-              <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                    <i class="fas fa-trophy text-white text-xs"></i>
+                
+                <!-- 連続記録日数 -->
+                <div class="text-center border-l border-gray-200 pl-2">
+                  <div class="flex items-center justify-center gap-2 mb-1">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                      <i class="fas fa-trophy text-white text-xs"></i>
+                    </div>
+                    <span class="text-xs font-medium text-gray-600">連続記録</span>
                   </div>
-                  <span class="text-xs font-medium text-gray-600">連続記録</span>
+                  <div class="text-2xl font-bold text-gray-800" id="dashboard-streak">-</div>
+                  <div class="text-xs text-gray-500 mt-0.5">日連続達成中</div>
                 </div>
-                <div class="text-xl font-bold text-gray-800" id="dashboard-streak">-</div>
-                <div class="text-xs text-gray-500">日連続達成中</div>
               </div>
             </div>
           ` : ''}
@@ -382,6 +384,17 @@ function renderHealthLogSection() {
                   <p class="text-sm text-gray-700 leading-relaxed">${latestStaffComment.comment}</p>
                 </div>
               </div>
+            </div>
+          ` : ''}
+          
+          <!-- 記録開始ボタン -->
+          ${currentUser ? `
+            <div class="mb-4 text-center">
+              <button type="button" onclick="scrollToForm()" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-pink-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <i class="fas fa-edit text-xl"></i>
+                今日の記録を始める
+                <i class="fas fa-arrow-down text-sm animate-bounce"></i>
+              </button>
             </div>
           ` : ''}
             
@@ -2514,6 +2527,14 @@ function saveGoalSettings() {
   }));
   
   showToast('目標を保存しました', 'success');
+}
+
+// フォームへスクロール
+function scrollToForm() {
+  const form = document.getElementById('health-log-form');
+  if (form) {
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 // 運動トラッカーの折りたたみトグル
