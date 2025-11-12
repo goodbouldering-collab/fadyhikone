@@ -342,9 +342,108 @@ function renderStatsSection() {
             </div>
           </div>
           
+          <!-- 今日のAI/スタッフアドバイス（常に表示） -->
+          ${renderTodayAdvices()}
+          
         </div>
       </div>
     </section>
+  `;
+}
+
+// 今日のアドバイスセクション（AI + スタッフ）
+function renderTodayAdvices() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayAdvices = advices.filter(a => a.log_date === today);
+  const aiAdvices = todayAdvices.filter(a => a.advice_source === 'ai');
+  const staffAdvices = todayAdvices.filter(a => a.advice_source === 'staff');
+  
+  return `
+    <div class="mt-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 rounded-xl shadow-sm border border-purple-100">
+      <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+        <i class="fas fa-calendar-day text-primary"></i>
+        今日のアドバイス
+        <span class="text-xs text-gray-500 font-normal">(${today})</span>
+      </h4>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- AIアドバイス -->
+        <div class="bg-white p-3 rounded-lg shadow-sm">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <i class="fas fa-robot text-white text-sm"></i>
+            </div>
+            <div class="flex-1">
+              <h5 class="text-xs font-bold text-gray-800">AIアドバイス</h5>
+              ${aiAdvices.length > 0 && aiAdvices[0].confidence_score ? `
+                <div class="flex items-center gap-1">
+                  <div class="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500" style="width: ${(aiAdvices[0].confidence_score * 100)}%"></div>
+                  </div>
+                  <span class="text-xs text-gray-500">信頼度 ${Math.round(aiAdvices[0].confidence_score * 100)}%</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          
+          ${aiAdvices.length > 0 ? `
+            <div class="space-y-2">
+              ${aiAdvices.map(advice => `
+                <div class="text-xs text-gray-700 line-clamp-3">
+                  <strong class="text-gray-800">${advice.title}</strong><br>
+                  ${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}
+                </div>
+                ${advice.content.length > 100 ? `
+                  <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
+                    もっと見る →
+                  </button>
+                ` : ''}
+              `).join('')}
+            </div>
+          ` : `
+            <div class="text-xs text-gray-500 py-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              今日のAI分析はまだありません
+            </div>
+          `}
+        </div>
+        
+        <!-- スタッフアドバイス -->
+        <div class="bg-white p-3 rounded-lg shadow-sm">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+              <i class="fas fa-user-nurse text-white text-sm"></i>
+            </div>
+            <h5 class="text-xs font-bold text-gray-800">スタッフアドバイス</h5>
+          </div>
+          
+          ${staffAdvices.length > 0 ? `
+            <div class="space-y-2">
+              ${staffAdvices.map(advice => `
+                <div class="text-xs text-gray-700">
+                  <div class="flex items-center gap-1 mb-1">
+                    <i class="fas fa-user-circle text-primary text-xs"></i>
+                    <span class="font-medium text-gray-800">${advice.staff_name}</span>
+                  </div>
+                  <strong class="text-gray-800">${advice.title}</strong><br>
+                  <div class="line-clamp-3">${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}</div>
+                </div>
+                ${advice.content.length > 100 ? `
+                  <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
+                    もっと見る →
+                  </button>
+                ` : ''}
+              `).join('')}
+            </div>
+          ` : `
+            <div class="text-xs text-gray-500 py-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              今日のスタッフアドバイスはまだありません
+            </div>
+          `}
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -1519,4 +1618,101 @@ function exportHealthLogs() {
   document.body.removeChild(link);
   
   showToast('CSVファイルをダウンロードしました', 'success');
+}
+
+// アドバイス詳細ポップアップ
+function showAdviceDetail(adviceId) {
+  const advice = advices.find(a => a.id === adviceId);
+  if (!advice) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
+  const isAI = advice.advice_source === 'ai';
+  const iconColor = isAI ? 'from-blue-500 to-purple-500' : 'from-pink-500 to-rose-500';
+  const icon = isAI ? 'fa-robot' : 'fa-user-nurse';
+  
+  modal.innerHTML = `
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+      <!-- ヘッダー -->
+      <div class="bg-gradient-to-r ${iconColor} px-6 py-4 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <i class="fas ${icon} text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold">${isAI ? 'AIアドバイス' : 'スタッフアドバイス'}</h3>
+              ${isAI && advice.confidence_score ? `
+                <div class="flex items-center gap-2 mt-1">
+                  <div class="w-20 h-1.5 bg-white bg-opacity-30 rounded-full overflow-hidden">
+                    <div class="h-full bg-white" style="width: ${(advice.confidence_score * 100)}%"></div>
+                  </div>
+                  <span class="text-xs">信頼度 ${Math.round(advice.confidence_score * 100)}%</span>
+                </div>
+              ` : ''}
+              ${!isAI ? `<div class="text-sm opacity-90">担当: ${advice.staff_name}</div>` : ''}
+            </div>
+          </div>
+          <button onclick="this.closest('.fixed').remove()" class="w-8 h-8 flex items-center justify-center hover:bg-white hover:bg-opacity-20 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- コンテンツ -->
+      <div class="p-6 overflow-y-auto" style="max-height: calc(80vh - 120px)">
+        <div class="mb-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-${getAdviceColor(advice.advice_type)}-100 text-${getAdviceColor(advice.advice_type)}-700 rounded-full text-xs font-medium mb-2">
+            <i class="fas fa-tag"></i>
+            ${getAdviceTypeLabel(advice.advice_type)}
+          </div>
+          ${advice.log_date ? `
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium mb-2 ml-2">
+              <i class="fas fa-calendar"></i>
+              ${advice.log_date}
+            </div>
+          ` : ''}
+        </div>
+        
+        <h4 class="text-xl font-bold text-gray-800 mb-4">${advice.title}</h4>
+        
+        <div class="prose prose-sm max-w-none">
+          <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">${advice.content}</p>
+        </div>
+        
+        ${isAI && advice.ai_analysis_data ? `
+          <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h5 class="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+              <i class="fas fa-chart-line"></i>
+              AI分析データ
+            </h5>
+            <pre class="text-xs text-blue-800 overflow-x-auto">${advice.ai_analysis_data}</pre>
+          </div>
+        ` : ''}
+        
+        <div class="mt-6 pt-4 border-t text-xs text-gray-500 flex items-center justify-between">
+          <div>
+            <i class="fas fa-clock mr-1"></i>
+            ${formatRelativeTime(advice.created_at)}
+          </div>
+          ${!advice.is_read ? `
+            <button onclick="markAdviceAsRead(${advice.id}); this.closest('.fixed').remove();" class="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-opacity-90 transition text-xs">
+              既読にする
+            </button>
+          ` : `
+            <span class="text-green-600">
+              <i class="fas fa-check-circle mr-1"></i>
+              既読
+            </span>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
 }
