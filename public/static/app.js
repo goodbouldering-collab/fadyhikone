@@ -654,14 +654,14 @@ function renderHealthLogSection() {
             </button>
           </form>
           
-          <!-- 運動トラッカー（フォーム外・独立） -->
+          <!-- 運動ログ（フォーム外・独立） -->
           <div class="mt-4">
             <div class="bg-white p-3 rounded-lg shadow-sm">
               <button type="button" onclick="toggleExerciseTracker()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
                   <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
-                  運動トラッカー
+                  運動ログ
                 </label>
                 <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
               </button>
@@ -2555,7 +2555,7 @@ function syncHiddenField(sourceId, targetId) {
   }
 }
 
-// 運動トラッカーの折りたたみトグル
+// 運動ログの折りたたみトグル
 function toggleExerciseTracker() {
   const tracker = document.getElementById('exercise-tracker');
   const arrow = document.getElementById('exercise-tracker-arrow');
@@ -2620,7 +2620,7 @@ function updateMealPhotosDisplay() {
 }
 
 // =============================================================================
-// 運動トラッカー関数
+// 運動ログ関数
 // =============================================================================
 
 // 運動データ
