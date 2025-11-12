@@ -604,9 +604,18 @@ function renderHealthLogSection() {
               <!-- 合計 -->
               <div class="mt-3 bg-gradient-to-br from-primary/10 to-pink-50 p-2.5 rounded-lg">
                 <div class="text-center">
-                  <div class="text-xs text-gray-600 mb-0.5">今日の総カロリー</div>
-                  <div class="text-xl font-bold text-primary" id="total-calories">0</div>
-                  <div class="text-xs text-gray-500">kcal</div>
+                  <div class="text-xs text-gray-600 mb-1">今日の総カロリー</div>
+                  <div class="flex items-center justify-center gap-2">
+                    <input type="number" 
+                      id="total-calories-input"
+                      value="0"
+                      oninput="updateTotalCaloriesDisplay()"
+                      class="w-24 px-2 py-1 text-xl font-bold text-primary text-center bg-white rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                    <span class="text-sm text-gray-500">kcal</span>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    <span id="total-calories-breakdown">朝0 + 昼0 + 夕0</span>
+                  </div>
                 </div>
               </div>
               
@@ -624,13 +633,84 @@ function renderHealthLogSection() {
               </button>
                 
               <div id="detailed-inputs" class="hidden mt-4 space-y-6">
+                <!-- 運動トラッカー -->
+                <div class="pb-4 border-b border-gray-200">
+                  <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
+                    <i class="fas fa-running text-primary"></i>
+                    運動トラッカー
+                  </h4>
+                  
+                  <!-- 運動サマリー -->
+                  <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-blue-50 p-2 rounded-lg text-center">
+                      <div class="text-xs text-gray-600 mb-0.5">合計時間</div>
+                      <div class="text-lg font-bold text-blue-600" id="total-exercise-time">0</div>
+                      <div class="text-xs text-gray-500">分</div>
+                    </div>
+                    <div class="bg-orange-50 p-2 rounded-lg text-center">
+                      <div class="text-xs text-gray-600 mb-0.5">消費カロリー</div>
+                      <div class="text-lg font-bold text-orange-600" id="total-exercise-calories">0</div>
+                      <div class="text-xs text-gray-500">kcal</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 運動種目リスト -->
+                  <div class="space-y-1.5">
+                    ${[
+                      { id: 'weight-training', name: '筋トレ', icon: 'fa-dumbbell', met: 6, color: 'blue', time: 30 },
+                      { id: 'running', name: 'ランニング', icon: 'fa-running', met: 8, color: 'green', time: 30 },
+                      { id: 'jogging', name: 'ジョギング', icon: 'fa-shoe-prints', met: 5, color: 'teal', time: 20 },
+                      { id: 'walking', name: 'ウォーキング', icon: 'fa-walking', met: 3, color: 'cyan', time: 30 },
+                      { id: 'cycling', name: 'サイクリング', icon: 'fa-bicycle', met: 6, color: 'indigo', time: 30 },
+                      { id: 'swimming', name: '水泳', icon: 'fa-swimmer', met: 8, color: 'blue', time: 30 },
+                      { id: 'yoga', name: 'ヨガ', icon: 'fa-om', met: 3, color: 'purple', time: 30 },
+                      { id: 'pilates', name: 'ピラティス', icon: 'fa-spa', met: 4, color: 'pink', time: 30 },
+                      { id: 'stretch', name: 'ストレッチ', icon: 'fa-child', met: 2.5, color: 'purple', time: 15 },
+                      { id: 'hiit', name: 'HIIT', icon: 'fa-fire', met: 10, color: 'red', time: 20 },
+                      { id: 'dance', name: 'ダンス', icon: 'fa-music', met: 5, color: 'pink', time: 30 },
+                      { id: 'boxing', name: 'ボクシング', icon: 'fa-hand-rock', met: 9, color: 'red', time: 30 }
+                    ].map(ex => `
+                      <div class="flex items-center gap-2 bg-white p-2 rounded-lg hover:bg-gray-50 transition">
+                        <button type="button" 
+                          onclick="toggleExercise('${ex.id}')"
+                          id="exercise-toggle-${ex.id}"
+                          class="w-12 h-8 bg-gray-200 rounded-full relative transition-all duration-300 flex-shrink-0"
+                          data-active="false">
+                          <div class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-all duration-300"></div>
+                        </button>
+                        <i class="fas ${ex.icon} text-${ex.color}-500 text-sm flex-shrink-0"></i>
+                        <span class="text-xs font-medium text-gray-700 flex-1 min-w-0">${ex.name}</span>
+                        <input type="number" 
+                          id="exercise-time-${ex.id}"
+                          value="${ex.time}"
+                          onchange="updateExerciseSummary()"
+                          class="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <span class="text-xs text-gray-500 whitespace-nowrap">分</span>
+                        <span class="text-xs text-gray-400 whitespace-nowrap" id="exercise-cal-${ex.id}">0kcal</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                  
+                  <!-- 運動メモ -->
+                  <div class="mt-3">
+                    <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
+                      <i class="fas fa-pencil-alt text-primary"></i>
+                      運動メモ
+                    </label>
+                    <textarea name="condition_note" rows="2" 
+                      placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
+                      class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
+                    >${todayLog?.condition_note || ''}</textarea>
+                  </div>
+                </div>
+                
                 <!-- 詳細記録 -->
                 <div class="pb-4 border-b border-gray-200">
                   <h4 class="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
                     <i class="fas fa-clipboard-list text-primary"></i>
-                    詳細記録
+                    その他の記録
                   </h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <!-- 体脂肪率 -->
                     <div>
                       <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
@@ -657,32 +737,6 @@ function renderHealthLogSection() {
                           class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
                       </div>
-                    </div>
-                    
-                    <!-- 運動 -->
-                    <div>
-                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                        <i class="fas fa-running text-primary"></i>
-                        運動時間
-                      </label>
-                      <div class="relative">
-                        <input type="number" name="exercise_minutes" id="exercise-minutes" value="${todayLog?.exercise_minutes || ''}"
-                          placeholder="30"
-                          class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
-                      </div>
-                    </div>
-                    
-                    <!-- 運動メモ（全幅） -->
-                    <div class="sm:col-span-3">
-                      <label class="flex items-center gap-1 text-xs font-medium text-gray-600 mb-2">
-                        <i class="fas fa-dumbbell text-primary"></i>
-                        運動の詳細
-                      </label>
-                      <textarea name="condition_note" rows="2" 
-                        placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
-                        class="w-full px-3 py-2 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
-                      >${todayLog?.condition_note || ''}</textarea>
                     </div>
                   </div>
                 </div>
@@ -1565,8 +1619,15 @@ function updateTotalNutrition() {
     carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs
   };
   
-  const totalCaloriesEl = document.getElementById('total-calories');
-  if (totalCaloriesEl) totalCaloriesEl.textContent = total.calories;
+  // 総カロリー入力フィールド更新
+  const totalCaloriesInput = document.getElementById('total-calories-input');
+  if (totalCaloriesInput) totalCaloriesInput.value = total.calories;
+  
+  // ブレークダウン表示更新
+  const breakdownEl = document.getElementById('total-calories-breakdown');
+  if (breakdownEl) {
+    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories}`;
+  }
   
   const totalProteinEl = document.getElementById('total-protein');
   if (totalProteinEl) totalProteinEl.textContent = total.protein;
@@ -1576,6 +1637,20 @@ function updateTotalNutrition() {
   
   const totalCarbsEl = document.getElementById('total-carbs');
   if (totalCarbsEl) totalCarbsEl.textContent = total.carbs;
+}
+
+// 総カロリー手動入力対応
+function updateTotalCaloriesDisplay() {
+  const totalCaloriesInput = document.getElementById('total-calories-input');
+  if (!totalCaloriesInput) return;
+  
+  const manualTotal = parseFloat(totalCaloriesInput.value) || 0;
+  
+  // ブレークダウン表示更新
+  const breakdownEl = document.getElementById('total-calories-breakdown');
+  if (breakdownEl) {
+    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories}`;
+  }
 }
 
 // 食事栄養素手動更新 (新関数 - カロリー + PFC対応)
@@ -2441,6 +2516,101 @@ function updateMealPhotosDisplay() {
   
   // 合計カロリー更新
   updateTotalNutrition();
+}
+
+// =============================================================================
+// 運動トラッカー関数
+// =============================================================================
+
+// 運動データ
+const exerciseMET = {
+  'weight-training': 6,
+  'running': 8,
+  'jogging': 5,
+  'walking': 3,
+  'cycling': 6,
+  'swimming': 8,
+  'yoga': 3,
+  'pilates': 4,
+  'stretch': 2.5,
+  'hiit': 10,
+  'dance': 5,
+  'boxing': 9
+};
+
+// 運動トグル
+function toggleExercise(exerciseId) {
+  const toggle = document.getElementById(`exercise-toggle-${exerciseId}`);
+  if (!toggle) return;
+  
+  const isActive = toggle.getAttribute('data-active') === 'true';
+  const newState = !isActive;
+  
+  toggle.setAttribute('data-active', newState);
+  
+  if (newState) {
+    // アクティブ化
+    toggle.classList.remove('bg-gray-200');
+    toggle.classList.add('bg-primary');
+    const knob = toggle.querySelector('div');
+    knob.classList.remove('left-1');
+    knob.classList.add('left-5');
+  } else {
+    // 非アクティブ化
+    toggle.classList.remove('bg-primary');
+    toggle.classList.add('bg-gray-200');
+    const knob = toggle.querySelector('div');
+    knob.classList.remove('left-5');
+    knob.classList.add('left-1');
+  }
+  
+  updateExerciseSummary();
+}
+
+// 運動サマリー更新
+function updateExerciseSummary() {
+  let totalTime = 0;
+  let totalCalories = 0;
+  const weight = currentUser?.weight || 60; // ユーザー体重（デフォルト60kg）
+  
+  Object.keys(exerciseMET).forEach(exerciseId => {
+    const toggle = document.getElementById(`exercise-toggle-${exerciseId}`);
+    const timeInput = document.getElementById(`exercise-time-${exerciseId}`);
+    const calDisplay = document.getElementById(`exercise-cal-${exerciseId}`);
+    
+    if (!toggle || !timeInput || !calDisplay) return;
+    
+    const isActive = toggle.getAttribute('data-active') === 'true';
+    const minutes = parseFloat(timeInput.value) || 0;
+    const met = exerciseMET[exerciseId];
+    
+    if (isActive && minutes > 0) {
+      // MET計算式: カロリー = MET × 体重(kg) × 時間(h) × 1.05
+      const calories = Math.round(met * weight * (minutes / 60) * 1.05);
+      totalTime += minutes;
+      totalCalories += calories;
+      calDisplay.textContent = `${calories}kcal`;
+      calDisplay.classList.remove('text-gray-400');
+      calDisplay.classList.add('text-orange-600', 'font-bold');
+    } else {
+      calDisplay.textContent = '0kcal';
+      calDisplay.classList.remove('text-orange-600', 'font-bold');
+      calDisplay.classList.add('text-gray-400');
+    }
+  });
+  
+  // サマリー表示更新
+  const totalTimeEl = document.getElementById('total-exercise-time');
+  const totalCaloriesEl = document.getElementById('total-exercise-calories');
+  
+  if (totalTimeEl) totalTimeEl.textContent = totalTime;
+  if (totalCaloriesEl) totalCaloriesEl.textContent = totalCalories;
+  
+  // 運動時間フィールドも更新（フォーム送信用）
+  const exerciseMinutesInput = document.getElementById('exercise-minutes');
+  if (exerciseMinutesInput) {
+    exerciseMinutesInput.value = totalTime;
+  }
 }
 
 // =============================================================================
