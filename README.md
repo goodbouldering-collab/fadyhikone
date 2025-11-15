@@ -1,15 +1,16 @@
-# ファディー彦根 - AIパーソナルジム管理システム
+# ファディ健康ログ - AIパーソナルジム管理システム
 
 ## プロジェクト概要
 
-**名称**: ファディー彦根 AIパーソナルジム  
+**名称**: ファディ健康ログ (fadyhikone)
 **目的**: 体調・体重・食事を記録し、AIとスタッフによるアドバイスを提供する健康管理プラットフォーム  
 **技術スタック**: Hono + Cloudflare Pages + D1 Database + R2 Storage + TypeScript
 
 ## 公開URL
 
+- **GitHub**: https://github.com/goodbouldering-collab/fadyhikone
+- **本番環境**: https://fadyhikone.pages.dev (GitHub連携デプロイ済み)
 - **開発環境**: https://3000-i48axlepfz387nht5ffrx-5c13a017.sandbox.novita.ai
-- **本番環境**: (デプロイ後に追加)
 
 ## 完成した機能
 
@@ -157,7 +158,7 @@ npm run build
 pm2 start ecosystem.config.cjs
 
 # ログ確認
-pm2 logs furdi-hikone --nostream
+pm2 logs fadyhikone --nostream
 ```
 
 ### テストユーザー
@@ -173,29 +174,32 @@ pm2 logs furdi-hikone --nostream
 
 ## デプロイ
 
-### Cloudflare Pages デプロイ
-```bash
-# ビルド
-npm run build
+### Cloudflare Pages デプロイ状態
 
-# デプロイ
-npm run deploy
+✅ **本番環境**: https://fadyhikone.pages.dev
+- GitHub連携による自動デプロイ設定済み
+- D1データベース: `fadyhikone-production` (3c41910c-1b96-47ad-99e7-604df7428bdb)
+- すべてのマイグレーション適用済み（0001〜0010）
+
+### GitHub連携デプロイ
+```bash
+# コード変更をプッシュするだけで自動デプロイ
+git add .
+git commit -m "Update feature"
+git push origin main
 ```
 
-### 環境変数設定
-```bash
-# D1データベース作成
-npx wrangler d1 create furdi-hikone-production
+### 環境変数設定 (Cloudflare Dashboard)
+```
+必須設定:
+- D1データベースバインディング: DB → fadyhikone-production
+- R2バケットバインディング: BUCKET → fadyhikone-images
 
-# R2バケット作成
-npx wrangler r2 bucket create furdi-hikone-images
-
-# シークレット設定
-npx wrangler pages secret put JWT_SECRET
-npx wrangler pages secret put GOOGLE_CLIENT_ID
-npx wrangler pages secret put GOOGLE_CLIENT_SECRET
-npx wrangler pages secret put LINE_CHANNEL_ID
-npx wrangler pages secret put LINE_CHANNEL_SECRET
+オプション設定:
+- JWT_SECRET (セキュリティ強化用)
+- GEMINI_API_KEY (AI機能用)
+- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (OAuth用)
+- LINE_CHANNEL_ID / LINE_CHANNEL_SECRET (LINE OAuth用)
 ```
 
 ## ライセンス
