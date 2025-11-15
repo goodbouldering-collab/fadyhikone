@@ -13,15 +13,15 @@
       "database_id": "3c41910c-1b96-47ad-99e7-604df7428bdb",
       "migrations_dir": "migrations"
     }
-  ],
-  
-  // R2 Storage for images
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "furdi-hikone-images"
-    }
   ]
+  
+  // R2 Storage for images (コメントアウト - 必要に応じて有効化)
+  // "r2_buckets": [
+  //   {
+  //     "binding": "BUCKET",
+  //     "bucket_name": "fadyhikone-images"
+  //   }
+  // ]
   
   // Environment Variables
   // For local development: Create .dev.vars file with GEMINI_API_KEY=your-key
