@@ -151,153 +151,79 @@ function renderStatsSection() {
   }
   
   return `
-    <section class="bg-gradient-to-b from-white to-gray-50 py-3">
+    <section class="bg-gradient-to-b from-white to-gray-50 py-2">
       <div class="container mx-auto px-2">
         <div class="max-w-7xl mx-auto">
           
-          <!-- 週間・月間統計 -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
-            <!-- 週間カロリー平均 -->
-            <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-2 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                <i class="fas fa-fire text-primary text-sm"></i>
-                週間平均カロリー
-              </h4>
-              <div class="flex items-end gap-2">
-                <div class="text-3xl font-bold text-gray-800">${avgCalories}</div>
-                <div class="text-sm text-gray-600 mb-1">kcal/日</div>
+          <!-- コンパクトダイジェスト：4カラムグリッド -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
+            <!-- カロリー -->
+            <div class="bg-gradient-to-br from-pink-50 to-rose-50 p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-fire text-primary text-xs"></i>
+                <span class="text-xs font-bold text-gray-700">カロリー</span>
               </div>
-              <div class="mt-2 text-xs text-gray-600">
-                今週合計: ${weeklyCalories}kcal
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold text-gray-800">${avgCalories}</span>
+                <span class="text-xs text-gray-500">kcal</span>
               </div>
             </div>
             
-            <!-- 週間運動平均 -->
-            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                <i class="fas fa-running text-blue-500 text-sm"></i>
-                週間平均運動時間
-              </h4>
-              <div class="flex items-end gap-2">
-                <div class="text-3xl font-bold text-gray-800">${avgExercise}</div>
-                <div class="text-sm text-gray-600 mb-1">分/日</div>
+            <!-- 運動 -->
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-running text-blue-500 text-xs"></i>
+                <span class="text-xs font-bold text-gray-700">運動</span>
               </div>
-              <div class="mt-2 text-xs text-gray-600">
-                今週合計: ${weeklyExercise}分
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold text-gray-800">${avgExercise}</span>
+                <span class="text-xs text-gray-500">分</span>
               </div>
             </div>
             
-            <!-- 記録継続率 -->
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                <i class="fas fa-calendar-check text-green-500 text-sm"></i>
-                記録継続率（30日間）
-              </h4>
-              <div class="flex items-end gap-2">
-                <div class="text-3xl font-bold text-gray-800">${consistencyRate}</div>
-                <div class="text-sm text-gray-600 mb-1">%</div>
+            <!-- 継続率 -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-calendar-check text-green-500 text-xs"></i>
+                <span class="text-xs font-bold text-gray-700">継続率</span>
               </div>
-              <div class="mt-2">
-                <div class="w-full bg-white rounded-full h-2">
-                  <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full" style="width: ${consistencyRate}%"></div>
-                </div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold text-gray-800">${consistencyRate}</span>
+                <span class="text-xs text-gray-500">%</span>
+              </div>
+            </div>
+            
+            <!-- 健康スコア -->
+            <div class="bg-gradient-to-br from-yellow-50 to-amber-50 p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-star text-yellow-500 text-xs"></i>
+                <span class="text-xs font-bold text-gray-700">スコア</span>
+              </div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold text-gray-800">${healthScore}</span>
+                <span class="text-xs text-gray-500">点</span>
               </div>
             </div>
           </div>
           
-          <!-- 健康スコアと目標達成 -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-            <!-- 健康スコア -->
-            <div class="bg-white p-2 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1">
-                <i class="fas fa-star text-yellow-500 text-sm"></i>
-                今日の健康スコア
-              </h4>
-              <div class="flex items-center gap-4">
-                <div class="relative w-24 h-24">
-                  <svg class="w-full h-full transform -rotate-90">
-                    <circle cx="48" cy="48" r="40" fill="none" stroke="#e5e7eb" stroke-width="8"></circle>
-                    <circle cx="48" cy="48" r="40" fill="none" stroke="url(#gradient)" stroke-width="8" 
-                      stroke-dasharray="${2 * Math.PI * 40}" 
-                      stroke-dashoffset="${2 * Math.PI * 40 * (1 - healthScore / 100)}"
-                      stroke-linecap="round"></circle>
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:var(--color-primary);stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-2xl font-bold text-gray-800">${healthScore}</div>
-                  </div>
-                </div>
-                <div class="flex-1">
-                  <div class="space-y-1.5">
-                    <div class="flex items-center gap-2">
-                      <i class="fas ${latestLog?.weight ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
-                      <span class="text-xs text-gray-600">体重記録 (20点)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <i class="fas ${latestLog?.meal_calories ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
-                      <span class="text-xs text-gray-600">食事記録 (20点)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <i class="fas ${(latestLog?.exercise_minutes && latestLog.exercise_minutes >= 30) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
-                      <span class="text-xs text-gray-600">運動30分以上 (30点)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <i class="fas ${(latestLog?.sleep_hours && latestLog.sleep_hours >= 7) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
-                      <span class="text-xs text-gray-600">睡眠7時間以上 (30点)</span>
-                    </div>
-                  </div>
-                </div>
+          <!-- チェックリスト（1行コンパクト表示） -->
+          <div class="bg-white p-2 rounded-lg shadow-sm mb-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5">
+                <i class="fas ${latestLog?.weight ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                <span class="text-xs text-gray-600">体重</span>
               </div>
-            </div>
-            
-            <!-- おすすめアクション -->
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-2 rounded-xl shadow-sm">
-              <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                <i class="fas fa-lightbulb text-yellow-500 text-sm"></i>
-                おすすめアクション
-              </h4>
-              <div class="space-y-2">
-                ${!latestLog || !latestLog.weight ? `
-                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
-                    <i class="fas fa-weight text-primary text-sm mt-0.5"></i>
-                    <div class="flex-1">
-                      <div class="text-xs font-medium text-gray-800">体重を記録しましょう</div>
-                      <a href="/#health-log-section" class="text-xs text-primary hover:underline">今すぐ記録 →</a>
-                    </div>
-                  </div>
-                ` : ''}
-                ${!latestLog || !latestLog.meal_calories ? `
-                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
-                    <i class="fas fa-utensils text-orange-500 text-sm mt-0.5"></i>
-                    <div class="flex-1">
-                      <div class="text-xs font-medium text-gray-800">今日の食事を記録しましょう</div>
-                      <a href="/#health-log-section" class="text-xs text-primary hover:underline">今すぐ記録 →</a>
-                    </div>
-                  </div>
-                ` : ''}
-                ${!latestLog || !latestLog.exercise_minutes || latestLog.exercise_minutes < 30 ? `
-                  <div class="bg-white p-2 rounded-lg flex items-start gap-2">
-                    <i class="fas fa-running text-blue-500 text-sm mt-0.5"></i>
-                    <div class="flex-1">
-                      <div class="text-xs font-medium text-gray-800">30分の運動を目指しましょう</div>
-                      <div class="text-xs text-gray-600">現在: ${latestLog?.exercise_minutes || 0}分</div>
-                    </div>
-                  </div>
-                ` : ''}
-                ${healthScore >= 80 ? `
-                  <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-2 rounded-lg flex items-start gap-2">
-                    <i class="fas fa-trophy text-yellow-500 text-sm mt-0.5"></i>
-                    <div class="flex-1">
-                      <div class="text-xs font-bold text-green-800">素晴らしい！</div>
-                      <div class="text-xs text-green-700">この調子で続けましょう！</div>
-                    </div>
-                  </div>
-                ` : ''}
+              <div class="flex items-center gap-1.5">
+                <i class="fas ${latestLog?.meal_calories ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                <span class="text-xs text-gray-600">食事</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas ${(latestLog?.exercise_minutes && latestLog.exercise_minutes >= 30) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                <span class="text-xs text-gray-600">運動30分</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas ${(latestLog?.sleep_hours && latestLog.sleep_hours >= 7) ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
+                <span class="text-xs text-gray-600">睡眠7h</span>
               </div>
             </div>
           </div>
