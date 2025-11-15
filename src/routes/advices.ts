@@ -57,6 +57,23 @@ advices.get('/by-date/:date', async (c) => {
   }
 });
 
+// 未読カウント取得
+advices.get('/unread-count', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const result = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM advices WHERE user_id = ? AND is_read = 0'
+    ).bind(userId).first<{ count: number }>();
+
+    return c.json<ApiResponse<{ count: number }>>({
+      success: true,
+      data: { count: result?.count || 0 },
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: '未読カウントの取得に失敗しました' }, 500);
+  }
+});
+
 // アドバイスを既読にする
 advices.put('/:id/read', async (c) => {
   try {
@@ -79,6 +96,24 @@ advices.put('/:id/read', async (c) => {
     return c.json<ApiResponse>({
       success: true,
       message: 'アドバイスを既読にしました',
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの更新に失敗しました' }, 500);
+  }
+});
+
+// すべてのアドバイスを既読にする
+advices.put('/mark-all-read', async (c) => {
+  try {
+    const userId = c.get('userId');
+    
+    await c.env.DB.prepare(
+      'UPDATE advices SET is_read = 1 WHERE user_id = ? AND is_read = 0'
+    ).bind(userId).run();
+
+    return c.json<ApiResponse>({
+      success: true,
+      message: 'すべてのアドバイスを既読にしました',
     });
   } catch (error) {
     return c.json<ApiResponse>({ success: false, error: 'アドバイスの更新に失敗しました' }, 500);

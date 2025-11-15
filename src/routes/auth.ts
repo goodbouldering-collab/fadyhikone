@@ -289,7 +289,7 @@ auth.put('/profile', async (c) => {
       return c.json<ApiResponse>({ success: false, error: 'トークンが無効です' }, 401);
     }
 
-    const { name, email, phone, height, weight, goal, birthday, gender } = await c.req.json();
+    const { name, email, phone, height, goal, birthday, gender } = await c.req.json();
     
     // メール重複チェック（自分以外）
     if (email) {
@@ -303,11 +303,12 @@ auth.put('/profile', async (c) => {
     }
     
     // プロフィール更新（birthdayはbirth_dateとして保存）
+    // 注意: weightはusersテーブルから削除され、health_logsテーブルで管理
     await c.env.DB.prepare(`
       UPDATE users 
-      SET name = ?, email = ?, phone = ?, height = ?, weight = ?, goal = ?, birth_date = ?, gender = ?, updated_at = datetime('now')
+      SET name = ?, email = ?, phone = ?, height = ?, goal = ?, birth_date = ?, gender = ?, updated_at = datetime('now')
       WHERE id = ?
-    `).bind(name, email, phone, height, weight, goal, birthday, gender, payload.userId).run();
+    `).bind(name, email, phone, height, goal, birthday, gender, payload.userId).run();
 
     const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(payload.userId).first<User>();
 

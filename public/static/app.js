@@ -3,10 +3,13 @@
 // 状態管理
 let currentUser = null;
 let currentAdvices = [];
+let advices = []; // 全アドバイス（AI + スタッフ）
+let unreadAdviceCount = 0; // 未読アドバイス数
 let todayLog = null;
 let announcements = [];
 let latestStaffComment = null;
 let selectedDate = null; // 選択された日付（YYYY-MM-DD形式）
+let opinions = []; // 質問・相談データ
 
 // 食事記録データ
 let mealData = {
@@ -25,8 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (currentUser) {
     selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
     await loadAdvices();
+    await loadTodayAdvices(); // 今日のアドバイスもロード
+    await loadUnreadCount(); // 未読カウントをロード
     await loadLogForDate(selectedDate);
     await loadLatestStaffComment();
+    await loadOpinions(); // 質問・相談データをロード
   }
 });
 
@@ -56,15 +62,74 @@ async function checkAuth() {
   }
 }
 
+// お知らせ読み込み
+async function loadAnnouncements() {
+  try {
+    const response = await axios.get('/api/announcements');
+    if (response.data.success) {
+      announcements = response.data.data;
+    }
+  } catch (error) {
+    console.error('お知らせの読み込みに失敗:', error);
+    announcements = [];
+  }
+}
+
 // アドバイス読み込み
 async function loadAdvices() {
   try {
     const response = await apiCall('/api/advices');
     if (response.success) {
       currentAdvices = response.data.slice(0, 3); // 最新3件
+      advices = response.data; // 全アドバイス
     }
   } catch (error) {
     console.error('アドバイスの読み込みに失敗:', error);
+  }
+}
+
+// 今日のアドバイスをロード
+async function loadTodayAdvices() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const response = await apiCall(`/api/advices/by-date/${today}`);
+    if (response.success) {
+      // 全アドバイスリストに今日のアドバイスをマージ
+      const todayAdvices = response.data;
+      todayAdvices.forEach(advice => {
+        if (!advices.find(a => a.id === advice.id)) {
+          advices.push(advice);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('今日のアドバイスの読み込みに失敗:', error);
+  }
+}
+
+// 未読カウントをロード
+async function loadUnreadCount() {
+  try {
+    const response = await apiCall('/api/advices/unread-count');
+    if (response.success) {
+      unreadAdviceCount = response.data.count;
+      updateNotificationBadge();
+    }
+  } catch (error) {
+    console.error('未読カウントの読み込みに失敗:', error);
+  }
+}
+
+// 通知バッジを更新
+function updateNotificationBadge() {
+  const badge = document.getElementById('advice-notification-badge');
+  if (badge) {
+    if (unreadAdviceCount > 0) {
+      badge.textContent = unreadAdviceCount > 99 ? '99+' : unreadAdviceCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
   }
 }
 
@@ -93,6 +158,22 @@ async function loadLogForDate(date) {
         };
       }
       
+      // 食事データの合計を計算してtodayLogに追加
+      if (todayLog) {
+        todayLog.total_calories = (mealData.breakfast?.calories || 0) + 
+                                   (mealData.lunch?.calories || 0) + 
+                                   (mealData.dinner?.calories || 0);
+        todayLog.total_protein = (mealData.breakfast?.protein || 0) + 
+                                  (mealData.lunch?.protein || 0) + 
+                                  (mealData.dinner?.protein || 0);
+        todayLog.total_carbs = (mealData.breakfast?.carbs || 0) + 
+                                (mealData.lunch?.carbs || 0) + 
+                                (mealData.dinner?.carbs || 0);
+        todayLog.total_fat = (mealData.breakfast?.fat || 0) + 
+                              (mealData.lunch?.fat || 0) + 
+                              (mealData.dinner?.fat || 0);
+      }
+      
       // ページを再レンダリング
       renderPage();
     }
@@ -107,7 +188,6 @@ function renderPage() {
   root.innerHTML = `
     ${renderHeader()}
     ${renderHero()}
-    ${currentUser ? renderAdviceSection() : ''}
     ${currentUser ? renderHealthLogSection() : ''}
     ${renderQuickToolsSection()}
     ${renderFeaturesSection()}
@@ -144,9 +224,10 @@ function renderHeader() {
                   <i class="fas fa-user-circle text-primary"></i>
                   <span class="font-medium">${currentUser.name}さん</span>
                 </span>
-                <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <a href="/mypage" class="relative px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                   <i class="fas fa-chart-line mr-1"></i>
-                  マイページ
+                  マイデータ
+                  <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
                 </a>
                 <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
                   ログアウト
@@ -165,129 +246,180 @@ function renderHeader() {
   `;
 }
 
-// Hero セクション
+// Hero セクション - シンプル画像背景
 function renderHero() {
   return `
-    <section class="gradient-bg text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center fade-in">
-            ${currentUser ? `
-              <h2 class="text-3xl md:text-4xl font-bold mb-3">
-                こんにちは、${currentUser.name}さん
-              </h2>
-              <p class="text-lg mb-6 opacity-90">
-                今日も健康的な1日を過ごしましょう！
-              </p>
-              <div class="flex justify-center gap-3">
-                <a href="#health-log" onclick="document.getElementById('health-log-section').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3 bg-white text-primary hover:bg-opacity-90 rounded-lg font-medium transition shadow-lg">
-                  <i class="fas fa-edit mr-2"></i>健康ログ
-                </a>
-                <a href="/mypage" class="px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 border-2 border-white rounded-lg font-medium transition">
-                  <i class="fas fa-chart-line mr-2"></i>詳細を見る
-                </a>
+    <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+      <!-- 背景画像のみ -->
+      <div class="absolute inset-0">
+        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1920&q=80" 
+             alt="fitness" 
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black/20"></div>
+      </div>
+      
+      <div class="container mx-auto px-4 relative z-10">
+        <div class="max-w-4xl mx-auto">
+          ${currentUser ? `
+            <!-- ログイン後：シンプル表示 -->
+            <div class="text-center mb-6">
+              <h1 class="text-4xl md:text-5xl font-bold mb-2 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                ${currentUser.name}
+              </h1>
+              <p class="text-white/90 text-base drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
+            </div>
+            
+            <!-- 今日の記録 -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('meal-section')">
+                <div class="text-3xl mb-1">🔥</div>
+                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.total_calories || 0}</div>
+                <p class="text-xs text-white/90">kcal</p>
               </div>
-            ` : `
-              <h2 class="text-4xl md:text-5xl font-bold mb-4">
-                AIがサポートする<br>あなた専用の<br>パーソナルジム
-              </h2>
-              <p class="text-lg mb-6 opacity-90">
-                体調・体重・食事を記録するだけで、<br class="hidden md:block">
-                AIとプロのスタッフが<br class="hidden md:block">
-                あなたに最適なアドバイスをお届けします
-              </p>
-              <button onclick="showLoginModal()" class="px-8 py-4 bg-white text-primary hover:bg-opacity-90 rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg">
-                今すぐ始める <i class="fas fa-arrow-right ml-2"></i>
-              </button>
-            `}
-          </div>
-          
-          <!-- お知らせ（最新のみ表示） -->
-          ${announcements.length > 0 ? `
-            <div class="mt-8">
-              <div class="space-y-2 mb-3">
-                ${announcements.slice(0, 2).map(announcement => `
-                  <div class="flex gap-2 items-start bg-white bg-opacity-10 backdrop-blur-sm p-2 rounded hover:bg-opacity-20 transition cursor-pointer"
-                       onclick="showAnnouncementDetail(${announcement.id})">
-                    ${announcement.image_url ? `
-                      <img src="${announcement.image_url}" alt="${announcement.title}" 
-                        class="w-10 h-10 object-cover rounded flex-shrink-0">
-                    ` : ''}
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-0.5">
-                        <i class="fas fa-bullhorn text-xs"></i>
-                        <h4 class="text-xs font-bold truncate">${announcement.title}</h4>
-                      </div>
-                      <p class="text-xs opacity-90 line-clamp-1 leading-tight">${announcement.content}</p>
-                    </div>
-                  </div>
-                `).join('')}
+              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('exercise-section')">
+                <div class="text-3xl mb-1">💪</div>
+                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.exercise_minutes || 0}</div>
+                <p class="text-xs text-white/90">分</p>
               </div>
-              <div class="text-center">
-                <button onclick="showAllAnnouncements()" class="text-sm text-white hover:text-opacity-80 transition underline">
-                  全て見る →
-                </button>
+              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('weight-section')">
+                <div class="text-3xl mb-1">⚖️</div>
+                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.weight || '--'}</div>
+                <p class="text-xs text-white/90">kg</p>
               </div>
             </div>
-          ` : ''}
+            
+            <!-- お知らせ（下部に配置） -->
+            ${announcements.length > 0 ? `
+              <div class="mt-6">
+                <div class="bg-white/20 backdrop-blur-md rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                      <i class="fas fa-bell"></i>
+                      お知らせ
+                    </h3>
+                  </div>
+                  <div class="space-y-2">
+                    ${announcements.slice(0, 2).map(announcement => `
+                      <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all cursor-pointer"
+                           onclick="showAnnouncementDetail(${announcement.id})">
+                        <div class="flex gap-3 items-center">
+                          ${announcement.image_url ? `
+                            <img src="${announcement.image_url}" alt="${announcement.title}" 
+                              class="w-10 h-10 object-cover rounded-lg">
+                          ` : `
+                            <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-lg flex items-center justify-center">
+                              <i class="fas fa-bullhorn text-white text-sm"></i>
+                            </div>
+                          `}
+                          <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-bold text-white mb-0.5">${announcement.title}</h4>
+                            <p class="text-xs text-white/80 line-clamp-1">${announcement.content}</p>
+                          </div>
+                          <i class="fas fa-chevron-right text-white/60 text-xs"></i>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <div class="text-center mt-3">
+                    <button onclick="showAllAnnouncements()" 
+                      class="text-sm text-white/90 hover:text-white font-medium">
+                      もっと見る →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          ` : `
+            <!-- ログイン前 -->
+            <div class="text-center">
+              <h1 class="text-5xl md:text-6xl font-bold mb-4 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+                ファディ健康ログ
+              </h1>
+              <p class="text-xl text-white/90 mb-8 drop-shadow-lg">AI × プロトレーナーで理想の健康を</p>
+              <div class="flex justify-center gap-8">
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-2 mx-auto">
+                    <div class="text-3xl">🤖</div>
+                  </div>
+                  <p class="text-sm text-white/90 drop-shadow">AI分析</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-2 mx-auto">
+                    <div class="text-3xl">👨‍⚕️</div>
+                  </div>
+                  <p class="text-sm text-white/90 drop-shadow">プロ指導</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-2 mx-auto">
+                    <div class="text-3xl">📊</div>
+                  </div>
+                  <p class="text-sm text-white/90 drop-shadow">データ分析</p>
+                </div>
+              </div>
+            </div>
+          `}
         </div>
       </div>
     </section>
+    
+    <style>
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0) translateX(0);
+        }
+        50% {
+          transform: translateY(-20px) translateX(10px);
+        }
+      }
+      
+      .animate-fade-in {
+        animation: fade-in 1s ease-out;
+      }
+      
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      
+      .animate-float-delay-1 {
+        animation: float 7s ease-in-out infinite;
+        animation-delay: 1s;
+      }
+      
+      .animate-float-delay-2 {
+        animation: float 8s ease-in-out infinite;
+        animation-delay: 2s;
+      }
+      
+      .animate-float-delay-3 {
+        animation: float 9s ease-in-out infinite;
+        animation-delay: 3s;
+      }
+    </style>
   `;
 }
 
 // アドバイスセクション
-function renderAdviceSection() {
-  if (!currentAdvices || currentAdvices.length === 0) {
-    return '';
-  }
-  
-  return `
-    <section class="bg-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-800">
-              <i class="fas fa-comment-medical mr-2" style="color: var(--color-primary)"></i>
-              スタッフからのアドバイス
-            </h3>
-            <a href="/mypage" class="text-primary hover:underline">すべて見る</a>
-          </div>
-          
-          <div class="space-y-4">
-            ${currentAdvices.map(advice => `
-              <div class="card-hover bg-gray-50 p-6 rounded-lg border-l-4" style="border-color: var(--color-${getAdviceColor(advice.advice_type)})">
-                <div class="flex justify-between items-start mb-3">
-                  <div>
-                    <span class="badge badge-${getAdviceColor(advice.advice_type)}">${getAdviceTypeLabel(advice.advice_type)}</span>
-                    <h4 class="text-lg font-bold mt-2">${advice.title}</h4>
-                  </div>
-                  <span class="text-sm text-gray-500">${formatRelativeTime(advice.created_at)}</span>
-                </div>
-                <p class="text-gray-700 mb-3">${advice.content}</p>
-                <div class="text-sm text-gray-600">
-                  <i class="fas fa-user-nurse mr-1"></i>
-                  ${advice.staff_name}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
 // 健康ログ入力セクション
 function renderHealthLogSection() {
   return `
-    <section id="health-log-section" class="bg-gradient-to-b from-gray-50 to-white py-6">
+    <section id="health-log-section" class="bg-gradient-to-b from-gray-50/50 to-white/50 py-4">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           
           <!-- タイトルと日付選択 -->
-          <div class="mb-4">
-            <div class="text-center mb-3">
+          <div class="mb-2">
+            <div class="text-center mb-2">
               <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
                 健康ログ
@@ -314,64 +446,50 @@ function renderHealthLogSection() {
             </div>
           </div>
           
-          <!-- 今日の状況カード - 横1列 -->
+          <!-- クイック統計 - コンパクト表示 -->
           ${currentUser ? `
-            <div class="mb-4 bg-white p-3 rounded-xl shadow-sm">
-              <div class="grid grid-cols-4 gap-4">
-                <!-- 総カロリー -->
-                <div class="text-center">
-                  <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                      <i class="fas fa-fire text-white text-xs"></i>
-                    </div>
-                    <span class="text-xs font-medium text-gray-600">カロリー</span>
-                  </div>
-                  <div class="text-2xl font-bold text-gray-800" id="dashboard-calories">-</div>
-                  <div class="text-xs text-gray-500 mt-0.5">目標: 2000kcal</div>
+            <div class="mb-2 flex items-center justify-around">
+              <!-- カロリー -->
+              <button type="button" onclick="scrollToSection('meal-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                  <i class="fas fa-fire text-white"></i>
                 </div>
-                
-                <!-- 運動時間 -->
-                <div class="text-center border-l border-gray-200 pl-2">
-                  <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
-                      <i class="fas fa-running text-white text-xs"></i>
-                    </div>
-                    <span class="text-xs font-medium text-gray-600">運動</span>
-                  </div>
-                  <div class="text-2xl font-bold text-gray-800" id="dashboard-exercise">-</div>
-                  <div class="text-xs text-gray-500 mt-0.5">目標: 30分</div>
+                <div class="text-lg font-bold text-gray-800" id="dashboard-calories">-</div>
+                <div class="text-xs text-gray-500">kcal</div>
+              </button>
+              
+              <!-- 運動 -->
+              <button type="button" onclick="scrollToSection('exercise-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
+                  <i class="fas fa-running text-white"></i>
                 </div>
-                
-                <!-- 体重変化 -->
-                <div class="text-center border-l border-gray-200 pl-2">
-                  <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                      <i class="fas fa-weight text-white text-xs"></i>
-                    </div>
-                    <span class="text-xs font-medium text-gray-600">体重</span>
-                  </div>
-                  <div class="text-2xl font-bold text-gray-800" id="dashboard-weight">-</div>
-                  <div class="text-xs text-gray-500 mt-0.5" id="dashboard-weight-change">前回比: -</div>
+                <div class="text-lg font-bold text-gray-800" id="dashboard-exercise">-</div>
+                <div class="text-xs text-gray-500">分</div>
+              </button>
+              
+              <!-- 体重 -->
+              <button type="button" onclick="scrollToSection('weight-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                  <i class="fas fa-weight text-white"></i>
                 </div>
-                
-                <!-- 連続記録日数 -->
-                <div class="text-center border-l border-gray-200 pl-2">
-                  <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                      <i class="fas fa-trophy text-white text-xs"></i>
-                    </div>
-                    <span class="text-xs font-medium text-gray-600">連続記録</span>
-                  </div>
-                  <div class="text-2xl font-bold text-gray-800" id="dashboard-streak">-</div>
-                  <div class="text-xs text-gray-500 mt-0.5">日連続達成中</div>
+                <div class="text-lg font-bold text-gray-800" id="dashboard-weight">-</div>
+                <div class="text-xs text-gray-500" id="dashboard-weight-change">kg</div>
+              </button>
+              
+              <!-- 連続記録 -->
+              <button type="button" onclick="scrollToSection('health-log-form')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                  <i class="fas fa-trophy text-white"></i>
                 </div>
-              </div>
+                <div class="text-lg font-bold text-gray-800" id="dashboard-streak">-</div>
+                <div class="text-xs text-gray-500">日</div>
+              </button>
             </div>
           ` : ''}
           
           <!-- スタッフコメント -->
           ${latestStaffComment ? `
-            <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg shadow-sm">
+            <div class="mb-2 bg-gradient-to-r from-blue-50 to-indigo-50 p-2 rounded-lg shadow-sm">
               <div class="flex items-start gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <i class="fas fa-user-nurse text-white text-sm"></i>
@@ -387,23 +505,98 @@ function renderHealthLogSection() {
             </div>
           ` : ''}
           
-          <!-- 記録開始ボタン -->
-          ${currentUser ? `
-            <div class="mb-4 text-center">
-              <button type="button" onclick="scrollToForm()" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-pink-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                <i class="fas fa-edit text-xl"></i>
-                記録を始める
-                <i class="fas fa-arrow-down text-sm animate-bounce"></i>
-              </button>
-            </div>
-          ` : ''}
+
+          <!-- この日のアドバイス（クールデザイン） -->
+          ${(() => {
+            const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+            const dateAdvices = advices.filter(a => a.log_date === displayDate);
+            const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai');
+            const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff');
             
+            return `
+              <div class="mb-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                    この日のアドバイス
+                  </h3>
+                  <a href="/mypage#advices-section" class="text-sm text-primary hover:text-pink-600">
+                    すべて見る →
+                  </a>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <!-- AIアドバイス -->
+                  <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 transition-all border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
+                    <div class="flex items-center gap-2 mb-3">
+                      <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                      </div>
+                      <h5 class="text-sm font-bold text-gray-800">AI アドバイス</h5>
+                    </div>
+                    
+                    ${aiAdvices.length > 0 ? `
+                      ${aiAdvices.map(advice => `
+                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg mb-2 border border-white/30">
+                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
+                          <p class="text-xs text-gray-600">${advice.content}</p>
+                        </div>
+                      `).join('')}
+                    ` : `
+                      <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
+                        <p class="text-xs text-gray-400">まだアドバイスがありません</p>
+                      </div>
+                    `}
+                  </div>
+                  
+                  <!-- スタッフアドバイス -->
+                  <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 transition-all border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
+                    <div class="flex items-center gap-2 mb-3">
+                      <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-nurse text-white text-sm"></i>
+                      </div>
+                      <h5 class="text-sm font-bold text-gray-800">スタッフアドバイス</h5>
+                    </div>
+                    
+                    ${staffAdvices.length > 0 ? `
+                      ${staffAdvices.map(advice => `
+                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg mb-2 border border-white/30">
+                          <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-user-circle text-pink-600 text-sm"></i>
+                            <span class="text-xs font-bold text-gray-700">${advice.staff_name || 'スタッフ'}</span>
+                          </div>
+                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
+                          <p class="text-xs text-gray-600">${advice.content}</p>
+                        </div>
+                      `).join('')}
+                    ` : `
+                      <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
+                        <p class="text-xs text-gray-400">まだアドバイスがありません</p>
+                      </div>
+                    `}
+                  </div>
+                </div>
+              </div>
+            `;
+          })()}
+          
+          <!-- 入力エリア開始の明示 -->
+          <div class="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 shadow-sm">
+            <div class="flex items-center justify-center gap-2">
+              <i class="fas fa-edit text-green-600 text-xl"></i>
+              <h3 class="text-lg font-bold text-green-800">ここから記録を入力してください</h3>
+              <i class="fas fa-arrow-down text-green-600 animate-bounce"></i>
+            </div>
+            <p class="text-sm text-center text-green-700 mt-1">体重・食事・運動・体調を記録しましょう</p>
+          </div>
+          
           <!-- 入力フォーム -->
-          <form id="health-log-form" class="space-y-3">
+          <form id="health-log-form" class="space-y-2">
+            
             <!-- 体重と体調（横並び） -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 体重 & BMI -->
-              <div class="bg-white p-3 rounded-lg shadow-sm">
+              <div id="weight-section" class="bg-white p-2 rounded-lg shadow-sm">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                   <i class="fas fa-weight text-primary"></i>
                   体重 & BMI
@@ -424,7 +617,7 @@ function renderHealthLogSection() {
               </div>
               
               <!-- 体調 -->
-              <div class="bg-white p-3 rounded-lg shadow-sm">
+              <div class="bg-white p-2 rounded-lg shadow-sm">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                   <i class="fas fa-smile text-primary"></i>
                   今日の体調
@@ -453,7 +646,7 @@ function renderHealthLogSection() {
             </div>
             
             <!-- 食事記録 -->
-            <div class="bg-white p-3 rounded-lg shadow-sm">
+            <div id="meal-section" class="bg-white p-2 rounded-lg shadow-sm">
               <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <i class="fas fa-utensils text-accent"></i>
                 食事記録
@@ -646,17 +839,11 @@ function renderHealthLogSection() {
             <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
             <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
             <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
-            
-            <!-- 保存ボタン -->
-            <button type="submit" class="w-full btn-primary px-5 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
-              <i class="fas fa-save mr-2"></i>
-              記録を保存
-            </button>
           </form>
           
           <!-- 運動ログ（フォーム外・独立） -->
-          <div class="mt-4">
-            <div class="bg-white p-3 rounded-lg shadow-sm">
+          <div id="exercise-section" class="mt-2">
+            <div class="bg-white p-2 rounded-lg shadow-sm">
               <button type="button" onclick="toggleExerciseTracker()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
@@ -734,13 +921,13 @@ function renderHealthLogSection() {
               </div>
             </div>
             
-            <!-- 詳細記録 & 便利ツール（折りたたみ） -->
-            <div class="bg-white p-3 rounded-lg shadow-sm">
+            <!-- 詳細ログ（折りたたみ） -->
+            <div class="mt-2 bg-white p-3 rounded-lg shadow-sm">
               <button type="button" onclick="toggleDetailedInputs()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
                   <i class="fas fa-clipboard-list text-primary group-hover:text-pink-500 transition"></i>
-                  詳細記録 & 便利ツール
+                  詳細ログ
                 </label>
                 <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
               </button>
@@ -976,40 +1163,90 @@ function renderHealthLogSection() {
           
           </div>
           
-          <!-- 質問・相談 -->
-          <div class="mt-4 bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg shadow-sm">
-            <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-              <i class="fas fa-comments text-primary"></i>
-              質問・相談
-            </label>
+          <!-- 質問・相談 (アコーディオン) -->
+          ${(() => {
+            const answeredOpinions = opinions.filter(op => op.status === 'answered');
+            const hasAnswers = answeredOpinions.length > 0;
             
-            <textarea 
-              id="question-input" 
-              rows="2" 
-              class="w-full px-3 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition mb-2"
-              placeholder="トレーニングや食事に関する質問をどうぞ..."
-            ></textarea>
-            
-            <div class="flex items-center justify-between">
-              <a href="/mypage#qa-section" class="text-xs text-primary hover:underline">
-                <i class="fas fa-history mr-1"></i>
-                過去の質問
-              </a>
-              <button 
-                onclick="submitQuestion()" 
-                class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-              >
-                <i class="fas fa-paper-plane mr-1"></i>
-                送信
-              </button>
-            </div>
+            return `
+              <div class="mt-2 bg-white p-2 rounded-lg shadow-sm">
+                <button type="button" onclick="toggleOpinionBox()" 
+                  class="w-full flex items-center justify-between text-left group">
+                  <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+                    <i class="fas fa-comments text-primary group-hover:text-pink-500 transition"></i>
+                    質問・相談
+                    ${hasAnswers ? '<span class="text-xs text-green-600 ml-1">(回答 ' + answeredOpinions.length + '件)</span>' : ''}
+                  </label>
+                  <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm ${hasAnswers ? 'rotate-180' : ''}" id="opinion-box-arrow"></i>
+                </button>
+                
+                <div id="opinion-box" class="mt-2 ${hasAnswers ? '' : 'hidden'}">
+                  <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-2 rounded-lg">
+                    <textarea 
+                      id="question-input" 
+                      rows="2" 
+                      class="w-full px-2 py-2 text-sm bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition mb-2"
+                      placeholder="トレーニングや食事に関する質問をどうぞ..."
+                    ></textarea>
+                    
+                    <div class="flex items-center justify-between">
+                      <a href="/mypage#qa-section" class="text-xs text-primary hover:underline">
+                        <i class="fas fa-history mr-1"></i>
+                        過去の質問
+                      </a>
+                      <button 
+                        onclick="submitQuestion()" 
+                        class="px-2 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
+                      >
+                        <i class="fas fa-paper-plane mr-1"></i>
+                        送信
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- 回答済みの質問を表示 -->
+                  ${hasAnswers ? `
+                    <div class="mt-2 space-y-2">
+                      ${answeredOpinions.slice(0, 2).map(opinion => `
+                        <div class="bg-white p-2 rounded-lg border-l-2 border-green-500">
+                          <div class="text-xs text-gray-600 mb-1">
+                            <i class="fas fa-question-circle text-primary mr-1"></i>
+                            ${opinion.question}
+                          </div>
+                          <div class="bg-green-50 p-2 rounded">
+                            <div class="flex items-center gap-1 mb-1">
+                              <i class="fas fa-user-nurse text-green-600 text-xs"></i>
+                              <span class="text-xs font-medium text-green-700">${opinion.answered_by || 'スタッフ'}</span>
+                            </div>
+                            <p class="text-xs text-gray-800">${opinion.answer}</p>
+                          </div>
+                        </div>
+                      `).join('')}
+                      ${answeredOpinions.length > 2 ? `
+                        <a href="/mypage#qa-section" class="block text-xs text-center text-primary hover:underline">
+                          全ての回答を見る (${answeredOpinions.length}件) →
+                        </a>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          })()}
+          
+          <!-- 保存ボタン（質問・相談の下） -->
+          <div class="mt-2">
+            <button type="submit" form="health-log-form" class="w-full btn-primary px-4 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
+              <i class="fas fa-save mr-2"></i>
+              ログを保存
+            </button>
           </div>
           
           <!-- マイページリンク -->
           <div class="mt-3 text-center">
             <a href="/mypage" class="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
               <i class="fas fa-chart-line"></i>
-              マイページで詳しい分析を見る
+              マイデータで詳しい分析を見る
               <i class="fas fa-arrow-right text-xs"></i>
             </a>
           </div>
@@ -1480,6 +1717,13 @@ async function handleHealthLogSubmit(e) {
       
       // 選択された日付のログを再読み込み
       await loadLogForDate(selectedDate);
+      
+      // AI分析完了を待って未読カウントを更新（3秒後）
+      setTimeout(async () => {
+        await loadUnreadCount();
+        await loadTodayAdvices();
+        renderPage();
+      }, 3000);
     }
   } catch (error) {
     showToast('保存に失敗しました', 'error');
@@ -2193,8 +2437,12 @@ async function handleAdminLogin(e) {
 // ヘルパー関数
 function getAdviceTypeLabel(type) {
   const labels = {
-    diet: '食事',
+    meal: '食事',
     exercise: '運動',
+    mental: 'メンタル',
+    sleep: '睡眠',
+    weight: '体重管理',
+    diet: '食事',  // 後方互換性
     general: '全般',
   };
   return labels[type] || type;
@@ -2202,8 +2450,12 @@ function getAdviceTypeLabel(type) {
 
 function getAdviceColor(type) {
   const colors = {
-    diet: 'success',
+    meal: 'success',
     exercise: 'warning',
+    mental: 'info',
+    sleep: 'secondary',
+    weight: 'primary',
+    diet: 'success',  // 後方互換性
     general: 'primary',
   };
   return colors[type] || 'primary';
@@ -2265,26 +2517,31 @@ function showAnnouncementDetail(id) {
   if (!announcement) return;
   
   const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
   modal.innerHTML = `
-    <div class="modal-content p-5 max-w-2xl">
-      <div class="flex justify-between items-start mb-3">
-        <h3 class="text-lg font-bold">${announcement.title}</h3>
-        <button onclick="this.closest('.modal-backdrop').remove()" 
-          class="text-gray-500 hover:text-gray-700">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${announcement.title}</h3>
+        <button onclick="this.closest('.fixed').remove()" 
+          class="text-gray-400 hover:text-gray-600 text-2xl">
           <i class="fas fa-times"></i>
         </button>
       </div>
       
       ${announcement.image_url ? `
         <img src="${announcement.image_url}" alt="${announcement.title}" 
-          class="w-full max-h-64 object-cover rounded-lg mb-3">
+          class="w-full max-h-80 object-cover rounded-xl mb-4">
       ` : ''}
       
-      <p class="text-sm text-gray-700 whitespace-pre-wrap">${announcement.content}</p>
+      <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${announcement.content}</p>
       
-      <div class="mt-4 text-xs text-gray-500 text-right">
-        ${formatDateTime(announcement.published_at)}
+      <div class="mt-4 text-xs text-gray-400 text-right">
+        <i class="fas fa-clock mr-1"></i>
+        ${dayjs(announcement.published_at).format('YYYY年MM月DD日 HH:mm')}
       </div>
     </div>
   `;
@@ -2295,45 +2552,51 @@ function showAnnouncementDetail(id) {
 // 全てのお知らせを表示
 function showAllAnnouncements() {
   const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
   modal.innerHTML = `
-    <div class="modal-content p-5 max-w-3xl max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4 sticky top-0 bg-white pb-3 border-b">
-        <h3 class="text-xl font-bold text-gray-800">
-          <i class="fas fa-bullhorn mr-2 text-primary"></i>
+    <div class="bg-white rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-white">
+        <h3 class="text-2xl font-bold text-gray-800">
+          <i class="fas fa-bell text-primary mr-2"></i>
           お知らせ一覧
         </h3>
-        <button onclick="this.closest('.modal-backdrop').remove()" 
-          class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times text-xl"></i>
+        <button onclick="this.closest('.fixed').remove()" 
+          class="text-gray-400 hover:text-gray-600 text-2xl">
+          <i class="fas fa-times"></i>
         </button>
       </div>
       
       <div class="space-y-3">
         ${announcements.length > 0 ? announcements.map(announcement => `
-          <div class="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition cursor-pointer"
-               onclick="showAnnouncementDetail(${announcement.id}); this.closest('.modal-backdrop').remove();">
-            <div class="flex gap-3">
+          <div class="bg-gray-50 hover:bg-gray-100 p-4 rounded-xl transition cursor-pointer border border-gray-200 hover:border-primary"
+               onclick="this.closest('.fixed').remove(); showAnnouncementDetail(${announcement.id});">
+            <div class="flex gap-4 items-start">
               ${announcement.image_url ? `
                 <img src="${announcement.image_url}" alt="${announcement.title}" 
-                  class="w-20 h-20 object-cover rounded flex-shrink-0">
-              ` : ''}
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-2">
-                  <i class="fas fa-bullhorn text-primary text-sm"></i>
-                  <h4 class="text-base font-bold text-gray-800">${announcement.title}</h4>
+                  class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+              ` : `
+                <div class="w-20 h-20 bg-gradient-to-br from-primary to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-bullhorn text-white text-2xl"></i>
                 </div>
+              `}
+              <div class="flex-1 min-w-0">
+                <h4 class="text-base font-bold text-gray-800 mb-1">${announcement.title}</h4>
                 <p class="text-sm text-gray-600 line-clamp-2 mb-2">${announcement.content}</p>
-                <div class="text-xs text-gray-500">
+                <div class="text-xs text-gray-400">
                   <i class="fas fa-clock mr-1"></i>
-                  ${formatDateTime(announcement.published_at)}
+                  ${dayjs(announcement.published_at).format('YYYY年MM月DD日')}
                 </div>
               </div>
+              <i class="fas fa-chevron-right text-gray-400"></i>
             </div>
           </div>
         `).join('') : `
-          <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-inbox text-4xl mb-3"></i>
+          <div class="text-center py-12 text-gray-400">
+            <i class="fas fa-inbox text-5xl mb-4"></i>
             <p>お知らせはありません</p>
           </div>
         `}
@@ -2353,6 +2616,18 @@ async function loadLatestStaffComment() {
     }
   } catch (error) {
     console.error('スタッフコメントの取得に失敗:', error);
+  }
+}
+
+// 質問・相談データをロード
+async function loadOpinions() {
+  try {
+    const response = await apiCall(`/api/opinions/user/${currentUser.id}`);
+    if (response.success) {
+      opinions = response.data;
+    }
+  } catch (error) {
+    console.error('質問・相談データの取得に失敗:', error);
   }
 }
 
@@ -2378,6 +2653,8 @@ async function submitQuestion() {
     if (response.success) {
       showToast('質問を送信しました', 'success');
       questionInput.value = '';
+      await loadOpinions(); // 質問リストを再読み込み
+      renderPage(); // ページを再レンダリング
     }
   } catch (error) {
     showToast('送信に失敗しました', 'error');
@@ -2582,6 +2859,22 @@ function toggleDetailedInputs() {
       arrow.classList.add('rotate-180');
     } else {
       detailedInputs.classList.add('hidden');
+      arrow.classList.remove('rotate-180');
+    }
+  }
+}
+
+// 質問・相談ボックスの折りたたみトグル
+function toggleOpinionBox() {
+  const opinionBox = document.getElementById('opinion-box');
+  const arrow = document.getElementById('opinion-box-arrow');
+  
+  if (opinionBox && arrow) {
+    if (opinionBox.classList.contains('hidden')) {
+      opinionBox.classList.remove('hidden');
+      arrow.classList.add('rotate-180');
+    } else {
+      opinionBox.classList.add('hidden');
       arrow.classList.remove('rotate-180');
     }
   }
@@ -2863,4 +3156,50 @@ function openGoalSettings() {
   // TODO: 目標設定モーダルを実装
 }
 
+// セクションへスクロール
+function scrollToSection(sectionId) {
+  // セクションIDに対応する実際の要素を探す
+  let targetElement = null;
+  
+  switch(sectionId) {
+    case 'meal-section':
+      // 食事記録セクションへ
+      targetElement = document.querySelector('[class*="食事記録"]')?.parentElement;
+      if (!targetElement) {
+        targetElement = document.getElementById('health-log-form');
+      }
+      break;
+    case 'exercise-section':
+      // 運動ログセクションへ
+      targetElement = document.getElementById('exercise-tracker')?.parentElement;
+      break;
+    case 'weight-section':
+      // 体重入力セクションへ
+      targetElement = document.getElementById('weight-input')?.closest('.bg-white');
+      break;
+    default:
+      targetElement = document.getElementById(sectionId);
+  }
+  
+  if (targetElement) {
+    targetElement.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center' 
+    });
+    // スクロール後にハイライト効果
+    targetElement.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+    setTimeout(() => {
+      targetElement.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+    }, 2000);
+  } else {
+    // フォールバック：health-log-formにスクロール
+    const form = document.getElementById('health-log-form');
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}
+
+// お知らせ詳細を表示
+// お知らせモーダル関数は上部で定義済み
 

@@ -21,4 +21,8 @@
       "bucket_name": "furdi-hikone-images"
     }
   ]
+  
+  // Environment Variables
+  // For local development: Create .dev.vars file with GEMINI_API_KEY=your-key
+  // For production: Use `wrangler secret put GEMINI_API_KEY`
 }

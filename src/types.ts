@@ -7,6 +7,7 @@ export type Bindings = {
   GOOGLE_CLIENT_SECRET: string;
   LINE_CHANNEL_ID: string;
   LINE_CHANNEL_SECRET: string;
+  GEMINI_API_KEY?: string;
 };
 
 // User
@@ -54,7 +55,7 @@ export type Advice = {
   id: number;
   user_id: number;
   staff_name: string;
-  advice_type: 'diet' | 'exercise' | 'general';
+  advice_type: 'meal' | 'exercise' | 'mental' | 'sleep' | 'weight' | 'diet' | 'general'; // 新カテゴリー対応
   title: string;
   content: string;
   is_read: boolean;

@@ -2,6 +2,143 @@ import { Hono } from 'hono';
 import type { Bindings, HealthLog, ApiResponse } from '../types';
 import { verifyToken, extractToken } from '../utils/jwt';
 
+// AI分析関数（Gemini API使用）
+async function generateAIAdvice(
+  env: Bindings,
+  userId: number,
+  logDate: string,
+  healthLog: HealthLog,
+  meals: any
+): Promise<void> {
+  try {
+    // 過去7日間のログを取得（トレンド分析用）
+    const pastLogs = await env.DB.prepare(`
+      SELECT * FROM health_logs 
+      WHERE user_id = ? AND log_date < ? 
+      ORDER BY log_date DESC LIMIT 7
+    `).bind(userId, logDate).all<HealthLog>();
+
+    // ユーザー情報取得
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?')
+      .bind(userId).first<any>();
+
+    // AI分析用のプロンプト作成
+    const prompt = `あなたはファディー彦根のプロフェッショナルトレーナーです。30年のクライミング経験と最新の科学的知見を基に、ユーザーの健康ログを分析してパーソナライズされたアドバイスを提供してください。
+
+【ユーザー情報】
+- 名前: ${user?.name || '未設定'}
+- 身長: ${user?.height || '未設定'}cm
+- 目標: ${user?.goal || '未設定'}
+
+【今日のデータ (${logDate})】
+- 体重: ${healthLog.weight || '未記録'}kg
+- 体脂肪率: ${healthLog.body_fat_percentage || '未記録'}%
+- 睡眠時間: ${healthLog.sleep_hours || '未記録'}時間
+- 運動時間: ${healthLog.exercise_minutes || '未記録'}分
+- 体調評価: ${healthLog.condition_rating || 3}/5
+- 運動メモ: ${healthLog.condition_note || 'なし'}
+- 朝食カロリー: ${meals?.breakfast?.calories || 0}kcal
+- 昼食カロリー: ${meals?.lunch?.calories || 0}kcal
+- 夕食カロリー: ${meals?.dinner?.calories || 0}kcal
+- 総カロリー: ${(meals?.breakfast?.calories || 0) + (meals?.lunch?.calories || 0) + (meals?.dinner?.calories || 0)}kcal
+
+【過去7日間のトレンド】
+${pastLogs.results.map((log: HealthLog, i: number) => 
+  `${i + 1}日前: 体重${log.weight || '-'}kg, 運動${log.exercise_minutes || 0}分, 睡眠${log.sleep_hours || '-'}h`
+).join('\n')}
+
+【アドバイス要件】
+1. **カテゴリー分類**: 以下から最も適切な1つを選択
+   - "meal" (食事): カロリーバランス、栄養素、食事タイミング
+   - "exercise" (運動): 運動量、運動種目、トレーニング強度
+   - "mental" (メンタル): ストレス管理、モチベーション、目標達成
+   - "sleep" (睡眠): 睡眠時間、睡眠の質、回復
+   - "weight" (体重管理): 体重変化、体脂肪率、BMI
+
+2. **タイトル**: 20文字以内の具体的なタイトル（例: "タンパク質を20g追加しましょう"）
+
+3. **アドバイス内容**: 150-300文字で以下を含む
+   - 現状の評価（ポジティブな表現で）
+   - 具体的な改善提案（数値を含む）
+   - クライミング的な視点や比喩
+   - 次のアクション（実行可能な1-2つ）
+
+4. **信頼度スコア**: 0.0-1.0（データの充実度に応じて）
+
+以下のJSON形式で返してください：
+{
+  "category": "meal|exercise|mental|sleep|weight",
+  "title": "具体的なタイトル",
+  "content": "アドバイス本文",
+  "confidence_score": 0.85,
+  "ai_analysis_data": {
+    "detected_issues": ["検出された問題点"],
+    "positive_points": ["良い点"],
+    "recommendations": ["推奨事項"]
+  }
+}`;
+
+    // Gemini API呼び出し（Cloudflare AI Gateway経由）
+    const GEMINI_API_KEY = env.GEMINI_API_KEY || 'dummy-key';
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Gemini API error:', await response.text());
+      return;
+    }
+
+    const result = await response.json();
+    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // JSONを抽出（```json ... ``` の中身を取得）
+    const jsonMatch = aiText.match(/```json\s*([\s\S]*?)\s*```/) || aiText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('AI response JSON not found:', aiText);
+      return;
+    }
+
+    const aiAdvice = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+
+    // advicesテーブルに保存
+    await env.DB.prepare(`
+      INSERT INTO advices (
+        user_id, log_date, advice_type, title, content,
+        advice_source, ai_analysis_data, confidence_score,
+        staff_name, is_read
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      userId,
+      logDate,
+      aiAdvice.category || 'meal',
+      aiAdvice.title,
+      aiAdvice.content,
+      'ai',
+      JSON.stringify(aiAdvice.ai_analysis_data || {}),
+      aiAdvice.confidence_score || 0.75,
+      'AI Assistant',
+      0  // 未読
+    ).run();
+
+    console.log('AI advice generated successfully for', userId, logDate);
+  } catch (error) {
+    console.error('AI advice generation error:', error);
+    // エラーでも処理を継続（ログ保存は成功させる）
+  }
+}
+
 const healthLogs = new Hono<{ Bindings: Bindings }>();
 
 // 認証ミドルウェア
@@ -133,6 +270,11 @@ healthLogs.post('/', async (c) => {
     const newLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
     ).bind(healthLogId).first<HealthLog>();
+
+    // AI自動分析を非同期で実行（レスポンスをブロックしない）
+    c.executionCtx.waitUntil(
+      generateAIAdvice(c.env, userId, body.log_date, newLog as HealthLog, body.meals || {})
+    );
 
     return c.json<ApiResponse<HealthLog>>({
       success: true,
@@ -306,6 +448,11 @@ healthLogs.put('/:id', async (c) => {
     const updatedLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
     ).bind(logId).first<HealthLog>();
+
+    // AI自動分析を非同期で実行（既存のアドバイスがあれば上書き）
+    c.executionCtx.waitUntil(
+      generateAIAdvice(c.env, userId, log.log_date, updatedLog as HealthLog, body.meals || {})
+    );
 
     return c.json<ApiResponse<HealthLog>>({
       success: true,
