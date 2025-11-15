@@ -436,6 +436,7 @@ function renderHealthLogSection() {
               <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
                 <i class="fas fa-calendar-alt text-primary"></i>
                 <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                  max="${dayjs().format('YYYY-MM-DD')}"
                   onchange="changeLogDateFromPicker(this.value)"
                   class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
               </div>
@@ -594,18 +595,6 @@ function renderHealthLogSection() {
           
           <!-- 入力フォーム -->
           <form id="health-log-form" class="space-y-2">
-            
-            <!-- 日付選択 -->
-            <div class="bg-white p-3 rounded-lg shadow-sm">
-              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <i class="fas fa-calendar-day text-primary"></i>
-                記録日
-              </label>
-              <input type="date" name="log_date" id="log-date-input" 
-                value="${todayLog?.log_date || new Date().toISOString().split('T')[0]}"
-                max="${new Date().toISOString().split('T')[0]}"
-                class="w-full px-4 py-2.5 text-base font-medium bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-            </div>
             
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -936,7 +925,7 @@ function renderHealthLogSection() {
             </div>
             
             <!-- 詳細ログ（折りたたみ） -->
-            <div class="mt-2 bg-white p-3 rounded-lg shadow-sm">
+            <div class="mt-2 bg-white p-2 rounded-lg shadow-sm">
               <button type="button" onclick="toggleDetailedInputs()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
@@ -1577,15 +1566,6 @@ function setupEventListeners() {
     healthLogForm.addEventListener('submit', handleHealthLogSubmit);
   }
   
-  // 日付入力フィールド
-  const logDateInput = document.getElementById('log-date-input');
-  if (logDateInput) {
-    logDateInput.addEventListener('change', async (e) => {
-      selectedDate = e.target.value;
-      await loadLogForDate(selectedDate);
-    });
-  }
-  
   // お問い合わせフォーム
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
@@ -1731,7 +1711,7 @@ async function handleHealthLogSubmit(e) {
   const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs;
   
   const data = {
-    log_date: formData.get('log_date') || selectedDate || dayjs().format('YYYY-MM-DD'),
+    log_date: selectedDate || dayjs().format('YYYY-MM-DD'),
     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
     body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
     body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
