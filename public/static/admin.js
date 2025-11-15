@@ -87,8 +87,8 @@ function renderPage() {
 // ヘッダー
 function renderHeader() {
   return `
-    <header class="bg-white shadow-md sticky top-0 z-50">
-      <div class="container mx-auto px-4 py-3">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-4">
             <a href="/" class="flex items-center gap-2">
@@ -104,17 +104,20 @@ function renderHeader() {
             ` : ''}
           </div>
           
-          <nav class="flex items-center gap-2">
-            <a href="/mypage" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
-              <i class="fas fa-chart-line"></i>
-              <span>マイページ</span>
+          <nav class="flex items-center gap-3">
+            <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+              <i class="fas fa-chart-line mr-1"></i>
+              マイデータ
             </a>
             ${currentUser?.role === 'admin' ? `
-              <a href="/admin" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-user-shield"></i>
-                <span>管理画面</span>
+              <a href="/admin" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-user-shield mr-1"></i>
+                管理画面
               </a>
             ` : ''}
+            <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
+              ログアウト
+            </button>
           </nav>
         </div>
       </div>
@@ -125,9 +128,9 @@ function renderHeader() {
 // 統計情報
 function renderStats() {
   return `
-    <section class="gradient-bg text-white py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="gradient-bg text-white py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-lg">
               <div class="flex items-center justify-between mb-1">
@@ -171,8 +174,8 @@ function renderStats() {
 function renderTabs() {
   return `
     <div class="bg-white border-b">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="flex gap-2">
             <button onclick="showTab('users')" id="tab-users" 
               class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
@@ -234,11 +237,11 @@ function showTab(tab) {
 // 顧客管理タブ
 function renderUsersTab() {
   return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">顧客一覧</h2>
+            <h2 class="text-2xl md:text-3xl font-bold">顧客一覧</h2>
             <div class="flex gap-2">
               <input type="text" id="user-search" placeholder="名前またはメールで検索..." 
                 class="px-3 py-2 text-sm border rounded-lg w-60" onkeyup="searchUsers()">
@@ -448,11 +451,11 @@ function renderOpinionsTab() {
   const answeredOpinions = opinions.filter(op => op.status === 'answered');
   
   return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">質問管理（オピニオンボックス）</h2>
+            <h2 class="text-2xl md:text-3xl font-bold">質問管理（オピニオンボックス）</h2>
             <button onclick="loadAdminData(); renderPage();" class="px-3 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg">
               <i class="fas fa-sync-alt"></i>
             </button>
@@ -570,11 +573,11 @@ function renderOpinionsTab() {
 // 問い合わせタブ
 function renderInquiriesTab() {
   return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">問い合わせ一覧</h2>
+            <h2 class="text-2xl md:text-3xl font-bold">問い合わせ一覧</h2>
             <select onchange="filterInquiries(this.value)" class="px-3 py-2 text-sm border rounded-lg">
               <option value="">すべて</option>
               <option value="pending">未対応</option>
@@ -1009,13 +1012,13 @@ async function loadSettingsData() {
 // 管理設定タブ
 function renderSettingsTab() {
   return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <!-- お知らせ管理 -->
           <div class="bg-white rounded-lg shadow-md p-4 mb-6">
             <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-bold">
+              <h2 class="text-2xl md:text-3xl font-bold">
                 <i class="fas fa-bullhorn text-primary mr-2"></i>お知らせ管理
               </h2>
               <button onclick="showAddAnnouncementModal()" 
@@ -1062,7 +1065,7 @@ function renderSettingsTab() {
           
           <!-- API設定 -->
           <div class="bg-white rounded-lg shadow-md p-4">
-            <h2 class="text-xl font-bold mb-4">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4">
               <i class="fas fa-cog text-primary mr-2"></i>システム設定
             </h2>
             
@@ -1424,11 +1427,11 @@ async function deleteOpinion(opinionId) {
 // お知らせタブ
 function renderAnnouncementsTab() {
   return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">お知らせ管理</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800">お知らせ管理</h2>
             <button onclick="showAddAnnouncementModal()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
               <i class="fas fa-plus mr-1"></i>新規お知らせ
             </button>

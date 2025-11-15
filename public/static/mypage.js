@@ -86,25 +86,28 @@ function renderPage() {
 // 共通ヘッダー
 function renderHeader() {
   return `
-    <header class="bg-white shadow-md sticky top-0 z-50">
-      <div class="container mx-auto px-2 py-2">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
           <a href="/" class="flex items-center gap-2">
             <i class="fas fa-dumbbell text-lg" style="color: var(--color-primary)"></i>
             <h1 class="text-lg font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-2">
-            <a href="/mypage" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
-              <i class="fas fa-chart-line"></i>
-              <span>マイページ</span>
+          <nav class="flex items-center gap-3">
+            <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+              <i class="fas fa-chart-line mr-1"></i>
+              マイデータ
             </a>
             ${currentUser?.role === 'admin' ? `
-              <a href="/admin" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-user-shield"></i>
-                <span>管理画面</span>
+              <a href="/admin" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-user-shield mr-1"></i>
+                管理画面
               </a>
             ` : ''}
+            <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
+              ログアウト
+            </button>
           </nav>
         </div>
       </div>
@@ -115,11 +118,11 @@ function renderHeader() {
 // ユーザープロフィール（コンパクト版）
 function renderUserProfile() {
   return `
-    <section class="gradient-bg text-white py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto text-center">
-          <h2 class="text-2xl font-bold mb-1">マイページ</h2>
-          <p class="text-sm opacity-90">あなたの健康データを分析・管理</p>
+    <section class="gradient-bg text-white py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto text-center">
+          <h2 class="text-3xl md:text-4xl font-bold mb-2">${currentUser.name}さんのマイページ</h2>
+          <p class="text-base opacity-90">あなたの健康データを分析・管理</p>
         </div>
       </div>
     </section>
@@ -151,9 +154,9 @@ function renderStatsSection() {
   }
   
   return `
-    <section class="bg-gradient-to-b from-white to-gray-50 py-2">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gradient-to-b from-white to-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           
           <!-- コンパクトダイジェスト：4カラムグリッド -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
@@ -356,11 +359,11 @@ function renderAdvicesList() {
   });
   
   return `
-    <section id="advices-section" class="bg-white py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto">
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="text-xl font-bold text-gray-800">
+    <section id="advices-section" class="bg-white py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl md:text-3xl font-bold text-gray-800">
               <i class="fas fa-comment-medical mr-2" style="color: var(--color-primary)"></i>
               アドバイス履歴
             </h3>
@@ -510,10 +513,10 @@ function renderOpinionBox() {
   const answeredOpinions = opinions.filter(op => op.status === 'answered');
   
   return `
-    <section id="qa-section" class="bg-gradient-to-br from-purple-50 to-pink-50 py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto">
-          <h3 class="text-lg font-bold text-gray-800 mb-2">
+    <section id="qa-section" class="bg-gradient-to-br from-purple-50 to-pink-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
             <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
             質問・相談
           </h3>
@@ -621,9 +624,9 @@ function renderOpinionBox() {
 function renderHealthLogsTable() {
   if (healthLogs.length === 0) {
     return `
-      <section class="bg-gray-50 py-3">
-        <div class="container mx-auto px-2">
-          <div class="max-w-7xl mx-auto text-center">
+      <section class="bg-gray-50 py-8">
+        <div class="container mx-auto px-6 md:px-8">
+          <div class="max-w-6xl mx-auto text-center">
             <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-3"></i>
             <p class="text-gray-500 text-base">まだ健康ログがありません</p>
             <a href="/" class="inline-block mt-3 px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
@@ -636,12 +639,12 @@ function renderHealthLogsTable() {
   }
   
   return `
-    <section class="bg-gray-50 py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto">
+    <section class="bg-gray-50 py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           <div class="mb-2">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="text-xl font-bold text-gray-800">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-2xl md:text-3xl font-bold text-gray-800">
                 <i class="fas fa-table mr-2" style="color: var(--color-primary)"></i>
                 健康ログ履歴
               </h3>
@@ -751,10 +754,10 @@ function renderHealthLogsTable() {
 // グラフセクション
 function renderChartsSection() {
   return `
-    <section class="bg-white py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-7xl mx-auto">
-          <h3 class="text-lg font-bold text-gray-800 mb-2">
+    <section class="bg-white py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
             <i class="fas fa-chart-line mr-2" style="color: var(--color-primary)"></i>
             健康データ推移（最新30日）
           </h3>
@@ -1147,10 +1150,10 @@ async function submitOpinion() {
 // 個人データ設定セクション
 function renderSettingsSection() {
   return `
-    <section class="bg-gradient-to-br from-blue-50 to-white py-3">
-      <div class="container mx-auto px-2">
-        <div class="max-w-4xl mx-auto">
-          <h3 class="text-xl font-bold text-gray-800 mb-2">
+    <section class="bg-gradient-to-br from-blue-50 to-white py-8">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
             <i class="fas fa-cog mr-2" style="color: var(--color-primary)"></i>
             個人データ設定
           </h3>
