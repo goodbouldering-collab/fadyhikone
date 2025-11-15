@@ -210,7 +210,7 @@ function renderPage() {
 function renderHeader() {
   return `
     <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div class="container mx-auto px-4 py-3">
+      <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
           <a href="/" class="flex items-center gap-2">
             <i class="fas fa-dumbbell text-lg" style="color: var(--color-primary)"></i>
@@ -246,20 +246,20 @@ function renderHeader() {
   `;
 }
 
-// Hero セクション - シンプル画像背景
+// Hero セクション - ファディージム画像
 function renderHero() {
   return `
     <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
-      <!-- 背景画像のみ -->
+      <!-- 背景画像 -->
       <div class="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1920&q=80" 
-             alt="fitness" 
+        <img src="https://www.genspark.ai/api/files/s/MRTRC0j2" 
+             alt="ファディー彦根ジム" 
              class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="absolute inset-0 bg-black/30"></div>
       </div>
       
-      <div class="container mx-auto px-4 relative z-10">
-        <div class="max-w-4xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8 relative z-10">
+        <div class="max-w-6xl mx-auto">
           ${currentUser ? `
             <!-- ログイン後：シンプル表示 -->
             <div class="text-center mb-6">
@@ -269,8 +269,52 @@ function renderHero() {
               <p class="text-white/90 text-base drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
             </div>
             
+            <!-- お知らせ（上部に配置） -->
+            ${announcements.length > 0 ? `
+              <div class="mb-6">
+                <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg">
+                  <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                      <i class="fas fa-bell"></i>
+                      お知らせ
+                    </h3>
+                  </div>
+                  <div class="space-y-2">
+                    ${announcements.slice(0, 2).map(announcement => `
+                      <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all cursor-pointer"
+                           onclick="showAnnouncementDetail(${announcement.id})">
+                        <div class="flex gap-3 items-center">
+                          ${announcement.image_url ? `
+                            <img src="${announcement.image_url}" alt="${announcement.title}" 
+                              class="w-12 h-12 object-cover rounded-lg flex-shrink-0">
+                          ` : `
+                            <div class="w-12 h-12 bg-gradient-to-br from-primary to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <i class="fas fa-bullhorn text-white text-base"></i>
+                            </div>
+                          `}
+                          <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-bold text-white mb-1">${announcement.title}</h4>
+                            <p class="text-xs text-white/80 line-clamp-2">${announcement.content}</p>
+                          </div>
+                          <i class="fas fa-chevron-right text-white/60 text-sm flex-shrink-0"></i>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                  ${announcements.length > 2 ? `
+                    <div class="text-center mt-3">
+                      <button onclick="showAllAnnouncements()" 
+                        class="text-sm text-white/90 hover:text-white font-medium transition-all hover:underline">
+                        もっと見る →
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            ` : ''}
+            
             <!-- 今日の記録 -->
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-3 gap-4">
               <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('meal-section')">
                 <div class="text-3xl mb-1">🔥</div>
                 <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.total_calories || 0}</div>
@@ -287,48 +331,6 @@ function renderHero() {
                 <p class="text-xs text-white/90">kg</p>
               </div>
             </div>
-            
-            <!-- お知らせ（下部に配置） -->
-            ${announcements.length > 0 ? `
-              <div class="mt-6">
-                <div class="bg-white/20 backdrop-blur-md rounded-xl p-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                      <i class="fas fa-bell"></i>
-                      お知らせ
-                    </h3>
-                  </div>
-                  <div class="space-y-2">
-                    ${announcements.slice(0, 2).map(announcement => `
-                      <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all cursor-pointer"
-                           onclick="showAnnouncementDetail(${announcement.id})">
-                        <div class="flex gap-3 items-center">
-                          ${announcement.image_url ? `
-                            <img src="${announcement.image_url}" alt="${announcement.title}" 
-                              class="w-10 h-10 object-cover rounded-lg">
-                          ` : `
-                            <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-lg flex items-center justify-center">
-                              <i class="fas fa-bullhorn text-white text-sm"></i>
-                            </div>
-                          `}
-                          <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-white mb-0.5">${announcement.title}</h4>
-                            <p class="text-xs text-white/80 line-clamp-1">${announcement.content}</p>
-                          </div>
-                          <i class="fas fa-chevron-right text-white/60 text-xs"></i>
-                        </div>
-                      </div>
-                    `).join('')}
-                  </div>
-                  <div class="text-center mt-3">
-                    <button onclick="showAllAnnouncements()" 
-                      class="text-sm text-white/90 hover:text-white font-medium">
-                      もっと見る →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ` : ''}
           ` : `
             <!-- ログイン前 -->
             <div class="text-center">
@@ -414,8 +416,8 @@ function renderHero() {
 function renderHealthLogSection() {
   return `
     <section id="health-log-section" class="bg-gradient-to-b from-gray-50/50 to-white/50 py-4">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
           
           <!-- タイトルと日付選択 -->
           <div class="mb-2">
@@ -1281,7 +1283,7 @@ function renderQuickToolsSection() {
 function renderFeaturesSection() {
   return `
     <section id="features" class="bg-white py-16">
-      <div class="container mx-auto px-4">
+      <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <h2 class="text-3xl font-bold text-center mb-4">ファディーの特徴</h2>
           <p class="text-center text-gray-600 mb-12">最新のAI技術とプロのトレーナーが、あなたの健康目標達成を強力にサポート</p>
@@ -1412,8 +1414,8 @@ function renderFAQSection() {
   
   return `
     <section id="faq" class="bg-gray-50 py-16">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-5xl mx-auto">
           <h2 class="text-3xl font-bold text-center mb-12">よくある質問</h2>
           
           <div class="space-y-3">
@@ -1441,8 +1443,8 @@ function renderFAQSection() {
 function renderGymIntroSection() {
   return `
     <section class="bg-gradient-to-br from-pink-50 to-purple-50 py-16">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-5xl mx-auto">
           <div class="bg-white rounded-2xl p-6 shadow-lg">
             <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=500&fit=crop" 
               alt="AIパーソナルジム" 
@@ -1475,7 +1477,7 @@ function renderGymIntroSection() {
 function renderContactSection() {
   return `
     <section id="contact" class="bg-white py-16">
-      <div class="container mx-auto px-4">
+      <div class="container mx-auto px-6 md:px-8">
         <h2 class="text-3xl font-bold text-center mb-12">お問い合わせ</h2>
         
         <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded-lg">
@@ -1525,8 +1527,8 @@ function renderContactSection() {
 function renderFooter() {
   return `
     <footer class="bg-gray-800 text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-5xl mx-auto">
           <!-- 公式サイトリンク -->
           <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
             <!-- ファディ本部 -->
