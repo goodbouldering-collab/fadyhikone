@@ -10,7 +10,8 @@
     {
       "binding": "DB",
       "database_name": "fadyhikone-production",
-      "database_id": "3c41910c-1b96-47ad-99e7-604df7428bdb"
+      "database_id": "3c41910c-1b96-47ad-99e7-604df7428bdb",
+      "migrations_dir": "migrations"
     }
   ],
   
