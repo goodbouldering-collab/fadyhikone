@@ -593,6 +593,18 @@ function renderHealthLogSection() {
           <!-- 入力フォーム -->
           <form id="health-log-form" class="space-y-2">
             
+            <!-- 日付選択 -->
+            <div class="bg-white p-3 rounded-lg shadow-sm">
+              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <i class="fas fa-calendar-day text-primary"></i>
+                記録日
+              </label>
+              <input type="date" name="log_date" id="log-date-input" 
+                value="${todayLog?.log_date || new Date().toISOString().split('T')[0]}"
+                max="${new Date().toISOString().split('T')[0]}"
+                class="w-full px-4 py-2.5 text-base font-medium bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+            </div>
+            
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 体重 & BMI -->
@@ -1563,6 +1575,15 @@ function setupEventListeners() {
     healthLogForm.addEventListener('submit', handleHealthLogSubmit);
   }
   
+  // 日付入力フィールド
+  const logDateInput = document.getElementById('log-date-input');
+  if (logDateInput) {
+    logDateInput.addEventListener('change', async (e) => {
+      selectedDate = e.target.value;
+      await loadLogForDate(selectedDate);
+    });
+  }
+  
   // お問い合わせフォーム
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
@@ -1595,6 +1616,53 @@ function selectConditionRating(rating) {
       icon.className = `fas ${icons[i-1]} text-3xl text-gray-400 mb-1`;
       text.className = 'text-xs font-medium text-gray-500';
     }
+  }
+}
+
+// 指定日付のログを読み込む
+async function loadLogForDate(dateString) {
+  try {
+    showLoading();
+    
+    // 指定日付のログを取得
+    const response = await apiCall(`/api/health-logs?log_date=${dateString}`);
+    
+    if (response.success && response.data.length > 0) {
+      todayLog = response.data[0];
+      
+      // 食事データを復元
+      if (todayLog.meals) {
+        const meals = typeof todayLog.meals === 'string' ? JSON.parse(todayLog.meals) : todayLog.meals;
+        mealData = {
+          breakfast: meals.breakfast || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+          lunch: meals.lunch || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+          dinner: meals.dinner || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
+        };
+      } else {
+        mealData = {
+          breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+          lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+          dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
+        };
+      }
+    } else {
+      // ログがない場合は空のデータを設定
+      todayLog = null;
+      mealData = {
+        breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+        lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+        dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
+      };
+    }
+    
+    // ページを再レンダリング
+    renderPage();
+    hideLoading();
+    
+  } catch (error) {
+    console.error('Failed to load log for date:', error);
+    hideLoading();
+    showToast('ログの読み込みに失敗しました', 'error');
   }
 }
 
@@ -1661,7 +1729,7 @@ async function handleHealthLogSubmit(e) {
   const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs;
   
   const data = {
-    log_date: selectedDate || dayjs().format('YYYY-MM-DD'),
+    log_date: formData.get('log_date') || selectedDate || dayjs().format('YYYY-MM-DD'),
     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
     body_fat_percentage: formData.get('body_fat_percentage') ? parseFloat(formData.get('body_fat_percentage')) : null,
     body_temperature: formData.get('body_temperature') ? parseFloat(formData.get('body_temperature')) : null,
@@ -1714,6 +1782,9 @@ async function handleHealthLogSubmit(e) {
     
     if (response.success) {
       showToast('健康ログを保存しました', 'success');
+      
+      // 保存した日付を選択日付として設定
+      selectedDate = data.log_date;
       
       // 選択された日付のログを再読み込み
       await loadLogForDate(selectedDate);
