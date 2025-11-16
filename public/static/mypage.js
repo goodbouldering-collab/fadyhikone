@@ -240,20 +240,45 @@ function renderStatsSection() {
   `;
 }
 
-// 今日のアドバイスセクション（AI + スタッフ）
+// 日付ごとのアドバイスセクション（AI + スタッフ）
 function renderTodayAdvices() {
-  const today = new Date().toISOString().split('T')[0];
-  const todayAdvices = advices.filter(a => a.log_date === today);
-  const aiAdvices = todayAdvices.filter(a => a.advice_source === 'ai');
-  const staffAdvices = todayAdvices.filter(a => a.advice_source === 'staff');
+  // アドバイスを日付ごとにグループ化
+  const advicesByDate = {};
+  advices.slice(0, 7).forEach(advice => {
+    const date = advice.log_date;
+    if (!advicesByDate[date]) {
+      advicesByDate[date] = { ai: [], staff: [] };
+    }
+    if (advice.advice_source === 'ai') {
+      advicesByDate[date].ai.push(advice);
+    } else {
+      advicesByDate[date].staff.push(advice);
+    }
+  });
+  
+  const dates = Object.keys(advicesByDate).sort().reverse();
+  
+  if (dates.length === 0) {
+    return `
+      <div class="mt-2 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 rounded-xl shadow-sm border border-purple-100 text-center">
+        <i class="fas fa-info-circle text-gray-400 text-2xl mb-2"></i>
+        <p class="text-sm text-gray-600">まだアドバイスがありません</p>
+      </div>
+    `;
+  }
   
   return `
-    <div class="mt-2 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-2 rounded-xl shadow-sm border border-purple-100">
-      <h4 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-        <i class="fas fa-calendar-day text-primary"></i>
-        今日のアドバイス
-        <span class="text-xs text-gray-500 font-normal">(${today})</span>
-      </h4>
+    <div class="mt-2 space-y-2">
+      ${dates.map(date => {
+        const aiAdvices = advicesByDate[date].ai;
+        const staffAdvices = advicesByDate[date].staff;
+        
+        return `
+          <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-3 rounded-xl shadow-sm border border-purple-100">
+            <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <i class="fas fa-calendar-day text-primary"></i>
+              ${dayjs(date).format('YYYY年M月D日')}のアドバイス
+            </h4>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <!-- AIアドバイス -->
@@ -331,7 +356,10 @@ function renderTodayAdvices() {
             </div>
           `}
         </div>
-      </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
     </div>
   `;
 }
@@ -1277,14 +1305,6 @@ function renderProfileSettings() {
         
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            <i class="fas fa-birthday-cake mr-1"></i> 生年月日
-          </label>
-          <input type="date" id="profile-birthday" value="${currentUser?.birth_date || ''}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
             <i class="fas fa-venus-mars mr-1"></i> 性別
           </label>
           <select id="profile-gender" 
@@ -1425,7 +1445,6 @@ async function updateProfile() {
     const name = document.getElementById('profile-name')?.value;
     const email = document.getElementById('profile-email')?.value;
     const phone = document.getElementById('profile-phone')?.value;
-    const birthday = document.getElementById('profile-birthday')?.value;
     const gender = document.getElementById('profile-gender')?.value;
     
     // 身体情報（体重はhealth_logsで管理するため除外）
@@ -1438,7 +1457,6 @@ async function updateProfile() {
         name: name || currentUser.name,
         email: email || currentUser.email,
         phone: phone || currentUser.phone || null,
-        birthday: birthday || currentUser.birth_date || null,
         gender: gender || currentUser.gender || null,
         height: height ? parseFloat(height) : currentUser.height || null,
         goal: goal || currentUser.goal || null,

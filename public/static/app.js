@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAnnouncements();
   renderPage();
   
+  // ヒーロー画像スライドショー開始
+  startHeroSlideshow();
+  
   // 認証されている場合、アドバイスとログをロード
   if (currentUser) {
     selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
@@ -246,15 +249,28 @@ function renderHeader() {
   `;
 }
 
-// Hero セクション - ファディージム画像
+// ファディー彦根ジムの画像配列
+const gymImages = [
+  'https://www.genspark.ai/api/files/s/MRTRC0j2',
+  'https://sspark.genspark.ai/cfimages?u1=%2BF%2B3W%2FZTdFDcVpfgEXQrZ0PMSCOtNGfYK0GEvLwZAdkf1nRxsRwycVPvbeM1EzUpl%2BNm2TUSOary5k6Q5CZUn2U5vnOniMxSOCEyI6SWOSoPIyW0a7Qx&u2=K3I0bmN9dfZhkUlI&width=2560',
+  'https://sspark.genspark.ai/cfimages?u1=LPz32BIiQkE5ygA58PfFWXnWzWFz2CJ5W%2BESfhwsNuXXfKxavMoQGpFCZkyLR3HHbK5V57M3fjIw7U2o0p9%2F3uMwclMlVWHCNZm1yJmP9b8Pg2A%3D&u2=7O0EeJ7fJ1xD8CqY&width=2560',
+  'https://sspark.genspark.ai/cfimages?u1=KdNPxELgEkslL9bQN%2FcT40Fbr9vidcguvCgyvzdnW%2FQgCTpayqgK0IlxV%2FSgR7ZN4KnguDT2RgvsQO7VxeeID5fVZzPwz7HgAoyU4uBtTpL3sg%3D%3D&u2=yJPCufZM%2BaNUii1F&width=2560'
+];
+
+let currentImageIndex = 0;
+
+// Hero セクション - ファディージム画像スライドショー
 function renderHero() {
   return `
     <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
-      <!-- 背景画像 -->
-      <div class="absolute inset-0">
-        <img src="https://www.genspark.ai/api/files/s/MRTRC0j2" 
-             alt="ファディー彦根ジム" 
-             class="w-full h-full object-cover">
+      <!-- 背景画像スライドショー -->
+      <div class="absolute inset-0" id="hero-slideshow">
+        ${gymImages.map((img, index) => `
+          <img src="${img}" 
+               alt="ファディー彦根ジム ${index + 1}" 
+               class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
+               id="hero-image-${index}">
+        `).join('')}
         <div class="absolute inset-0 bg-black/30"></div>
       </div>
       
@@ -263,10 +279,10 @@ function renderHero() {
           ${currentUser ? `
             <!-- ログイン後：シンプル表示 -->
             <div class="text-center mb-6">
-              <h1 class="text-4xl md:text-5xl font-bold mb-2 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                ${currentUser.name}
+              <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-white tracking-wide" style="text-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.05em;">
+                ${currentUser.name}<span class="text-2xl md:text-3xl ml-2">さん</span>
               </h1>
-              <p class="text-white/90 text-base drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
+              <p class="text-white text-lg md:text-xl font-medium drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
             </div>
             
             <!-- お知らせ（上部に配置） -->
@@ -3255,4 +3271,28 @@ function scrollToSection(sectionId) {
 
 // お知らせ詳細を表示
 // お知らせモーダル関数は上部で定義済み
+
+// ヒーロー画像スライドショー
+function startHeroSlideshow() {
+  if (gymImages.length <= 1) return; // 画像が1枚以下ならスキップ
+  
+  setInterval(() => {
+    // 現在の画像をフェードアウト
+    const currentImg = document.getElementById(`hero-image-${currentImageIndex}`);
+    if (currentImg) {
+      currentImg.classList.remove('opacity-100');
+      currentImg.classList.add('opacity-0');
+    }
+    
+    // 次の画像インデックスを計算
+    currentImageIndex = (currentImageIndex + 1) % gymImages.length;
+    
+    // 次の画像をフェードイン
+    const nextImg = document.getElementById(`hero-image-${currentImageIndex}`);
+    if (nextImg) {
+      nextImg.classList.remove('opacity-0');
+      nextImg.classList.add('opacity-100');
+    }
+  }, 5000); // 5秒ごとに切り替え
+}
 
