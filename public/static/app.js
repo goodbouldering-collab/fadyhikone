@@ -252,9 +252,9 @@ function renderHeader() {
 // ファディー彦根ジムの画像配列
 const gymImages = [
   'https://www.genspark.ai/api/files/s/MRTRC0j2',
-  'https://sspark.genspark.ai/cfimages?u1=%2BF%2B3W%2FZTdFDcVpfgEXQrZ0PMSCOtNGfYK0GEvLwZAdkf1nRxsRwycVPvbeM1EzUpl%2BNm2TUSOary5k6Q5CZUn2U5vnOniMxSOCEyI6SWOSoPIyW0a7Qx&u2=K3I0bmN9dfZhkUlI&width=2560',
-  'https://sspark.genspark.ai/cfimages?u1=LPz32BIiQkE5ygA58PfFWXnWzWFz2CJ5W%2BESfhwsNuXXfKxavMoQGpFCZkyLR3HHbK5V57M3fjIw7U2o0p9%2F3uMwclMlVWHCNZm1yJmP9b8Pg2A%3D&u2=7O0EeJ7fJ1xD8CqY&width=2560',
-  'https://sspark.genspark.ai/cfimages?u1=KdNPxELgEkslL9bQN%2FcT40Fbr9vidcguvCgyvzdnW%2FQgCTpayqgK0IlxV%2FSgR7ZN4KnguDT2RgvsQO7VxeeID5fVZzPwz7HgAoyU4uBtTpL3sg%3D%3D&u2=yJPCufZM%2BaNUii1F&width=2560'
+  'https://www.genspark.ai/api/files/s/o6lHqw9N',
+  'https://www.genspark.ai/api/files/s/RfUOa2Sn',
+  'https://www.genspark.ai/api/files/s/BYroyvBQ'
 ];
 
 let currentImageIndex = 0;

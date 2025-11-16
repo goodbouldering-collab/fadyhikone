@@ -1208,7 +1208,7 @@ function renderSettingsSection() {
               ` : ''}
             </div>
             
-            <div id="settings-content" class="p-4">
+            <div id="settings-content" class="p-3">
               <!-- コンテンツはJavaScriptで動的に表示 -->
             </div>
           </div>
@@ -1276,14 +1276,14 @@ function showSettingsTab(tab) {
 // 基本情報設定フォーム
 function renderProfileSettings() {
   return `
-    <form id="profile-form" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form id="profile-form" class="space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
             <i class="fas fa-user mr-1"></i> お名前 <span class="text-red-500">*</span>
           </label>
           <input type="text" id="profile-name" value="${currentUser?.name || ''}" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
         </div>
         
         <div>
@@ -1291,7 +1291,7 @@ function renderProfileSettings() {
             <i class="fas fa-envelope mr-1"></i> メールアドレス <span class="text-red-500">*</span>
           </label>
           <input type="email" id="profile-email" value="${currentUser?.email || ''}" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
         </div>
         
         <div>
@@ -1299,7 +1299,7 @@ function renderProfileSettings() {
             <i class="fas fa-phone mr-1"></i> 電話番号
           </label>
           <input type="tel" id="profile-phone" value="${currentUser?.phone || ''}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             placeholder="090-1234-5678">
         </div>
         
@@ -1308,7 +1308,7 @@ function renderProfileSettings() {
             <i class="fas fa-venus-mars mr-1"></i> 性別
           </label>
           <select id="profile-gender" 
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
             <option value="">選択してください</option>
             <option value="female" ${currentUser?.gender === 'female' ? 'selected' : ''}>女性</option>
             <option value="male" ${currentUser?.gender === 'male' ? 'selected' : ''}>男性</option>
@@ -1336,7 +1336,7 @@ function renderProfileSettings() {
 // 身体情報設定フォーム
 function renderBodySettings() {
   return `
-    <form id="body-form" class="space-y-4">
+    <form id="body-form" class="space-y-3">
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
         <div class="flex items-start gap-2">
           <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
@@ -1352,7 +1352,7 @@ function renderBodySettings() {
           <i class="fas fa-ruler-vertical mr-1"></i> 身長 (cm)
         </label>
         <input type="number" id="body-height" value="${currentUser?.height || ''}" step="0.1" min="0" max="300"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
           placeholder="160.0">
       </div>
       
@@ -1360,8 +1360,8 @@ function renderBodySettings() {
         <label class="block text-sm font-medium text-gray-700 mb-2">
           <i class="fas fa-bullseye mr-1"></i> 目標・備考
         </label>
-        <textarea id="body-goal" rows="4"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        <textarea id="body-goal" rows="3"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
           placeholder="ダイエット、筋力アップ、健康維持など、あなたの目標を記入してください...">${currentUser?.goal || ''}</textarea>
       </div>
       
@@ -1384,7 +1384,7 @@ function renderBodySettings() {
 // パスワード変更フォーム
 function renderPasswordSettings() {
   return `
-    <form id="password-form" class="space-y-4 max-w-md">
+    <form id="password-form" class="space-y-3 max-w-md">
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-2">
           <i class="fas fa-info-circle text-yellow-600 mt-1"></i>
@@ -1400,7 +1400,7 @@ function renderPasswordSettings() {
           <i class="fas fa-lock mr-1"></i> 現在のパスワード <span class="text-red-500">*</span>
         </label>
         <input type="password" id="password-current" required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
           placeholder="現在のパスワードを入力">
       </div>
       
@@ -1409,7 +1409,7 @@ function renderPasswordSettings() {
           <i class="fas fa-key mr-1"></i> 新しいパスワード <span class="text-red-500">*</span>
         </label>
         <input type="password" id="password-new" required minlength="6"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
           placeholder="新しいパスワードを入力（6文字以上）">
       </div>
       
@@ -1418,7 +1418,7 @@ function renderPasswordSettings() {
           <i class="fas fa-check-circle mr-1"></i> 新しいパスワード（確認） <span class="text-red-500">*</span>
         </label>
         <input type="password" id="password-confirm" required minlength="6"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
           placeholder="もう一度入力してください">
       </div>
       
