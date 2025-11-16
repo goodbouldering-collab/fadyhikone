@@ -10,6 +10,9 @@ let announcements = [];
 let latestStaffComment = null;
 let selectedDate = null; // 選択された日付（YYYY-MM-DD形式）
 let opinions = []; // 質問・相談データ
+let graphPeriodOffset = 0; // グラフ表示期間のオフセット（0=現在の30日、1=その前の30日、...）
+let heroChart = null; // ヒーローセクションのチャートインスタンス
+let allHealthLogs = []; // 全ての健康ログデータ（グラフ用）
 
 // 食事記録データ
 let mealData = {
@@ -141,6 +144,9 @@ async function loadLogForDate(date) {
   try {
     const response = await apiCall('/api/health-logs');
     if (response.success) {
+      // 全ログを保存（グラフ用）
+      allHealthLogs = response.data;
+      
       const targetDate = date || dayjs().format('YYYY-MM-DD');
       todayLog = response.data.find(log => log.log_date === targetDate);
       
@@ -206,6 +212,8 @@ function renderPage() {
   // ダッシュボード更新
   if (currentUser) {
     updateDashboard();
+    // ヒーローグラフ描画
+    setTimeout(() => renderHeroChart(), 100);
   }
 }
 
@@ -279,8 +287,8 @@ function renderHero() {
           ${currentUser ? `
             <!-- ログイン後：シンプル表示 -->
             <div class="text-center mb-6">
-              <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-white tracking-wide" style="text-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.05em;">
-                ${currentUser.name}<span class="text-2xl md:text-3xl ml-2">さん</span>
+              <h1 class="text-2xl md:text-3xl font-semibold mb-4 text-white" style="text-shadow: 0 2px 6px rgba(0,0,0,0.4);">
+                ${currentUser.name}<span class="text-xl md:text-2xl ml-2">さん</span>
               </h1>
               <p class="text-white text-lg md:text-xl font-medium drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
             </div>
@@ -465,44 +473,53 @@ function renderHealthLogSection() {
             </div>
           </div>
           
-          <!-- クイック統計 - コンパクト表示 -->
+          <!-- 健康データグラフ（30日単位） -->
           ${currentUser ? `
-            <div class="mb-2 flex items-center justify-around">
-              <!-- カロリー -->
-              <button type="button" onclick="scrollToSection('meal-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
-                <div class="w-10 h-10 bg-gradient-to-br from-primary to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                  <i class="fas fa-fire text-white"></i>
+            <div class="mb-3 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                  <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
+                  健康データ推移
+                </h3>
+                <div class="flex items-center gap-1">
+                  <button onclick="navigateGraphPeriod(-1)" 
+                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                    id="graph-prev-btn">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
+                  <button onclick="navigateGraphPeriod(1)" 
+                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                    id="graph-next-btn"
+                    ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
                 </div>
-                <div class="text-lg font-bold text-gray-800" id="dashboard-calories">-</div>
-                <div class="text-xs text-gray-500">kcal</div>
-              </button>
-              
-              <!-- 運動 -->
-              <button type="button" onclick="scrollToSection('exercise-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
-                  <i class="fas fa-running text-white"></i>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div style="height: 200px;">
+                  <canvas id="hero-chart"></canvas>
                 </div>
-                <div class="text-lg font-bold text-gray-800" id="dashboard-exercise">-</div>
-                <div class="text-xs text-gray-500">分</div>
-              </button>
-              
-              <!-- 体重 -->
-              <button type="button" onclick="scrollToSection('weight-section')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                  <i class="fas fa-weight text-white"></i>
+              </div>
+              <!-- 凡例 -->
+              <div class="flex flex-wrap justify-center gap-2 mt-2">
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
+                  <span class="text-xs">体重</span>
                 </div>
-                <div class="text-lg font-bold text-gray-800" id="dashboard-weight">-</div>
-                <div class="text-xs text-gray-500" id="dashboard-weight-change">kg</div>
-              </button>
-              
-              <!-- 連続記録 -->
-              <button type="button" onclick="scrollToSection('health-log-form')" class="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-lg transition cursor-pointer">
-                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
-                  <i class="fas fa-trophy text-white"></i>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #ef4444;"></div>
+                  <span class="text-xs">体脂肪率</span>
                 </div>
-                <div class="text-lg font-bold text-gray-800" id="dashboard-streak">-</div>
-                <div class="text-xs text-gray-500">日</div>
-              </button>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #8b5cf6;"></div>
+                  <span class="text-xs">睡眠時間</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #10b981;"></div>
+                  <span class="text-xs">カロリー (÷100)</span>
+                </div>
+              </div>
             </div>
           ` : ''}
           
@@ -2732,43 +2749,180 @@ async function submitQuestion() {
 
 // ダッシュボード更新（新機能）
 function updateDashboard() {
-  if (!todayLog) return;
+  // クイック統計は削除されたため、この関数は不要だが互換性のため残す
+  // 将来的に削除可能
+}
+
+// グラフ期間ナビゲーション
+function navigateGraphPeriod(direction) {
+  graphPeriodOffset = Math.max(0, graphPeriodOffset + direction);
+  renderHeroChart();
   
-  // 総カロリー
-  const totalCalories = (todayLog.meal_calories || 0);
-  const dashboardCalories = document.getElementById('dashboard-calories');
-  if (dashboardCalories) {
-    dashboardCalories.textContent = totalCalories > 0 ? `${totalCalories}kcal` : '-';
+  // 次へボタンの有効/無効を切り替え
+  const nextBtn = document.getElementById('graph-next-btn');
+  if (nextBtn) {
+    if (graphPeriodOffset === 0) {
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.3';
+      nextBtn.style.cursor = 'not-allowed';
+    } else {
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = '1';
+      nextBtn.style.cursor = 'pointer';
+    }
+  }
+}
+
+// ヒーローグラフ描画
+function renderHeroChart() {
+  const canvas = document.getElementById('hero-chart');
+  if (!canvas || !allHealthLogs || allHealthLogs.length === 0) return;
+  
+  // 期間の計算（今日から遡って30日単位）
+  const today = dayjs();
+  const startOffset = graphPeriodOffset * 30;
+  const endOffset = startOffset + 30;
+  const endDate = today.subtract(startOffset, 'day');
+  const startDate = today.subtract(endOffset, 'day');
+  
+  // 期間ラベル更新
+  const periodLabel = document.getElementById('graph-period-label');
+  if (periodLabel) {
+    if (graphPeriodOffset === 0) {
+      periodLabel.textContent = '最新30日';
+    } else {
+      periodLabel.textContent = `${startDate.format('M/D')} - ${endDate.format('M/D')}`;
+    }
   }
   
-  // 運動時間
-  const exerciseMinutes = todayLog.exercise_minutes || 0;
-  const dashboardExercise = document.getElementById('dashboard-exercise');
-  if (dashboardExercise) {
-    dashboardExercise.textContent = exerciseMinutes > 0 ? `${exerciseMinutes}分` : '-';
+  // データフィルタリング（期間内のログのみ）
+  const filteredLogs = allHealthLogs.filter(log => {
+    const logDate = dayjs(log.log_date);
+    return logDate.isAfter(startDate) && logDate.isBefore(endDate.add(1, 'day'));
+  }).sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
+  
+  // ラベルとデータ作成
+  const labels = filteredLogs.map(log => dayjs(log.log_date).format('M/D'));
+  const weightData = filteredLogs.map(log => log.weight || null);
+  const bodyfatData = filteredLogs.map(log => log.body_fat_percentage || null);
+  const sleepData = filteredLogs.map(log => log.sleep_hours || null);
+  const caloriesData = filteredLogs.map(log => log.meal_calories ? log.meal_calories / 100 : null);
+  
+  // 既存のチャートを破棄
+  if (heroChart) {
+    heroChart.destroy();
   }
   
-  // 体重
-  const weight = todayLog.weight;
-  const dashboardWeight = document.getElementById('dashboard-weight');
-  const dashboardWeightChange = document.getElementById('dashboard-weight-change');
-  if (dashboardWeight) {
-    dashboardWeight.textContent = weight ? `${weight}kg` : '-';
-  }
-  
-  // 体重変化（前日比）を計算（仮データ）
-  if (dashboardWeightChange && weight) {
-    const change = -0.3; // 実際は前日のデータと比較
-    const changeText = change > 0 ? `+${change}kg` : `${change}kg`;
-    const changeColor = change > 0 ? 'text-red-600' : 'text-green-600';
-    dashboardWeightChange.innerHTML = `前回比: <span class="${changeColor} font-bold">${changeText}</span>`;
-  }
-  
-  // 連続記録日数（仮データ - 実際はAPIから取得）
-  const dashboardStreak = document.getElementById('dashboard-streak');
-  if (dashboardStreak) {
-    dashboardStreak.innerHTML = `<span class="text-primary">7</span>`;
-  }
+  // 新しいチャート作成
+  const ctx = canvas.getContext('2d');
+  heroChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '体重 (kg)',
+          data: weightData,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: '体脂肪率 (%)',
+          data: bodyfatData,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: '睡眠時間 (h)',
+          data: sleepData,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'カロリー (÷100)',
+          data: caloriesData,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: 12,
+          titleFont: { size: 12 },
+          bodyFont: { size: 11 },
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                if (label.includes('カロリー')) {
+                  label += Math.round(context.parsed.y * 100) + ' kcal';
+                } else if (label.includes('体重')) {
+                  label += context.parsed.y + ' kg';
+                } else if (label.includes('体脂肪')) {
+                  label += context.parsed.y + ' %';
+                } else if (label.includes('睡眠')) {
+                  label += context.parsed.y + ' h';
+                }
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            font: { size: 9 },
+            maxRotation: 45,
+            minRotation: 45
+          }
+        },
+        y: {
+          beginAtZero: false,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            font: { size: 10 }
+          }
+        }
+      }
+    }
+  });
 }
 
 // クイック運動記録（新機能）
