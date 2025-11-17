@@ -297,15 +297,22 @@ function renderHero() {
       <div class="container mx-auto px-6 md:px-8 relative z-10">
         <div class="max-w-6xl mx-auto">
           ${currentUser ? `
-            <!-- ログイン後：シンプル表示 -->
+            <!-- ログイン後：名前表示 -->
             <div class="text-center mb-6">
-              <h1 class="text-2xl md:text-3xl font-semibold mb-4 text-white" style="text-shadow: 0 2px 6px rgba(0,0,0,0.4);">
-                ${currentUser.name}<span class="text-xl md:text-2xl ml-2">さん</span>
-              </h1>
-              <p class="text-white text-lg md:text-xl font-medium drop-shadow-lg">今日も健康的な1日を過ごしましょう</p>
+              <div class="inline-block relative">
+                <h1 class="text-3xl md:text-4xl font-bold text-white relative z-10" 
+                    style="text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 2px 10px rgba(255,107,157,0.3);">
+                  <span class="bg-gradient-to-r from-white via-pink-50 to-white bg-clip-text text-transparent" 
+                        style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(255,255,255,0.5));">
+                    ${currentUser.name}
+                  </span>
+                  <span class="text-2xl md:text-3xl ml-2">さん</span>
+                </h1>
+                <div class="absolute -inset-2 bg-gradient-to-r from-primary/20 via-pink-500/20 to-purple-500/20 blur-xl -z-10 animate-pulse"></div>
+              </div>
             </div>
             
-            <!-- お知らせ（上部に配置） -->
+            <!-- お知らせ（2件表示） -->
             ${announcements.length > 0 ? `
               <div class="mb-6">
                 <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg">
@@ -314,6 +321,13 @@ function renderHero() {
                       <i class="fas fa-bell"></i>
                       お知らせ
                     </h3>
+                    ${announcements.length > 2 ? `
+                      <button onclick="showAllAnnouncements()" 
+                        class="text-sm text-white/90 hover:text-white font-medium transition-all hover:underline flex items-center gap-1">
+                        もっと見る
+                        <i class="fas fa-chevron-right text-xs"></i>
+                      </button>
+                    ` : ''}
                   </div>
                   <div class="space-y-2">
                     ${announcements.slice(0, 2).map(announcement => `
@@ -337,47 +351,48 @@ function renderHero() {
                       </div>
                     `).join('')}
                   </div>
-                  ${announcements.length > 2 ? `
-                    <div class="text-center mt-3">
-                      <button onclick="showAllAnnouncements()" 
-                        class="text-sm text-white/90 hover:text-white font-medium transition-all hover:underline">
-                        もっと見る →
-                      </button>
-                    </div>
-                  ` : ''}
                 </div>
               </div>
             ` : ''}
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
-                  <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
-                  健康データ推移
-                </h3>
-                <div class="flex items-center gap-1">
-                  <button onclick="navigateGraphPeriod(-1)" 
-                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
-                    id="graph-prev-btn">
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
-                  <button onclick="navigateGraphPeriod(1)" 
-                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
-                    id="graph-next-btn"
-                    ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                </div>
+            <div class="mb-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg overflow-hidden relative">
+              <!-- 背景画像 -->
+              <div class="absolute inset-0 opacity-5 pointer-events-none">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop" 
+                     alt="健康背景" 
+                     class="w-full h-full object-cover">
               </div>
-              <div class="bg-gray-50 rounded-lg p-2">
-                <div style="height: 200px;">
-                  <canvas id="hero-chart"></canvas>
+              
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                    <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
+                    健康データ推移
+                  </h3>
+                  <div class="flex items-center gap-1">
+                    <button onclick="navigateGraphPeriod(-1)" 
+                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                      id="graph-prev-btn">
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
+                    <button onclick="navigateGraphPeriod(1)" 
+                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                      id="graph-next-btn"
+                      ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="bg-white/60 backdrop-blur-sm rounded-lg p-2">
+                  <div style="height: 200px;">
+                    <canvas id="hero-chart"></canvas>
+                  </div>
                 </div>
               </div>
               <!-- 凡例 -->
-              <div class="flex flex-wrap justify-center gap-2 mt-2">
+              <div class="flex flex-wrap justify-center gap-2 mt-2 relative z-10">
                 <div class="flex items-center gap-1">
                   <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
                   <span class="text-xs">体重</span>
