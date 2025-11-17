@@ -44,6 +44,43 @@ function logout() {
   window.location.href = '/';
 }
 
+// 管理者クイックログイン（開発用）
+async function quickAdminLogin() {
+  showLoading();
+  
+  try {
+    // 管理者用のモックログイン
+    const response = await axios.post('/api/auth/google', {
+      // 管理者アカウント情報
+      email: 'admin@furdi.jp',
+      name: '管理者',
+      googleId: 'admin-quick-login',
+      photoUrl: 'https://ui-avatars.com/api/?name=Admin&background=FF6B9D&color=fff'
+    });
+    
+    if (response.data.success) {
+      setToken(response.data.data.token);
+      setUserData(response.data.data.user);
+      
+      hideLoading();
+      
+      // 管理者の場合は管理画面へ、そうでなければトップページへ
+      if (response.data.data.user.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/';
+      }
+    } else {
+      hideLoading();
+      alert('管理者ログインに失敗しました: ' + response.data.error);
+    }
+  } catch (error) {
+    hideLoading();
+    console.error('管理者ログインエラー:', error);
+    alert('管理者ログインエラーが発生しました');
+  }
+}
+
 // API呼び出しヘルパー (ローディング表示付き)
 async function apiCall(url, options = {}) {
   showLoading();

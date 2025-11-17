@@ -240,15 +240,27 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
                 </a>
+                ${currentUser.role === 'admin' ? `
+                  <a href="/admin" class="px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
+                    <i class="fas fa-user-shield mr-1"></i>
+                    管理画面
+                  </a>
+                ` : ''}
                 <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
                   ログアウト
                 </button>
               </div>
             ` : `
-              <button onclick="showLoginModal()" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
-                <i class="fas fa-sign-in-alt mr-2"></i>
-                <span>ログイン</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="quickAdminLogin()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
+                  <i class="fas fa-user-shield mr-1"></i>
+                  管理者ログイン
+                </button>
+                <button onclick="showLoginModal()" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
+                  <i class="fas fa-sign-in-alt mr-2"></i>
+                  <span>ログイン</span>
+                </button>
+              </div>
             `}
           </nav>
         </div>

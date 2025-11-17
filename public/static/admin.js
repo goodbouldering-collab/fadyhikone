@@ -110,7 +110,7 @@ function renderHeader() {
               マイデータ
             </a>
             ${currentUser?.role === 'admin' ? `
-              <a href="/admin" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+              <a href="/admin" class="px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-sm">
                 <i class="fas fa-user-shield mr-1"></i>
                 管理画面
               </a>
