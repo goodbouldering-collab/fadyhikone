@@ -263,12 +263,11 @@ function renderHeader() {
   `;
 }
 
-// ファディー彦根ジムの画像配列
+// ファディー彦根ジムの画像配列（3枚）
 const gymImages = [
-  'https://www.genspark.ai/api/files/s/MRTRC0j2',
-  'https://www.genspark.ai/api/files/s/o6lHqw9N',
-  'https://www.genspark.ai/api/files/s/RfUOa2Sn',
-  'https://www.genspark.ai/api/files/s/BYroyvBQ'
+  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1080&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&h=1080&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&h=1080&fit=crop&q=80'
 ];
 
 let currentImageIndex = 0;
@@ -277,43 +276,30 @@ let currentImageIndex = 0;
 function renderHero() {
   return `
     <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
-      <!-- 背景画像（Unsplashフィットネス画像） -->
-      <div class="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1080&fit=crop&q=80" 
-             alt="フィットネス背景" 
-             class="w-full h-full object-cover">
+      <!-- 背景画像スライドショー（3枚） -->
+      <div class="absolute inset-0" id="hero-slideshow">
+        ${gymImages.map((img, index) => `
+          <img src="${img}" 
+               alt="フィットネス背景 ${index + 1}" 
+               class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
+               id="hero-image-${index}">
+        `).join('')}
         <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60"></div>
       </div>
       
       <div class="container mx-auto px-6 md:px-8 relative z-10">
         <div class="max-w-6xl mx-auto">
           ${currentUser ? `
-            <!-- ログイン後：名前表示 -->
-            <div class="text-center mb-8 mt-12">
-              <div class="inline-block relative">
-                <!-- 装飾的な背景エフェクト -->
-                <div class="absolute -inset-6 bg-gradient-to-r from-pink-500/30 via-purple-500/30 to-blue-500/30 blur-2xl -z-10 animate-pulse"></div>
-                <div class="absolute -inset-4 bg-gradient-to-r from-white/20 via-pink-300/20 to-white/20 blur-xl -z-10 animate-pulse" style="animation-delay: 0.5s;"></div>
-                
-                <!-- 装飾的な枠 -->
-                <div class="absolute -inset-3 bg-gradient-to-r from-white/30 via-pink-300/30 to-purple-300/30 rounded-2xl -z-10" style="padding: 2px;">
-                  <div class="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-2xl"></div>
+            <!-- ログイン後：名前表示（モダンUI） -->
+            <div class="text-center mb-8 mt-8">
+              <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 shadow-lg hover:bg-white/15 transition-all">
+                <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <i class="fas fa-user text-white text-lg"></i>
                 </div>
-                
-                <!-- 名前テキスト -->
-                <div class="relative px-8 py-4">
-                  <h1 class="text-4xl md:text-5xl font-bold text-white relative z-10" 
-                      style="text-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 2px 15px rgba(255,107,157,0.4), 0 8px 40px rgba(139,92,246,0.3);">
-                    <span class="bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent" 
-                          style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 3px 12px rgba(255,255,255,0.6)) drop-shadow(0 1px 6px rgba(255,182,193,0.8));">
-                      ${currentUser.name}
-                    </span>
-                    <span class="text-3xl md:text-4xl ml-3 inline-block" style="text-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 2px 15px rgba(255,107,157,0.4);">さん</span>
-                  </h1>
-                  
-                  <!-- 装飾的なアクセント -->
-                  <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-pink-300 to-transparent rounded-full"></div>
-                </div>
+                <h1 class="text-xl md:text-2xl font-bold text-white" 
+                    style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                  ${currentUser.name}<span class="text-lg md:text-xl ml-1 font-normal">さん</span>
+                </h1>
               </div>
             </div>
             
@@ -361,7 +347,7 @@ function renderHero() {
             ` : ''}
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
+            <div class="mb-6 bg-white/85 backdrop-blur-sm rounded-xl p-3 shadow-lg">
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
@@ -567,56 +553,43 @@ function renderHealthLogSection() {
                   </a>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <!-- AIアドバイス -->
-                  <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 transition-all border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
-                    <div class="flex items-center gap-2 mb-3">
-                      <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-robot text-white text-sm"></i>
-                      </div>
-                      <h5 class="text-sm font-bold text-gray-800">AI アドバイス</h5>
-                    </div>
-                    
-                    ${aiAdvices.length > 0 ? `
-                      ${aiAdvices.map(advice => `
-                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg mb-2 border border-white/30">
-                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
-                          <p class="text-xs text-gray-600">${advice.content}</p>
-                        </div>
-                      `).join('')}
-                    ` : `
-                      <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
-                        <p class="text-xs text-gray-400">まだアドバイスがありません</p>
-                      </div>
-                    `}
-                  </div>
-                  
-                  <!-- スタッフアドバイス -->
-                  <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 transition-all border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
-                    <div class="flex items-center gap-2 mb-3">
-                      <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-user-nurse text-white text-sm"></i>
-                      </div>
-                      <h5 class="text-sm font-bold text-gray-800">スタッフアドバイス</h5>
-                    </div>
-                    
-                    ${staffAdvices.length > 0 ? `
+                <!-- 統合アドバイス（スタッフ優先） -->
+                <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 transition-all border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
+                  ${staffAdvices.length > 0 || aiAdvices.length > 0 ? `
+                    <div class="space-y-2">
                       ${staffAdvices.map(advice => `
-                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg mb-2 border border-white/30">
-                          <div class="flex items-center gap-2 mb-1">
-                            <i class="fas fa-user-circle text-pink-600 text-sm"></i>
-                            <span class="text-xs font-bold text-gray-700">${advice.staff_name || 'スタッフ'}</span>
+                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+                          <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <i class="fas fa-user-nurse text-white text-xs"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <span class="text-xs font-bold text-pink-600">スタッフ</span>
+                              ${advice.staff_name ? `<span class="text-xs text-gray-500">- ${advice.staff_name}</span>` : ''}
+                            </div>
                           </div>
                           <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
                           <p class="text-xs text-gray-600">${advice.content}</p>
                         </div>
                       `).join('')}
-                    ` : `
-                      <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
-                        <p class="text-xs text-gray-400">まだアドバイスがありません</p>
-                      </div>
-                    `}
-                  </div>
+                      ${aiAdvices.map(advice => `
+                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+                          <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <i class="fas fa-robot text-white text-xs"></i>
+                            </div>
+                            <span class="text-xs font-bold text-blue-600">AI</span>
+                          </div>
+                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
+                          <p class="text-xs text-gray-600">${advice.content}</p>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : `
+                    <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
+                      <p class="text-xs text-gray-400">まだアドバイスがありません</p>
+                    </div>
+                  `}
                 </div>
               </div>
             `;
