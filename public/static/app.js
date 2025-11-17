@@ -277,15 +277,12 @@ let currentImageIndex = 0;
 function renderHero() {
   return `
     <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
-      <!-- 背景画像スライドショー -->
-      <div class="absolute inset-0" id="hero-slideshow">
-        ${gymImages.map((img, index) => `
-          <img src="${img}" 
-               alt="ファディー彦根ジム ${index + 1}" 
-               class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
-               id="hero-image-${index}">
-        `).join('')}
-        <div class="absolute inset-0 bg-black/30"></div>
+      <!-- 背景画像（Unsplashフィットネス画像） -->
+      <div class="absolute inset-0">
+        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1080&fit=crop&q=80" 
+             alt="フィットネス背景" 
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60"></div>
       </div>
       
       <div class="container mx-auto px-6 md:px-8 relative z-10">
@@ -364,16 +361,8 @@ function renderHero() {
             ` : ''}
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-6 rounded-xl shadow-lg overflow-hidden relative">
-              <!-- 背景画像（Unsplash フィットネス画像） -->
-              <div class="absolute inset-0">
-                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=600&fit=crop&q=80" 
-                     alt="健康背景" 
-                     class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-br from-black/50 via-black/40 to-black/50"></div>
-              </div>
-              
-              <div class="relative z-10 bg-white/90 backdrop-blur-md rounded-xl m-2 p-3">
+            <div class="mb-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
+              <div>
                 <div class="flex items-center justify-between mb-2">
                   <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
                     <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
@@ -399,25 +388,24 @@ function renderHero() {
                     <canvas id="hero-chart"></canvas>
                   </div>
                 </div>
-              </div>
-              </div>
-              <!-- 凡例 -->
-              <div class="flex flex-wrap justify-center gap-2 mt-2 relative z-10">
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
-                  <span class="text-xs">体重</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #ef4444;"></div>
-                  <span class="text-xs">体脂肪率</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #8b5cf6;"></div>
-                  <span class="text-xs">睡眠時間</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #10b981;"></div>
-                  <span class="text-xs">カロリー (÷100)</span>
+                <!-- 凡例 -->
+                <div class="flex flex-wrap justify-center gap-2 mt-2">
+                  <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
+                    <span class="text-xs">体重</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 rounded" style="background-color: #ef4444;"></div>
+                    <span class="text-xs">体脂肪率</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 rounded" style="background-color: #8b5cf6;"></div>
+                    <span class="text-xs">睡眠時間</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 rounded" style="background-color: #10b981;"></div>
+                    <span class="text-xs">カロリー (÷100)</span>
+                  </div>
                 </div>
               </div>
             </div>
