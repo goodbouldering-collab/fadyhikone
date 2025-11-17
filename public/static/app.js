@@ -1629,13 +1629,22 @@ function selectConditionRating(rating) {
 // 指定日付のログを読み込む
 async function loadLogForDate(dateString) {
   try {
-    showLoading();
+    console.log('Loading log for date:', dateString);
     
-    // 指定日付のログを取得
-    const response = await apiCall(`/api/health-logs?log_date=${dateString}`);
+    // 指定日付のログを取得（apiCallが既にshowLoading/hideLoadingを呼ぶ）
+    const token = getToken();
+    const response = await axios.get(`/api/health-logs?log_date=${dateString}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    if (response.success && response.data.length > 0) {
-      todayLog = response.data[0];
+    console.log('API response:', response.data);
+    
+    if (response.data.success && response.data.data.length > 0) {
+      todayLog = response.data.data[0];
+      console.log('Found log:', todayLog);
       
       // 食事データを復元
       if (todayLog.meals) {
@@ -1645,6 +1654,7 @@ async function loadLogForDate(dateString) {
           lunch: meals.lunch || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
           dinner: meals.dinner || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
         };
+        console.log('Restored meal data:', mealData);
       } else {
         mealData = {
           breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
@@ -1654,6 +1664,7 @@ async function loadLogForDate(dateString) {
       }
     } else {
       // ログがない場合は空のデータを設定
+      console.log('No log found for date:', dateString);
       todayLog = null;
       mealData = {
         breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
@@ -1663,27 +1674,29 @@ async function loadLogForDate(dateString) {
     }
     
     // ページを再レンダリング
+    console.log('Rendering page with todayLog:', todayLog);
     renderPage();
     
-    // 運動記録の状態を復元
+    // 初期化処理
     setTimeout(() => {
-      if (todayLog?.exercise_minutes && todayLog.exercise_minutes > 0) {
-        // 運動時間が記録されている場合、運動カードを展開
-        const exerciseCard = document.getElementById('exercise-card');
-        if (exerciseCard) {
-          exerciseCard.classList.remove('hidden');
-        }
-      }
-      
       // BMIを更新
       updateBMIDisplay();
+      
+      // 食事カロリー表示を更新
+      if (mealData) {
+        ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
+          const caloriesInput = document.getElementById(`${mealType}-calories`);
+          if (caloriesInput && mealData[mealType]) {
+            caloriesInput.value = mealData[mealType].calories || 0;
+          }
+        });
+      }
+      
+      console.log('Initialization complete');
     }, 100);
-    
-    hideLoading();
     
   } catch (error) {
     console.error('Failed to load log for date:', error);
-    hideLoading();
     showToast('ログの読み込みに失敗しました', 'error');
   }
 }
@@ -1701,6 +1714,7 @@ async function changeLogDate(days) {
     return;
   }
   
+  console.log('Changing date from', selectedDate, 'to', newDate);
   selectedDate = newDate;
   
   // 日付ピッカーの値を更新
@@ -1713,13 +1727,16 @@ async function changeLogDate(days) {
 
 // 日付ピッカーから変更
 async function changeLogDateFromPicker(dateString) {
+  console.log('Date picker changed to:', dateString);
   selectedDate = dateString;
   await loadLogForDate(selectedDate);
 }
 
 // 今日に戻る
 async function goToToday() {
-  selectedDate = dayjs().format('YYYY-MM-DD');
+  const today = dayjs().format('YYYY-MM-DD');
+  console.log('Going to today:', today);
+  selectedDate = today;
   
   const picker = document.getElementById('log-date-picker');
   if (picker) picker.value = selectedDate;
@@ -1797,21 +1814,36 @@ async function handleHealthLogSubmit(e) {
   };
   
   try {
+    console.log('Submitting health log:', data);
+    console.log('todayLog exists:', !!todayLog);
+    
+    const token = getToken();
     let response;
-    if (todayLog) {
-      response = await apiCall(`/api/health-logs/${todayLog.id}`, {
-        method: 'PUT',
-        data: data,
+    
+    if (todayLog && todayLog.id) {
+      // 既存ログの更新
+      console.log('Updating existing log:', todayLog.id);
+      response = await axios.put(`/api/health-logs/${todayLog.id}`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
     } else {
-      response = await apiCall('/api/health-logs', {
-        method: 'POST',
-        data: data,
+      // 新規ログの作成
+      console.log('Creating new log for date:', data.log_date);
+      response = await axios.post('/api/health-logs', data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
     }
     
-    if (response.success) {
-      showToast('健康ログを保存しました', 'success');
+    console.log('Save response:', response.data);
+    
+    if (response.data.success) {
+      showToast(`${formatDateDisplay(data.log_date)}の健康ログを保存しました`, 'success');
       
       // 保存した日付を選択日付として設定
       selectedDate = data.log_date;
@@ -1823,7 +1855,6 @@ async function handleHealthLogSubmit(e) {
       setTimeout(async () => {
         await loadUnreadCount();
         await loadTodayAdvices();
-        renderPage();
       }, 3000);
     }
   } catch (error) {
