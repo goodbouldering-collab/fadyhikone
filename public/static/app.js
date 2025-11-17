@@ -163,31 +163,7 @@ function updateNotificationBadge() {
   }
 }
 
-// ★ この関数は削除 - 1630行目の新しい関数を使用
-      
-      // 食事データの合計を計算してtodayLogに追加
-      if (todayLog) {
-        todayLog.total_calories = (mealData.breakfast?.calories || 0) + 
-                                   (mealData.lunch?.calories || 0) + 
-                                   (mealData.dinner?.calories || 0);
-        todayLog.total_protein = (mealData.breakfast?.protein || 0) + 
-                                  (mealData.lunch?.protein || 0) + 
-                                  (mealData.dinner?.protein || 0);
-        todayLog.total_carbs = (mealData.breakfast?.carbs || 0) + 
-                                (mealData.lunch?.carbs || 0) + 
-                                (mealData.dinner?.carbs || 0);
-        todayLog.total_fat = (mealData.breakfast?.fat || 0) + 
-                              (mealData.lunch?.fat || 0) + 
-                              (mealData.dinner?.fat || 0);
-      }
-      
-      // ページを再レンダリング
-      renderPage();
-    }
-  } catch (error) {
-    console.error('ログの読み込みに失敗:', error);
-  }
-}
+
 
 // ページレンダリング
 function renderPage() {
