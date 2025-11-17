@@ -395,6 +395,34 @@ function renderHero() {
                 </div>
               </div>
             </div>
+            
+            <!-- 日付選択（ログイン後のみ） -->
+            <div class="mb-6">
+              <div class="flex items-center justify-center gap-2">
+                <button type="button" onclick="changeLogDate(-1)" class="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-lg transition shadow-lg border border-white/20">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2.5 rounded-lg shadow-lg border border-white/30">
+                  <i class="fas fa-calendar-alt text-white"></i>
+                  <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                    max="${dayjs().format('YYYY-MM-DD')}"
+                    onchange="changeLogDateFromPicker(this.value)"
+                    class="bg-transparent text-sm font-bold text-white border-none focus:outline-none cursor-pointer">
+                </div>
+                <button type="button" onclick="changeLogDate(1)" 
+                  ${selectedDate === dayjs().format('YYYY-MM-DD') ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                  class="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-lg transition shadow-lg border border-white/20">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+                <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-white/30 backdrop-blur-sm text-white rounded-lg hover:bg-white/40 transition shadow-lg font-bold border border-white/30">
+                  今日
+                </button>
+              </div>
+              <p class="text-center text-white/80 text-xs mt-2">
+                <i class="fas fa-info-circle mr-1"></i>
+                日付を選択すると、その日の記録とアドバイスが表示されます
+              </p>
+            </div>
           ` : `
             <!-- ログイン前 -->
             <div class="text-center">
@@ -483,33 +511,18 @@ function renderHealthLogSection() {
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           
-          <!-- タイトルと日付選択 -->
+          <!-- タイトル -->
           <div class="mb-2">
             <div class="text-center mb-2">
               <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
-                健康ログ
+                ${(() => {
+                  const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+                  const isToday = displayDate === dayjs().format('YYYY-MM-DD');
+                  const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
+                  return isToday ? '今日の健康ログ' : `${formattedDate}の健康ログ`;
+                })()}
               </h3>
-            </div>
-            
-            <!-- 日付選択 -->
-            <div class="flex items-center justify-center gap-2">
-              <button type="button" onclick="changeLogDate(-1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-lg transition shadow-sm">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                <i class="fas fa-calendar-alt text-primary"></i>
-                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                  max="${dayjs().format('YYYY-MM-DD')}"
-                  onchange="changeLogDateFromPicker(this.value)"
-                  class="bg-transparent text-sm font-medium text-gray-700 border-none focus:outline-none cursor-pointer">
-              </div>
-              <button type="button" onclick="changeLogDate(1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-lg transition shadow-sm">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-              <button type="button" onclick="goToToday()" class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium">
-                今日
-              </button>
             </div>
           </div>
           
@@ -1665,6 +1678,14 @@ async function changeLogDate(days) {
   if (!selectedDate) selectedDate = dayjs().format('YYYY-MM-DD');
   
   const newDate = dayjs(selectedDate).add(days, 'day').format('YYYY-MM-DD');
+  const today = dayjs().format('YYYY-MM-DD');
+  
+  // 未来の日付には移動しない
+  if (newDate > today) {
+    showToast('未来の日付は選択できません', 'error');
+    return;
+  }
+  
   selectedDate = newDate;
   
   // 日付ピッカーの値を更新
