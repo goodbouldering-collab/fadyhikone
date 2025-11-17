@@ -23,23 +23,47 @@ let mealData = {
 
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('=== App Initialization Started ===');
+  
   await checkAuth();
+  console.log('Auth checked, currentUser:', currentUser);
+  
   await loadAnnouncements();
+  console.log('Announcements loaded');
+  
+  // 認証されている場合、データをロードしてからレンダリング
+  if (currentUser) {
+    selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
+    console.log('Loading data for date:', selectedDate);
+    
+    // 重要: renderPage()の前にすべてのデータをロード
+    await loadAdvices();
+    await loadTodayAdvices();
+    await loadUnreadCount();
+    await loadLogForDate(selectedDate);  // ★ ここでtodayLogとmealDataをセット
+    await loadLatestStaffComment();
+    await loadOpinions();
+    
+    console.log('All data loaded, todayLog:', todayLog);
+    console.log('mealData:', mealData);
+  }
+  
+  // データロード後にページをレンダリング
   renderPage();
+  console.log('Page rendered');
   
   // ヒーロー画像スライドショー開始
   startHeroSlideshow();
   
-  // 認証されている場合、アドバイスとログをロード
+  // グラフを描画（ログインユーザーのみ）
   if (currentUser) {
-    selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
-    await loadAdvices();
-    await loadTodayAdvices(); // 今日のアドバイスもロード
-    await loadUnreadCount(); // 未読カウントをロード
-    await loadLogForDate(selectedDate);
-    await loadLatestStaffComment();
-    await loadOpinions(); // 質問・相談データをロード
+    setTimeout(() => {
+      renderHeroChart();
+      console.log('Hero chart rendered');
+    }, 500);
   }
+  
+  console.log('=== App Initialization Complete ===');
 });
 
 // 認証チェック
@@ -139,33 +163,7 @@ function updateNotificationBadge() {
   }
 }
 
-// 指定日のログ読み込み
-async function loadLogForDate(date) {
-  try {
-    const response = await apiCall('/api/health-logs');
-    if (response.success) {
-      // 全ログを保存（グラフ用）
-      allHealthLogs = response.data;
-      
-      const targetDate = date || dayjs().format('YYYY-MM-DD');
-      todayLog = response.data.find(log => log.log_date === targetDate);
-      
-      // 食事データの復元
-      if (todayLog?.meal_analysis) {
-        try {
-          const parsedMealData = JSON.parse(todayLog.meal_analysis);
-          mealData = parsedMealData;
-        } catch (e) {
-          console.error('食事データのパースに失敗:', e);
-        }
-      } else {
-        // データがない場合は初期化
-        mealData = {
-          breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-          lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-          dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
-        };
-      }
+// ★ この関数は削除 - 1630行目の新しい関数を使用
       
       // 食事データの合計を計算してtodayLogに追加
       if (todayLog) {
@@ -1631,46 +1629,46 @@ async function loadLogForDate(dateString) {
   try {
     console.log('Loading log for date:', dateString);
     
-    // 指定日付のログを取得（apiCallが既にshowLoading/hideLoadingを呼ぶ）
     const token = getToken();
-    const response = await axios.get(`/api/health-logs?log_date=${dateString}`, {
+    
+    // ★ 重要: まず全ログを取得（グラフ用）
+    const allLogsResponse = await axios.get('/api/health-logs', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
     
-    console.log('API response:', response.data);
+    console.log('All logs response:', allLogsResponse.data);
     
-    if (response.data.success && response.data.data.length > 0) {
-      todayLog = response.data.data[0];
-      console.log('Found log:', todayLog);
+    if (allLogsResponse.data.success) {
+      allHealthLogs = allLogsResponse.data.data || [];
+      console.log('All health logs loaded:', allHealthLogs.length, 'records');
       
-      // 食事データを復元
-      if (todayLog.meals) {
-        const meals = typeof todayLog.meals === 'string' ? JSON.parse(todayLog.meals) : todayLog.meals;
-        mealData = {
-          breakfast: meals.breakfast || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          lunch: meals.lunch || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          dinner: meals.dinner || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
-        };
-        console.log('Restored meal data:', mealData);
-      } else {
-        mealData = {
-          breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
-        };
-      }
+      // 指定日付のログを検索
+      todayLog = allHealthLogs.find(log => log.log_date === dateString);
+      console.log('Found log for', dateString, ':', todayLog);
     } else {
-      // ログがない場合は空のデータを設定
-      console.log('No log found for date:', dateString);
       todayLog = null;
+      console.log('No log found for date:', dateString);
+    }
+    
+    // 食事データを復元
+    if (todayLog && todayLog.meals) {
+      const meals = typeof todayLog.meals === 'string' ? JSON.parse(todayLog.meals) : todayLog.meals;
+      mealData = {
+        breakfast: meals.breakfast || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+        lunch: meals.lunch || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
+        dinner: meals.dinner || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
+      };
+      console.log('Restored meal data:', mealData);
+    } else {
       mealData = {
         breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
         lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
         dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
       };
+      console.log('No meal data, using empty data');
     }
     
     // ページを再レンダリング
