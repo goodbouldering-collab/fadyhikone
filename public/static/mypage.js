@@ -779,39 +779,53 @@ function renderHealthLogsTable() {
   `;
 }
 
-// グラフセクション
+// グラフセクション - モダンUI
 function renderChartsSection() {
   return `
-    <section class="bg-white py-8">
+    <section class="bg-gradient-to-b from-gray-50 to-white py-12">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-chart-line mr-2" style="color: var(--color-primary)"></i>
-            健康データ推移（最新30日）
-          </h3>
-          
-          <div class="bg-gray-50 p-2 rounded-lg">
-            <div style="height: 350px;">
-              <canvas id="combined-chart"></canvas>
+          <!-- タイトル -->
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <i class="fas fa-chart-line text-white"></i>
             </div>
+            <div>
+              <h3 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">健康データ推移</h3>
+              <p class="text-sm text-gray-500 mt-1">最新30日間のトレンド分析</p>
+            </div>
+          </div>
+          
+          <!-- グラフカード -->
+          <div class="relative bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/40 hover:shadow-[0_8px_40px_rgb(0,0,0,0.12)] transition-all duration-300">
+            <!-- 装飾的な背景 -->
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30 rounded-2xl pointer-events-none"></div>
             
-            <!-- 凡例 -->
-            <div class="flex flex-wrap justify-center gap-2 mt-2">
-              <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded" style="background-color: #3b82f6;"></div>
-                <span class="text-sm">体重 (kg)</span>
+            <div class="relative z-10">
+              <!-- グラフエリア -->
+              <div class="relative bg-white/60 backdrop-blur-sm rounded-xl p-5 shadow-inner border border-gray-100/50">
+                <div style="height: 380px;">
+                  <canvas id="combined-chart"></canvas>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded" style="background-color: #ef4444;"></div>
-                <span class="text-sm">体脂肪率 (%)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded" style="background-color: #8b5cf6;"></div>
-                <span class="text-sm">睡眠時間 (h)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded" style="background-color: #10b981;"></div>
-                <span class="text-sm">カロリー (kcal ÷ 100)</span>
+              
+              <!-- モダン凡例 -->
+              <div class="flex flex-wrap justify-center gap-3 mt-6">
+                <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-full border border-blue-200/50 shadow-sm">
+                  <div class="w-3 h-3 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm"></div>
+                  <span class="text-sm font-medium text-blue-900">体重 (kg)</span>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-50 to-red-100/50 rounded-full border border-red-200/50 shadow-sm">
+                  <div class="w-3 h-3 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-sm"></div>
+                  <span class="text-sm font-medium text-red-900">体脂肪率 (%)</span>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-full border border-purple-200/50 shadow-sm">
+                  <div class="w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 shadow-sm"></div>
+                  <span class="text-sm font-medium text-purple-900">睡眠時間 (h)</span>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-full border border-emerald-200/50 shadow-sm">
+                  <div class="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm"></div>
+                  <span class="text-sm font-medium text-emerald-900">カロリー (kcal ÷ 100)</span>
               </div>
             </div>
           </div>
@@ -840,43 +854,75 @@ function renderCharts() {
         labels: labels,
         datasets: [
           {
-            label: '体重 (kg)',
+            label: '体重',
             data: weightData,
             borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 2,
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            borderWidth: 3,
             tension: 0.4,
-            fill: false,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#3b82f6',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#3b82f6',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
             yAxisID: 'y'
           },
           {
-            label: '体脂肪率 (%)',
+            label: '体脂肪率',
             data: bodyfatData,
             borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderWidth: 2,
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            borderWidth: 3,
             tension: 0.4,
-            fill: false,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#ef4444',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#ef4444',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
             yAxisID: 'y'
           },
           {
-            label: '睡眠時間 (h)',
+            label: '睡眠時間',
             data: sleepData,
             borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-            borderWidth: 2,
+            backgroundColor: 'rgba(139, 92, 246, 0.08)',
+            borderWidth: 3,
             tension: 0.4,
-            fill: false,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#8b5cf6',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#8b5cf6',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
             yAxisID: 'y'
           },
           {
-            label: 'カロリー (kcal ÷ 100)',
+            label: 'カロリー',
             data: caloriesData,
             borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            borderWidth: 2,
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            borderWidth: 3,
             tension: 0.4,
-            fill: false,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#10b981',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#10b981',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
             yAxisID: 'y'
           }
         ]
@@ -890,21 +936,41 @@ function renderCharts() {
         },
         plugins: {
           legend: {
-            display: false // 下部に独自の凡例を表示
+            display: false
           },
           tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#1f2937',
+            bodyColor: '#374151',
+            borderColor: 'rgba(0, 0, 0, 0.1)',
+            borderWidth: 1,
+            padding: 16,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { 
+              size: 14,
+              weight: 'bold',
+              family: "'Inter', 'Helvetica Neue', 'Arial', sans-serif"
+            },
+            bodyFont: { 
+              size: 13,
+              family: "'Inter', 'Helvetica Neue', 'Arial', sans-serif"
+            },
+            cornerRadius: 12,
+            displayColors: true,
             callbacks: {
               label: function(context) {
                 let label = context.dataset.label || '';
-                if (label) {
-                  label += ': ';
-                }
                 if (context.parsed.y !== null) {
-                  // カロリーだけ100倍して表示
-                  if (context.dataset.label.includes('カロリー')) {
-                    label += (context.parsed.y * 100).toFixed(0);
-                  } else {
-                    label += context.parsed.y.toFixed(1);
+                  if (label.includes('カロリー')) {
+                    label += ': ' + Math.round(context.parsed.y * 100) + ' kcal';
+                  } else if (label.includes('体重')) {
+                    label += ': ' + context.parsed.y.toFixed(1) + ' kg';
+                  } else if (label.includes('体脂肪')) {
+                    label += ': ' + context.parsed.y.toFixed(1) + ' %';
+                  } else if (label.includes('睡眠')) {
+                    label += ': ' + context.parsed.y.toFixed(1) + ' 時間';
                   }
                 }
                 return label;
@@ -918,16 +984,40 @@ function renderCharts() {
             display: true,
             position: 'left',
             beginAtZero: false,
-            title: {
-              display: true,
-              text: '値'
+            grid: {
+              color: 'rgba(0, 0, 0, 0.04)',
+              drawBorder: false
+            },
+            border: {
+              display: false
+            },
+            ticks: {
+              color: '#9ca3af',
+              font: { 
+                size: 12,
+                family: "'Inter', 'Helvetica Neue', 'Arial', sans-serif"
+              },
+              padding: 10
             }
           },
           x: {
             display: true,
-            title: {
-              display: true,
-              text: '日付'
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            border: {
+              display: false
+            },
+            ticks: {
+              color: '#9ca3af',
+              font: { 
+                size: 11,
+                family: "'Inter', 'Helvetica Neue', 'Arial', sans-serif"
+              },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 15
             }
           }
         }
