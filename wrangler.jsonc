@@ -1,29 +1,27 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fadyhikone",
-  "compatibility_date": "2024-01-01",
+  "compatibility_date": "2025-01-01",
   "pages_build_output_dir": "./dist",
-  "compatibility_flags": ["nodejs_compat"],
   
-  // D1 Database
+  // D1 Database Configuration
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "fadyhikone-production",
-      "database_id": "3c41910c-1b96-47ad-99e7-604df7428bdb",
-      "migrations_dir": "migrations"
+      "database_id": "3c41910c-1b96-47ad-99e7-604df7428bdb"
     }
-  ]
+  ],
   
-  // R2 Storage for images (コメントアウト - 必要に応じて有効化)
-  // "r2_buckets": [
-  //   {
-  //     "binding": "BUCKET",
-  //     "bucket_name": "fadyhikone-images"
-  //   }
-  // ]
+  // Node.js Compatibility
+  "compatibility_flags": ["nodejs_compat"],
   
   // Environment Variables
-  // For local development: Create .dev.vars file with GEMINI_API_KEY=your-key
-  // For production: Use `wrangler secret put GEMINI_API_KEY`
+  // Local: Create .dev.vars file with your API keys
+  // Production: Use Cloudflare Dashboard > Settings > Environment Variables
+  
+  // Note: For GitHub auto-deployments, configure D1 bindings in Cloudflare Dashboard:
+  // Settings > Functions > D1 database bindings > Add binding
+  // Variable name: DB
+  // D1 database: fadyhikone-production
 }

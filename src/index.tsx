@@ -33,8 +33,13 @@ app.route('/api/comments', comments);
 app.route('/api/settings', settings);
 app.route('/api/opinions', opinions);
 
-// R2から画像を取得するルート
+// R2から画像を取得するルート（R2未設定の場合は404を返す）
 app.get('/api/images/:path{.+}', async (c) => {
+  // R2バケットが設定されていない場合は404
+  if (!c.env.BUCKET) {
+    return c.notFound();
+  }
+  
   const path = c.req.param('path');
   const object = await c.env.BUCKET.get(path);
 

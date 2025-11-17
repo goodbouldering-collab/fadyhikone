@@ -298,13 +298,22 @@ healthLogs.post('/upload-meal', async (c) => {
       return c.json<ApiResponse>({ success: false, error: '写真が提供されていません' }, 400);
     }
 
-    // R2にアップロード
-    const filename = `meals/${userId}/${Date.now()}-${file.name}`;
-    await c.env.BUCKET.put(filename, await file.arrayBuffer(), {
-      httpMetadata: {
-        contentType: file.type,
-      },
-    });
+    // 画像アップロード（R2が設定されていない場合はモックURLを使用）
+    let imageUrl: string;
+    
+    if (c.env.BUCKET) {
+      // R2にアップロード
+      const filename = `meals/${userId}/${Date.now()}-${file.name}`;
+      await c.env.BUCKET.put(filename, await file.arrayBuffer(), {
+        httpMetadata: {
+          contentType: file.type,
+        },
+      });
+      imageUrl = `/api/images/${filename}`;
+    } else {
+      // R2未設定の場合はモック画像URLを使用
+      imageUrl = `https://picsum.photos/seed/${Date.now()}/400/300`;
+    }
 
     // モックAI解析結果
     const mockAnalysis = {
@@ -333,7 +342,7 @@ healthLogs.post('/upload-meal', async (c) => {
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `).bind(
-        filename,
+        imageUrl,
         JSON.stringify(mockAnalysis),
         mockAnalysis.カロリー,
         mockAnalysis.タンパク質,
@@ -350,7 +359,7 @@ healthLogs.post('/upload-meal', async (c) => {
       `).bind(
         userId,
         logDate,
-        filename,
+        imageUrl,
         JSON.stringify(mockAnalysis),
         mockAnalysis.カロリー,
         mockAnalysis.タンパク質,
@@ -363,7 +372,7 @@ healthLogs.post('/upload-meal', async (c) => {
       success: true,
       data: {
         analysis: mockAnalysis,
-        photoUrl: `/api/images/${filename}`,
+        photoUrl: imageUrl,
       },
     });
   } catch (error) {

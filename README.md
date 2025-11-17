@@ -23,27 +23,33 @@
 - セッション管理
 
 ### ✅ トップページ
-1. **クイックアクセス**: マイページへの目立つボタン（最上部）
-2. **Heroセクション**: サービスの魅力を伝えるメインビジュアル
-3. **スタッフアドバイス表示**: ユーザーへの最新アドバイス3件を表示
-4. **健康ログ入力**: 
+1. **Heroセクション**: 
+   - ファディー彦根ジム公式画像スライドショー（4枚自動切替）
+   - 控えめな名前表示
+   - **30日単位の健康データグラフ**（体重、体脂肪率、睡眠、カロリー）
+   - 小さな矢印ボタンで過去期間を閲覧可能
+   - お知らせ表示（最新2件）
+2. **今日のアドバイス**: 選択した日付のAI・スタッフアドバイスを2列表示
+3. **健康ログ入力**: 
+   - 日付選択機能（過去の日付も入力可能）
    - 体重、体脂肪率、睡眠、運動時間の記録
    - **朝食・昼食・夕食**の分類別記録
    - **複数枚の食事写真**アップロード対応
    - **PFCバランス**（タンパク質・脂質・炭水化物）自動計算
    - 1日の合計カロリー・栄養素表示
    - AI食事解析（モック）
-5. **特徴セクション**: AIパーソナルジムの3つの特徴を紹介
-6. **FAQセクション**: よくある質問をアコーディオン形式で表示
-7. **お問い合わせフォーム**: 未登録ユーザーからの問い合わせを受付
+4. **特徴セクション**: AIパーソナルジムの3つの特徴を紹介
+5. **FAQセクション**: よくある質問をアコーディオン形式で表示
+6. **お問い合わせフォーム**: 未登録ユーザーからの問い合わせを受付
 
 ### ✅ マイページ
 1. **ユーザープロフィール**: 名前、メール、最新データのサマリー表示
-2. **統計カード**: 最新体重、体脂肪率、記録日数、未読アドバイス数
-3. **アドバイス一覧**: スタッフからのアドバイスを種類別に表示
+2. **コンパクト統計カード**: 4列グリッドでスペース効率化（体重、体脂肪率、記録日数、未読アドバイス数）
+3. **日付別アドバイス表示**: 最新7日分のアドバイスを日付ごとにグループ化
 4. **健康ログテーブル**: 横スクロール対応の履歴テーブル
 5. **ログ編集・削除機能**: モーダルからデータを編集可能
-6. **推移グラフ**: 体重、体脂肪率、睡眠時間、カロリーのChart.js可視化
+6. **推移グラフ**: 体重、体脂肪率、睡眠時間、カロリーのChart.js可視化（最新30日）
+7. **個人データ設定**: 誕生日フィールド削除、パディング統一
 
 ### ✅ 管理画面
 1. **統計ダッシュボード**: 総顧客数、総ログ数、未対応問い合わせ、今日のログ数
@@ -139,9 +145,18 @@
 ## 開発環境
 
 ### 必要な環境
-- Node.js 18+
-- npm または pnpm
-- Wrangler CLI
+- Node.js 20 (`.node-version`で固定)
+- npm
+- Wrangler CLI v4.4+
+- PM2 (サンドボックス環境にプリインストール)
+
+### 技術スタック詳細
+- **フレームワーク**: Hono v4.10+
+- **ビルドツール**: Vite v6.3+
+- **デプロイ**: Cloudflare Pages + Workers
+- **データベース**: Cloudflare D1 (SQLite)
+- **認証**: JWT
+- **フロントエンド**: TailwindCSS (CDN), Chart.js, Day.js, Axios
 
 ### ローカル開発
 ```bash
@@ -151,14 +166,20 @@ npm install
 # データベースセットアップ
 npm run db:reset
 
-# ビルド
+# ビルド（初回必須）
 npm run build
 
-# 開発サーバー起動
+# 開発サーバー起動（PM2）
 pm2 start ecosystem.config.cjs
 
 # ログ確認
 pm2 logs fadyhikone --nostream
+
+# サービス再起動
+pm2 restart fadyhikone
+
+# ポートクリーンアップ（必要時）
+npm run clean-port
 ```
 
 ### テストユーザー
@@ -174,33 +195,59 @@ pm2 logs fadyhikone --nostream
 
 ## デプロイ
 
-### Cloudflare Pages デプロイ状態
+### 📦 Cloudflare Pages デプロイ状態
 
 ✅ **本番環境**: https://fadyhikone.pages.dev
 - GitHub連携による自動デプロイ設定済み
 - D1データベース: `fadyhikone-production` (3c41910c-1b96-47ad-99e7-604df7428bdb)
 - すべてのマイグレーション適用済み（0001〜0010）
+- Node.js version: 20 (`.node-version`で固定)
 
-### GitHub連携デプロイ
+### 🚀 デプロイ方法
+
+#### A. 自動デプロイ（推奨）- GitHubプッシュ
 ```bash
 # コード変更をプッシュするだけで自動デプロイ
 git add .
-git commit -m "Update feature"
+git commit -m "Update: 新機能追加"
 git push origin main
+
+# Cloudflare Pagesが自動的にビルド＆デプロイ
+# デプロイ状況: https://dash.cloudflare.com > Pages > fadyhikone
 ```
 
-### 環境変数設定 (Cloudflare Dashboard)
-```
-必須設定:
-- D1データベースバインディング: DB → fadyhikone-production
-- R2バケットバインディング: BUCKET → fadyhikone-images
+#### B. 手動デプロイ - Wrangler CLI
+```bash
+# ビルド＆デプロイ
+npm run deploy
 
-オプション設定:
-- JWT_SECRET (セキュリティ強化用)
-- GEMINI_API_KEY (AI機能用)
-- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (OAuth用)
-- LINE_CHANNEL_ID / LINE_CHANNEL_SECRET (LINE OAuth用)
+# または詳細コマンド
+npm run build
+npx wrangler pages deploy dist --project-name fadyhikone --branch main
 ```
+
+### ⚙️ Cloudflare Dashboard設定
+
+**必須設定 (Settings > Functions):**
+- **D1 database bindings**: 
+  - Variable name: `DB`
+  - D1 database: `fadyhikone-production`
+
+**ビルド設定 (Settings > Builds and deployments):**
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Root directory: `/`
+- Node.js version: `20` (または Environment Variables で `NODE_VERSION=20`)
+
+**オプション設定 (Settings > Environment Variables):**
+- `JWT_SECRET` - セキュリティ強化用
+- `GEMINI_API_KEY` - AI機能用
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - OAuth用
+- `LINE_CHANNEL_ID` / `LINE_CHANNEL_SECRET` - LINE OAuth用
+
+### 📚 詳細なデプロイガイド
+
+詳しい手順は [`CLOUDFLARE_DEPLOYMENT.md`](./CLOUDFLARE_DEPLOYMENT.md) を参照してください。
 
 ## ライセンス
 

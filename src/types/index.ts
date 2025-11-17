@@ -1,13 +1,13 @@
 // Cloudflare bindings型定義
 export type Bindings = {
   DB: D1Database;
-  BUCKET: R2Bucket;
-  AI: any;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
-  LINE_CHANNEL_ID: string;
-  LINE_CHANNEL_SECRET: string;
-  JWT_SECRET: string;
+  BUCKET?: R2Bucket; // オプショナル: R2未設定でもエラーにならない
+  AI?: any;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  LINE_CHANNEL_ID?: string;
+  LINE_CHANNEL_SECRET?: string;
+  JWT_SECRET?: string;
 };
 
 // ユーザー型
