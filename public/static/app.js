@@ -337,22 +337,51 @@ function renderHero() {
               </div>
             ` : ''}
             
-            <!-- 今日の記録 -->
-            <div class="grid grid-cols-3 gap-4">
-              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('meal-section')">
-                <div class="text-3xl mb-1">🔥</div>
-                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.total_calories || 0}</div>
-                <p class="text-xs text-white/90">kcal</p>
+            <!-- 健康データグラフ（30日単位） -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                  <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
+                  健康データ推移
+                </h3>
+                <div class="flex items-center gap-1">
+                  <button onclick="navigateGraphPeriod(-1)" 
+                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                    id="graph-prev-btn">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
+                  <button onclick="navigateGraphPeriod(1)" 
+                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                    id="graph-next-btn"
+                    ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
               </div>
-              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('exercise-section')">
-                <div class="text-3xl mb-1">💪</div>
-                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.exercise_minutes || 0}</div>
-                <p class="text-xs text-white/90">分</p>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div style="height: 200px;">
+                  <canvas id="hero-chart"></canvas>
+                </div>
               </div>
-              <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/30 transition-all cursor-pointer" onclick="scrollToSection('weight-section')">
-                <div class="text-3xl mb-1">⚖️</div>
-                <div class="text-2xl font-bold text-white drop-shadow-lg">${todayLog?.weight || '--'}</div>
-                <p class="text-xs text-white/90">kg</p>
+              <!-- 凡例 -->
+              <div class="flex flex-wrap justify-center gap-2 mt-2">
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
+                  <span class="text-xs">体重</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #ef4444;"></div>
+                  <span class="text-xs">体脂肪率</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #8b5cf6;"></div>
+                  <span class="text-xs">睡眠時間</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-3 h-3 rounded" style="background-color: #10b981;"></div>
+                  <span class="text-xs">カロリー (÷100)</span>
+                </div>
               </div>
             </div>
           ` : `
@@ -473,55 +502,7 @@ function renderHealthLogSection() {
             </div>
           </div>
           
-          <!-- 健康データグラフ（30日単位） -->
-          ${currentUser ? `
-            <div class="mb-3 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
-                  <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
-                  健康データ推移
-                </h3>
-                <div class="flex items-center gap-1">
-                  <button onclick="navigateGraphPeriod(-1)" 
-                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
-                    id="graph-prev-btn">
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
-                  <button onclick="navigateGraphPeriod(1)" 
-                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
-                    id="graph-next-btn"
-                    ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="bg-gray-50 rounded-lg p-2">
-                <div style="height: 200px;">
-                  <canvas id="hero-chart"></canvas>
-                </div>
-              </div>
-              <!-- 凡例 -->
-              <div class="flex flex-wrap justify-center gap-2 mt-2">
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #3b82f6;"></div>
-                  <span class="text-xs">体重</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #ef4444;"></div>
-                  <span class="text-xs">体脂肪率</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #8b5cf6;"></div>
-                  <span class="text-xs">睡眠時間</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded" style="background-color: #10b981;"></div>
-                  <span class="text-xs">カロリー (÷100)</span>
-                </div>
-              </div>
-            </div>
-          ` : ''}
+
           
           <!-- スタッフコメント -->
           ${latestStaffComment ? `
