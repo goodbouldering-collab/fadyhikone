@@ -298,17 +298,31 @@ function renderHero() {
         <div class="max-w-6xl mx-auto">
           ${currentUser ? `
             <!-- ログイン後：名前表示 -->
-            <div class="text-center mb-6">
+            <div class="text-center mb-8 mt-12">
               <div class="inline-block relative">
-                <h1 class="text-3xl md:text-4xl font-bold text-white relative z-10" 
-                    style="text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 2px 10px rgba(255,107,157,0.3);">
-                  <span class="bg-gradient-to-r from-white via-pink-50 to-white bg-clip-text text-transparent" 
-                        style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(255,255,255,0.5));">
-                    ${currentUser.name}
-                  </span>
-                  <span class="text-2xl md:text-3xl ml-2">さん</span>
-                </h1>
-                <div class="absolute -inset-2 bg-gradient-to-r from-primary/20 via-pink-500/20 to-purple-500/20 blur-xl -z-10 animate-pulse"></div>
+                <!-- 装飾的な背景エフェクト -->
+                <div class="absolute -inset-6 bg-gradient-to-r from-pink-500/30 via-purple-500/30 to-blue-500/30 blur-2xl -z-10 animate-pulse"></div>
+                <div class="absolute -inset-4 bg-gradient-to-r from-white/20 via-pink-300/20 to-white/20 blur-xl -z-10 animate-pulse" style="animation-delay: 0.5s;"></div>
+                
+                <!-- 装飾的な枠 -->
+                <div class="absolute -inset-3 bg-gradient-to-r from-white/30 via-pink-300/30 to-purple-300/30 rounded-2xl -z-10" style="padding: 2px;">
+                  <div class="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-2xl"></div>
+                </div>
+                
+                <!-- 名前テキスト -->
+                <div class="relative px-8 py-4">
+                  <h1 class="text-4xl md:text-5xl font-bold text-white relative z-10" 
+                      style="text-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 2px 15px rgba(255,107,157,0.4), 0 8px 40px rgba(139,92,246,0.3);">
+                    <span class="bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent" 
+                          style="-webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 3px 12px rgba(255,255,255,0.6)) drop-shadow(0 1px 6px rgba(255,182,193,0.8));">
+                      ${currentUser.name}
+                    </span>
+                    <span class="text-3xl md:text-4xl ml-3 inline-block" style="text-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 2px 15px rgba(255,107,157,0.4);">さん</span>
+                  </h1>
+                  
+                  <!-- 装飾的なアクセント -->
+                  <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-pink-300 to-transparent rounded-full"></div>
+                </div>
               </div>
             </div>
             
@@ -356,15 +370,16 @@ function renderHero() {
             ` : ''}
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg overflow-hidden relative">
-              <!-- 背景画像 -->
-              <div class="absolute inset-0 opacity-5 pointer-events-none">
-                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop" 
+            <div class="mb-6 rounded-xl shadow-lg overflow-hidden relative">
+              <!-- 背景画像（Unsplash フィットネス画像） -->
+              <div class="absolute inset-0">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=600&fit=crop&q=80" 
                      alt="健康背景" 
                      class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-br from-black/50 via-black/40 to-black/50"></div>
               </div>
               
-              <div class="relative z-10">
+              <div class="relative z-10 bg-white/90 backdrop-blur-md rounded-xl m-2 p-3">
                 <div class="flex items-center justify-between mb-2">
                   <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1">
                     <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
@@ -385,11 +400,12 @@ function renderHero() {
                     </button>
                   </div>
                 </div>
-                <div class="bg-white/60 backdrop-blur-sm rounded-lg p-2">
+                <div class="bg-white rounded-lg p-2">
                   <div style="height: 200px;">
                     <canvas id="hero-chart"></canvas>
                   </div>
                 </div>
+              </div>
               </div>
               <!-- 凡例 -->
               <div class="flex flex-wrap justify-center gap-2 mt-2 relative z-10">
