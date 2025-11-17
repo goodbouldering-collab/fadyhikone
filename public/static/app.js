@@ -1664,6 +1664,21 @@ async function loadLogForDate(dateString) {
     
     // ページを再レンダリング
     renderPage();
+    
+    // 運動記録の状態を復元
+    setTimeout(() => {
+      if (todayLog?.exercise_minutes && todayLog.exercise_minutes > 0) {
+        // 運動時間が記録されている場合、運動カードを展開
+        const exerciseCard = document.getElementById('exercise-card');
+        if (exerciseCard) {
+          exerciseCard.classList.remove('hidden');
+        }
+      }
+      
+      // BMIを更新
+      updateBMIDisplay();
+    }, 100);
+    
     hideLoading();
     
   } catch (error) {
