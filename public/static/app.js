@@ -223,44 +223,38 @@ function renderHeader() {
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
-          <a href="/" class="flex items-center gap-2">
-            <i class="fas fa-dumbbell text-lg" style="color: var(--color-primary)"></i>
-            <h1 class="text-lg font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
+          <a href="/" class="flex items-center gap-1.5">
+            <i class="fas fa-dumbbell text-base" style="color: var(--color-primary)"></i>
+            <h1 class="text-base font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-3">
+          <nav class="flex items-center gap-2">
             ${currentUser ? `
-              <div class="flex items-center gap-3">
-                <span class="hidden sm:flex items-center gap-2 text-sm text-gray-700">
-                  <i class="fas fa-user-circle text-primary"></i>
+              <div class="flex items-center gap-2">
+                <span class="hidden sm:flex items-center gap-1.5 text-xs text-gray-700">
+                  <i class="fas fa-user-circle text-primary text-sm"></i>
                   <span class="font-medium">${currentUser.name}さん</span>
                 </span>
-                <a href="/mypage" class="relative px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <a href="/mypage" class="relative px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                   <i class="fas fa-chart-line mr-1"></i>
                   マイデータ
-                  <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                  <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
                 ${currentUser.role === 'admin' ? `
-                  <a href="/admin" class="px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
+                  <a href="/admin" class="px-2.5 py-1.5 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
                     <i class="fas fa-user-shield mr-1"></i>
                     管理画面
                   </a>
                 ` : ''}
-                <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
+                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
                   ログアウト
                 </button>
               </div>
             ` : `
-              <div class="flex items-center gap-2">
-                <button onclick="quickAdminLogin()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
-                  <i class="fas fa-user-shield mr-1"></i>
-                  管理者ログイン
-                </button>
-                <button onclick="showLoginModal()" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
-                  <i class="fas fa-sign-in-alt mr-2"></i>
-                  <span>ログイン</span>
-                </button>
-              </div>
+              <button onclick="showLoginModal()" class="px-4 py-1.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
+                <i class="fas fa-sign-in-alt mr-1.5"></i>
+                <span>ログイン</span>
+              </button>
             `}
           </nav>
         </div>
@@ -2275,18 +2269,13 @@ function showLoginModal(showAdminOption = false) {
         初めての方は自動的に新規登録されます
       </p>
       
-      ${showAdminOption ? `
-        <!-- 管理者ログインオプション (失敗時のみ表示) -->
-        <div class="border-t pt-4 mt-4">
-          <p class="text-xs text-gray-600 text-center mb-3">
-            <i class="fas fa-shield-alt mr-1"></i>
-            管理者の方はこちら
-          </p>
-          <button onclick="showAdminLoginModal()" class="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">
-            管理者ログイン
-          </button>
-        </div>
-      ` : ''}
+      <!-- 管理者ログインボタン -->
+      <div class="border-t pt-4 mt-4">
+        <button onclick="quickAdminLogin()" class="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg text-sm font-medium transition shadow-sm">
+          <i class="fas fa-user-shield mr-2"></i>
+          管理者ログイン（開発用）
+        </button>
+      </div>
       
       <button onclick="this.closest('.modal-backdrop').remove()" class="mt-6 w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
         キャンセル
