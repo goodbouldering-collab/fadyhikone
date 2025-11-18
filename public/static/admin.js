@@ -11,6 +11,7 @@ let opinions = [];
 let unprocessedOpinionCount = 0;
 let stats = {};
 let announcements = [];
+let blogs = [];
 let settings = [];
 
 // ページ初期化
@@ -50,13 +51,14 @@ async function checkAdminAuth() {
 // 管理者データロード
 async function loadAdminData() {
   try {
-    const [usersRes, inquiriesRes, statsRes, opinionsRes, opinionCountRes, announcementsRes] = await Promise.all([
+    const [usersRes, inquiriesRes, statsRes, opinionsRes, opinionCountRes, announcementsRes, blogsRes] = await Promise.all([
       apiCall('/api/admin/users'),
       apiCall('/api/admin/inquiries'),
       apiCall('/api/admin/stats'),
       apiCall('/api/opinions/admin'),
       apiCall('/api/opinions/admin/unprocessed-count'),
       apiCall('/api/announcements'),
+      apiCall('/api/blogs/admin/all'),
     ]);
     
     if (usersRes.success) users = usersRes.data;
@@ -65,6 +67,7 @@ async function loadAdminData() {
     if (opinionsRes.success) opinions = opinionsRes.data;
     if (opinionCountRes.success) unprocessedOpinionCount = opinionCountRes.count;
     if (announcementsRes.success) announcements = announcementsRes.data;
+    if (blogsRes.success) blogs = blogsRes.data;
   } catch (error) {
     showToast('データの読み込みに失敗しました', 'error');
   }
@@ -173,31 +176,38 @@ function renderStats() {
 // タブ
 function renderTabs() {
   return `
-    <div class="bg-white border-b">
-      <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto">
-          <div class="flex gap-2">
-            <button onclick="showTab('users')" id="tab-users" 
-              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
-              <i class="fas fa-users mr-1"></i>会員管理
-            </button>
-            <button onclick="showTab('opinions')" id="tab-opinions" 
-              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition relative">
-              <i class="fas fa-comments mr-1"></i>質問管理
-              ${unprocessedOpinionCount > 0 ? `
-                <span class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
-                  ${unprocessedOpinionCount}
-                </span>
-              ` : ''}
-            </button>
-            <button onclick="showTab('inquiries')" id="tab-inquiries" 
-              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
-              <i class="fas fa-envelope mr-1"></i>問い合わせ
-            </button>
-            <button onclick="showTab('announcements')" id="tab-announcements" 
-              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
-              <i class="fas fa-bullhorn mr-1"></i>お知らせ
-            </button>
+    <div class="bg-white shadow-md sticky top-[60px] z-40">
+      <div class="container mx-auto px-4">
+        <div class="flex overflow-x-auto">
+          <button onclick="showTab('users')" id="tab-users" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+            <i class="fas fa-users mr-2"></i>会員管理
+          </button>
+          <button onclick="showTab('announcements')" id="tab-announcements" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+            <i class="fas fa-bullhorn mr-2"></i>お知らせ
+          </button>
+          <button onclick="showTab('blogs')" id="tab-blogs" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+            <i class="fas fa-blog mr-2"></i>ブログ
+          </button>
+          <button onclick="showTab('opinions')" id="tab-opinions" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition relative whitespace-nowrap">
+            <i class="fas fa-comments mr-2"></i>質問管理
+            ${unprocessedOpinionCount > 0 ? `
+              <span class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                ${unprocessedOpinionCount}
+              </span>
+            ` : ''}
+          </button>
+          <button onclick="showTab('inquiries')" id="tab-inquiries" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+            <i class="fas fa-envelope mr-2"></i>問い合わせ
+          </button>
+          <button onclick="showTab('myhealth')" id="tab-myhealth" 
+            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+            <i class="fas fa-heartbeat mr-2"></i>自分の健康記録
+          </button>
             <button onclick="showTab('settings')" id="tab-settings" 
               class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
               <i class="fas fa-cog mr-1"></i>管理設定
@@ -213,20 +223,29 @@ function renderTabs() {
 function showTab(tab) {
   // タブボタンの状態更新
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('border-primary', 'text-primary');
+    btn.classList.remove('border-primary', 'text-primary', 'border-b-3');
+    btn.classList.add('border-transparent');
   });
-  document.getElementById(`tab-${tab}`).classList.add('border-primary', 'text-primary');
+  const tabBtn = document.getElementById(`tab-${tab}`);
+  if (tabBtn) {
+    tabBtn.classList.remove('border-transparent');
+    tabBtn.classList.add('border-primary', 'text-primary', 'border-b-3');
+  }
   
   // コンテンツ表示
   const content = document.getElementById('tab-content');
   if (tab === 'users') {
     content.innerHTML = renderUsersTab();
+  } else if (tab === 'announcements') {
+    content.innerHTML = renderAnnouncementsTab();
+  } else if (tab === 'blogs') {
+    content.innerHTML = renderBlogsTab();
   } else if (tab === 'opinions') {
     content.innerHTML = renderOpinionsTab();
   } else if (tab === 'inquiries') {
     content.innerHTML = renderInquiriesTab();
-  } else if (tab === 'announcements') {
-    content.innerHTML = renderAnnouncementsTab();
+  } else if (tab === 'myhealth') {
+    content.innerHTML = renderMyHealthTab();
   } else if (tab === 'settings') {
     loadSettingsData().then(() => {
       content.innerHTML = renderSettingsTab();
@@ -1739,4 +1758,271 @@ function toggleAdminPasswordVisibility() {
     passwordInput.type = 'password';
     icon.className = 'fas fa-eye';
   }
+}
+
+// ブログ管理タブ
+function renderBlogsTab() {
+  return `
+    <section class="bg-gray-50 py-6">
+      <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">ブログ管理</h2>
+            <button onclick="showBlogEditor()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
+              <i class="fas fa-plus mr-2"></i>新規作成
+            </button>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-bold">タイトル</th>
+                    <th class="px-4 py-3 text-left font-bold">著者</th>
+                    <th class="px-4 py-3 text-left font-bold">ステータス</th>
+                    <th class="px-4 py-3 text-left font-bold">公開日</th>
+                    <th class="px-4 py-3 text-left font-bold">作成日</th>
+                    <th class="px-4 py-3 text-right font-bold">操作</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  ${blogs.map(blog => `
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-4 py-3">
+                        <div class="font-medium text-gray-900">${blog.title}</div>
+                        <div class="text-xs text-gray-500">${blog.slug}</div>
+                      </td>
+                      <td class="px-4 py-3">${blog.author_name}</td>
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-bold rounded-full ${
+                          blog.status === 'published' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }">
+                          ${blog.status === 'published' ? '公開' : '下書き'}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">
+                        ${blog.published_at ? dayjs(blog.published_at).format('YYYY/MM/DD') : '-'}
+                      </td>
+                      <td class="px-4 py-3">
+                        ${dayjs(blog.created_at).format('YYYY/MM/DD')}
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        <button onclick="editBlog(${blog.id})" class="px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded">
+                          <i class="fas fa-edit mr-1"></i>編集
+                        </button>
+                        <button onclick="deleteBlog(${blog.id})" class="px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded">
+                          <i class="fas fa-trash mr-1"></i>削除
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// ブログエディター表示
+function showBlogEditor(blogId = null) {
+  const blog = blogId ? blogs.find(b => b.id === blogId) : null;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal-content p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold">${blog ? 'ブログ編集' : 'ブログ新規作成'}</h3>
+        <button onclick="this.closest('.modal-backdrop').remove()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      
+      <form id="blog-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold mb-2">タイトル *</label>
+          <input type="text" name="title" value="${blog?.title || ''}" required
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">スラッグ（URL用）</label>
+          <input type="text" name="slug" value="${blog?.slug || ''}" placeholder="自動生成されます"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">抜粋</label>
+          <textarea name="excerpt" rows="2" placeholder="記事の要約（自動生成されます）"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">${blog?.excerpt || ''}</textarea>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">本文 * (Markdown形式)</label>
+          <textarea name="content" rows="15" required placeholder="## 見出し\n\n本文..."
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary font-mono text-sm">${blog?.content || ''}</textarea>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">アイキャッチ画像URL</label>
+          <input type="url" name="featured_image" value="${blog?.featured_image || ''}" 
+            placeholder="https://example.com/image.jpg"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">ステータス</label>
+          <select name="status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary">
+            <option value="draft" ${blog?.status === 'draft' ? 'selected' : ''}>下書き</option>
+            <option value="published" ${blog?.status === 'published' ? 'selected' : ''}>公開</option>
+          </select>
+        </div>
+        
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 font-bold">
+            <i class="fas fa-save mr-2"></i>${blog ? '更新' : '作成'}
+          </button>
+          <button type="button" onclick="this.closest('.modal-backdrop').remove()" 
+            class="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg">
+            キャンセル
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('blog-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      showLoading();
+      let response;
+      if (blog) {
+        response = await apiCall(`/api/blogs/${blog.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+      } else {
+        response = await apiCall('/api/blogs', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+      }
+      
+      if (response.success) {
+        showToast(blog ? 'ブログを更新しました' : 'ブログを作成しました', 'success');
+        modal.remove();
+        await loadAdminData();
+        showTab('blogs');
+      } else {
+        showToast('エラー: ' + response.error, 'error');
+      }
+    } catch (error) {
+      showToast('エラーが発生しました', 'error');
+    } finally {
+      hideLoading();
+    }
+  });
+}
+
+// ブログ編集
+function editBlog(id) {
+  showBlogEditor(id);
+}
+
+// ブログ削除
+async function deleteBlog(id) {
+  if (!confirm('本当にこのブログを削除しますか？')) return;
+  
+  try {
+    showLoading();
+    const response = await apiCall(`/api/blogs/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.success) {
+      showToast('ブログを削除しました', 'success');
+      await loadAdminData();
+      showTab('blogs');
+    } else {
+      showToast('削除に失敗しました', 'error');
+    }
+  } catch (error) {
+    showToast('エラーが発生しました', 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// 管理者の健康記録タブ
+function renderMyHealthTab() {
+  return `
+    <section class="bg-gray-50 py-6">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <div class="mb-4 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+              <i class="fas fa-heartbeat mr-2 text-primary"></i>
+              自分の健康記録
+            </h2>
+            <p class="text-gray-600">管理者も健康データを記録できます</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
+            <p class="text-sm text-center text-gray-700">
+              <i class="fas fa-info-circle mr-2"></i>
+              トップページと同じように健康データを記録・管理できます。<br>
+              まず<a href="/" class="text-primary font-bold hover:underline">トップページ</a>で記録を開始してください。
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <a href="/" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition text-center">
+              <i class="fas fa-home text-4xl text-primary mb-3"></i>
+              <h3 class="font-bold text-lg mb-2">トップページへ</h3>
+              <p class="text-sm text-gray-600">健康データを記録</p>
+            </a>
+            
+            <a href="/mypage" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition text-center">
+              <i class="fas fa-chart-line text-4xl text-primary mb-3"></i>
+              <h3 class="font-bold text-lg mb-2">マイデータへ</h3>
+              <p class="text-sm text-gray-600">記録を確認・分析</p>
+            </a>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold text-lg mb-4">記録できるデータ</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <i class="fas fa-weight text-2xl text-blue-600 mb-2"></i>
+                <div class="text-sm font-bold">体重・体脂肪</div>
+              </div>
+              <div class="text-center p-4 bg-green-50 rounded-lg">
+                <i class="fas fa-utensils text-2xl text-green-600 mb-2"></i>
+                <div class="text-sm font-bold">食事記録</div>
+              </div>
+              <div class="text-center p-4 bg-orange-50 rounded-lg">
+                <i class="fas fa-running text-2xl text-orange-600 mb-2"></i>
+                <div class="text-sm font-bold">運動ログ</div>
+              </div>
+              <div class="text-center p-4 bg-purple-50 rounded-lg">
+                <i class="fas fa-bed text-2xl text-purple-600 mb-2"></i>
+                <div class="text-sm font-bold">睡眠時間</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
 }

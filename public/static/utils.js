@@ -49,8 +49,8 @@ async function quickAdminLogin() {
   showLoading();
   
   try {
-    // 管理者用のモックログイン
-    const response = await axios.post('/api/auth/google', {
+    // 管理者用のクイックログイン専用エンドポイントを使用
+    const response = await axios.post('/api/auth/quick-admin', {
       // 管理者アカウント情報
       email: 'admin@furdi.jp',
       name: '管理者',
@@ -77,7 +77,11 @@ async function quickAdminLogin() {
   } catch (error) {
     hideLoading();
     console.error('管理者ログインエラー:', error);
-    alert('管理者ログインエラーが発生しました');
+    if (error.response && error.response.data && error.response.data.error) {
+      alert('管理者ログインエラー: ' + error.response.data.error);
+    } else {
+      alert('管理者ログインエラーが発生しました');
+    }
   }
 }
 

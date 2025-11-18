@@ -13,6 +13,7 @@ import announcements from './routes/announcements';
 import comments from './routes/comments';
 import settings from './routes/settings';
 import opinions from './routes/opinions';
+import blogs from './routes/blogs';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -32,6 +33,7 @@ app.route('/api/announcements', announcements);
 app.route('/api/comments', comments);
 app.route('/api/settings', settings);
 app.route('/api/opinions', opinions);
+app.route('/api/blogs', blogs);
 
 // R2から画像を取得するルート（R2未設定の場合は404を返す）
 app.get('/api/images/:path{.+}', async (c) => {

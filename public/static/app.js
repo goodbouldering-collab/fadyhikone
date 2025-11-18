@@ -168,17 +168,28 @@ function updateNotificationBadge() {
 // ページレンダリング
 function renderPage() {
   const root = document.getElementById('root');
-  root.innerHTML = `
-    ${renderHeader()}
-    ${renderHero()}
-    ${currentUser ? renderHealthLogSection() : ''}
-    ${renderQuickToolsSection()}
-    ${renderFeaturesSection()}
-    ${renderFAQSection()}
-    ${renderGymIntroSection()}
-    ${renderContactSection()}
-    ${renderFooter()}
-  `;
+  
+  if (currentUser) {
+    // ログイン後：タブ式UI
+    root.innerHTML = `
+      ${renderHeader()}
+      ${renderMainTabs()}
+      ${renderTabContents()}
+      ${renderFooter()}
+    `;
+  } else {
+    // ログイン前：従来のUI
+    root.innerHTML = `
+      ${renderHeader()}
+      ${renderHero()}
+      ${renderQuickToolsSection()}
+      ${renderFeaturesSection()}
+      ${renderFAQSection()}
+      ${renderGymIntroSection()}
+      ${renderContactSection()}
+      ${renderFooter()}
+    `;
+  }
   
   // イベントリスナー設定
   setupEventListeners();
@@ -189,6 +200,804 @@ function renderPage() {
     // ヒーローグラフ描画
     setTimeout(() => renderHeroChart(), 100);
   }
+}
+
+// メインタブナビゲーション
+function renderMainTabs() {
+  return `
+    <div class="bg-white shadow-md sticky top-[60px] z-40">
+      <div class="container mx-auto px-4">
+        <div class="flex overflow-x-auto">
+          <button type="button" 
+            onclick="switchMainTab('home')" 
+            id="main-tab-home"
+            class="flex-shrink-0 py-4 px-6 text-sm font-bold text-center transition-all duration-200 border-b-3 border-primary bg-primary/5 text-primary whitespace-nowrap">
+            <i class="fas fa-home mr-2"></i>ホーム
+          </button>
+          <button type="button" 
+            onclick="switchMainTab('basic')" 
+            id="main-tab-basic"
+            class="flex-shrink-0 py-4 px-6 text-sm font-bold text-center transition-all duration-200 border-b-3 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 whitespace-nowrap">
+            <i class="fas fa-heartbeat mr-2"></i>基本データ
+          </button>
+          <button type="button" 
+            onclick="switchMainTab('meals')" 
+            id="main-tab-meals"
+            class="flex-shrink-0 py-4 px-6 text-sm font-bold text-center transition-all duration-200 border-b-3 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 whitespace-nowrap">
+            <i class="fas fa-utensils mr-2"></i>食事記録
+          </button>
+          <button type="button" 
+            onclick="switchMainTab('exercise')" 
+            id="main-tab-exercise"
+            class="flex-shrink-0 py-4 px-6 text-sm font-bold text-center transition-all duration-200 border-b-3 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 whitespace-nowrap">
+            <i class="fas fa-running mr-2"></i>運動ログ
+          </button>
+          <button type="button" 
+            onclick="switchMainTab('detailed')" 
+            id="main-tab-detailed"
+            class="flex-shrink-0 py-4 px-6 text-sm font-bold text-center transition-all duration-200 border-b-3 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 whitespace-nowrap">
+            <i class="fas fa-clipboard-list mr-2"></i>詳細記録
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// タブコンテンツ
+function renderTabContents() {
+  return `
+    <!-- ホームタブ -->
+    <div id="main-tab-content-home" class="main-tab-content">
+      ${renderHero()}
+    </div>
+    
+    <!-- 基本データタブ -->
+    <div id="main-tab-content-basic" class="main-tab-content hidden">
+      ${renderBasicDataTab()}
+    </div>
+    
+    <!-- 食事記録タブ -->
+    <div id="main-tab-content-meals" class="main-tab-content hidden">
+      ${renderMealsTab()}
+    </div>
+    
+    <!-- 運動ログタブ -->
+    <div id="main-tab-content-exercise" class="main-tab-content hidden">
+      ${renderExerciseTab()}
+    </div>
+    
+    <!-- 詳細記録タブ -->
+    <div id="main-tab-content-detailed" class="main-tab-content hidden">
+      ${renderDetailedTab()}
+    </div>
+  `;
+}
+
+// 基本データタブの内容
+function renderBasicDataTab() {
+  return `
+    <section class="bg-gradient-to-b from-gray-50/50 to-white/50 py-6 min-h-screen">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-4xl mx-auto">
+          ${renderDateSelector()}
+          ${renderStaffCommentAndAdvice()}
+          
+          <form id="health-log-form" class="mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${renderBasicHealthData()}
+              ${renderConditionRating()}
+            </div>
+            
+            <div class="mt-4 flex justify-center">
+              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-pink-500 text-white text-lg font-bold rounded-lg hover:shadow-lg transition-all">
+                <i class="fas fa-save mr-2"></i>保存する
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 食事記録タブの内容
+function renderMealsTab() {
+  return `
+    <section class="bg-gradient-to-b from-gray-50/50 to-white/50 py-6 min-h-screen">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-4xl mx-auto">
+          ${renderDateSelector()}
+          ${renderStaffCommentAndAdvice()}
+          
+          <form id="health-log-form" class="mt-4">
+            ${renderMealSection()}
+            
+            <div class="mt-4 flex justify-center">
+              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-pink-500 text-white text-lg font-bold rounded-lg hover:shadow-lg transition-all">
+                <i class="fas fa-save mr-2"></i>保存する
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 運動ログタブの内容
+function renderExerciseTab() {
+  return `
+    <section class="bg-gradient-to-b from-gray-50/50 to-white/50 py-6 min-h-screen">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-4xl mx-auto">
+          ${renderDateSelector()}
+          ${renderStaffCommentAndAdvice()}
+          
+          <form id="health-log-form" class="mt-4">
+            ${renderExerciseSection()}
+            
+            <div class="mt-4 flex justify-center">
+              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-pink-500 text-white text-lg font-bold rounded-lg hover:shadow-lg transition-all">
+                <i class="fas fa-save mr-2"></i>保存する
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 詳細記録タブの内容
+function renderDetailedTab() {
+  return `
+    <section class="bg-gradient-to-b from-gray-50/50 to-white/50 py-6 min-h-screen">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-4xl mx-auto">
+          ${renderDateSelector()}
+          ${renderStaffCommentAndAdvice()}
+          
+          <form id="health-log-form" class="mt-4">
+            ${renderDetailedInputsSection()}
+            
+            <div class="mt-4 flex justify-center">
+              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-pink-500 text-white text-lg font-bold rounded-lg hover:shadow-lg transition-all">
+                <i class="fas fa-save mr-2"></i>保存する
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// 日付選択部分を抽出
+function renderDateSelector() {
+  return `
+    <div class="mb-4">
+      <div class="flex items-center justify-center gap-2">
+        <button type="button" onclick="changeLogDate(-1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-gray-200">
+          <i class="fas fa-calendar-alt text-primary"></i>
+          <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+            max="${dayjs().format('YYYY-MM-DD')}"
+            onchange="changeLogDateFromPicker(this.value)"
+            class="bg-transparent text-sm font-bold text-gray-700 border-none focus:outline-none cursor-pointer">
+        </div>
+        <button type="button" onclick="changeLogDate(1)" 
+          ${selectedDate === dayjs().format('YYYY-MM-DD') ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+          class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-bold">
+          今日
+        </button>
+      </div>
+      <p class="text-center text-gray-500 text-xs mt-2">
+        <i class="fas fa-info-circle mr-1"></i>
+        ${(() => {
+          const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+          const isToday = displayDate === dayjs().format('YYYY-MM-DD');
+          const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
+          return isToday ? '今日の記録を入力・編集できます' : `${formattedDate}の記録を表示中`;
+        })()}
+      </p>
+    </div>
+  `;
+}
+
+// 基本健康データセクション
+function renderBasicHealthData() {
+  return `
+    <div id="weight-section" class="bg-white p-4 rounded-lg shadow-sm">
+      <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+        <i class="fas fa-heartbeat text-primary"></i>
+        基本健康データ
+      </label>
+      
+      <!-- 体重と体脂肪率 -->
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-600 mb-1 block">体重</label>
+          <div class="relative">
+            <input type="number" step="0.1" name="weight" id="weight-input" value="${todayLog?.weight || ''}" 
+              placeholder="65.5"
+              oninput="updateBMIDisplay()"
+              class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">kg</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-600 mb-1 block">体脂肪率</label>
+          <div class="relative">
+            <input type="number" step="0.1" name="body_fat_percentage" id="body-fat-input-main" value="${todayLog?.body_fat_percentage || ''}" 
+              placeholder="25.0"
+              oninput="syncHiddenField('body-fat-input-main', 'body-fat-hidden')"
+              class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- BMI表示 -->
+      <div class="text-center py-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg mb-3">
+        <div class="text-xs text-gray-600 mb-0.5">BMI</div>
+        <div class="text-xl font-bold" id="bmi-display">-</div>
+      </div>
+      
+      <!-- 睡眠時間と運動時間 -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-gray-600 mb-1 block">睡眠時間</label>
+          <div class="relative">
+            <input type="number" step="0.5" name="sleep_hours" id="sleep-hours-input-main" value="${todayLog?.sleep_hours || ''}" 
+              placeholder="7.5"
+              oninput="syncHiddenField('sleep-hours-input-main', 'sleep-hours-hidden')"
+              class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-600 mb-1 block">運動時間</label>
+          <div class="relative">
+            <input type="number" step="5" name="exercise_minutes" id="exercise-minutes-input-main" value="${todayLog?.exercise_minutes || ''}" 
+              placeholder="30"
+              oninput="syncHiddenField('exercise-minutes-input-main', 'exercise-minutes-hidden')"
+              class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 隠しフィールド -->
+      <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
+      <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
+      <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
+    </div>
+  `;
+}
+
+// 体調評価セクション
+function renderConditionRating() {
+  return `
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+      <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+        <i class="fas fa-smile text-primary"></i>
+        今日の体調
+      </label>
+      <div class="flex items-center justify-between gap-2">
+        ${[1, 2, 3, 4, 5].map(rating => {
+          const icons = ['fa-tired', 'fa-frown', 'fa-meh', 'fa-smile', 'fa-grin-stars'];
+          const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
+          const labels = ['悪', '微', '普', '良', '最'];
+          const isSelected = (todayLog?.condition_rating || 3) === rating;
+          
+          return `
+            <label class="flex-1 cursor-pointer" onclick="selectConditionRating(${rating})">
+              <input type="radio" name="condition_rating" value="${rating}" 
+                ${isSelected ? 'checked' : ''}
+                class="hidden" id="condition-rating-${rating}">
+              <div class="flex flex-col items-center p-3 rounded-lg transition ${isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'}" id="condition-rating-label-${rating}">
+                <i class="fas ${icons[rating-1]} text-3xl ${isSelected ? colors[rating-1] : 'text-gray-300'} mb-2" id="condition-rating-icon-${rating}"></i>
+                <span class="text-sm ${isSelected ? 'text-gray-700 font-bold' : 'text-gray-400'}" id="condition-rating-text-${rating}">${labels[rating-1]}</span>
+              </div>
+            </label>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// 食事記録セクション (完全実装)
+function renderMealSection() {
+  return `
+    <div id="meal-section" class="bg-white p-4 rounded-lg shadow-sm">
+      <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+        <i class="fas fa-utensils text-accent"></i>
+        食事記録
+      </label>
+      
+      <!-- 3食 -->
+      <div class="space-y-3">
+        <!-- 朝食 -->
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-bold text-gray-700 whitespace-nowrap">
+              <i class="fas fa-sun text-yellow-500"></i> 朝食
+            </div>
+            <input type="number" id="breakfast-calories" value="${mealData?.breakfast?.calories || 0}"
+              oninput="updateMealNutrition('breakfast', 'calories', this.value)"
+              placeholder="0"
+              class="flex-1 px-3 py-2 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-base font-bold min-w-0">
+            <span class="text-sm text-gray-500 whitespace-nowrap">kcal</span>
+            <button type="button" onclick="showMealModal('breakfast')" 
+              class="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition whitespace-nowrap flex-shrink-0">
+              <i class="fas fa-camera mr-1"></i>撮影
+            </button>
+          </div>
+          
+          <!-- PFC入力 (折りたたみ) -->
+          <button type="button" onclick="toggleMealPFC('breakfast')" 
+            class="w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-1 mb-1">
+            <i class="fas fa-plus-circle"></i>
+            <span>PFC詳細</span>
+            <i class="fas fa-chevron-down text-xs" id="breakfast-pfc-arrow"></i>
+          </button>
+          
+          <div id="breakfast-pfc" class="hidden grid grid-cols-3 gap-2 mt-2">
+            <div>
+              <input type="number" step="0.1" id="breakfast-protein" value="${mealData?.breakfast?.protein || 0}"
+                oninput="updateMealNutrition('breakfast', 'protein', this.value)"
+                placeholder="P"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <div class="text-xs text-gray-500 text-center mt-1">たんぱく質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="breakfast-fat" value="${mealData?.breakfast?.fat || 0}"
+                oninput="updateMealNutrition('breakfast', 'fat', this.value)"
+                placeholder="F"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <div class="text-xs text-gray-500 text-center mt-1">脂質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="breakfast-carbs" value="${mealData?.breakfast?.carbs || 0}"
+                oninput="updateMealNutrition('breakfast', 'carbs', this.value)"
+                placeholder="C"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <div class="text-xs text-gray-500 text-center mt-1">炭水化物(g)</div>
+            </div>
+          </div>
+          
+          <div id="breakfast-photos" class="mt-2 text-sm text-gray-600 text-center"></div>
+        </div>
+        
+        <!-- 昼食 -->
+        <div class="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-bold text-gray-700 whitespace-nowrap">
+              <i class="fas fa-cloud-sun text-orange-500"></i> 昼食
+            </div>
+            <input type="number" id="lunch-calories" value="${mealData?.lunch?.calories || 0}"
+              oninput="updateMealNutrition('lunch', 'calories', this.value)"
+              placeholder="0"
+              class="flex-1 px-3 py-2 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-base font-bold min-w-0">
+            <span class="text-sm text-gray-500 whitespace-nowrap">kcal</span>
+            <button type="button" onclick="showMealModal('lunch')" 
+              class="px-3 py-2 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition whitespace-nowrap flex-shrink-0">
+              <i class="fas fa-camera mr-1"></i>撮影
+            </button>
+          </div>
+          
+          <!-- PFC入力 (折りたたみ) -->
+          <button type="button" onclick="toggleMealPFC('lunch')" 
+            class="w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-1 mb-1">
+            <i class="fas fa-plus-circle"></i>
+            <span>PFC詳細</span>
+            <i class="fas fa-chevron-down text-xs" id="lunch-pfc-arrow"></i>
+          </button>
+          
+          <div id="lunch-pfc" class="hidden grid grid-cols-3 gap-2 mt-2">
+            <div>
+              <input type="number" step="0.1" id="lunch-protein" value="${mealData?.lunch?.protein || 0}"
+                oninput="updateMealNutrition('lunch', 'protein', this.value)"
+                placeholder="P"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+              <div class="text-xs text-gray-500 text-center mt-1">たんぱく質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="lunch-fat" value="${mealData?.lunch?.fat || 0}"
+                oninput="updateMealNutrition('lunch', 'fat', this.value)"
+                placeholder="F"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+              <div class="text-xs text-gray-500 text-center mt-1">脂質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="lunch-carbs" value="${mealData?.lunch?.carbs || 0}"
+                oninput="updateMealNutrition('lunch', 'carbs', this.value)"
+                placeholder="C"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+              <div class="text-xs text-gray-500 text-center mt-1">炭水化物(g)</div>
+            </div>
+          </div>
+          
+          <div id="lunch-photos" class="mt-2 text-sm text-gray-600 text-center"></div>
+        </div>
+        
+        <!-- 夕食 -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-bold text-gray-700 whitespace-nowrap">
+              <i class="fas fa-moon text-blue-500"></i> 夕食
+            </div>
+            <input type="number" id="dinner-calories" value="${mealData?.dinner?.calories || 0}"
+              oninput="updateMealNutrition('dinner', 'calories', this.value)"
+              placeholder="0"
+              class="flex-1 px-3 py-2 bg-white text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center text-base font-bold min-w-0">
+            <span class="text-sm text-gray-500 whitespace-nowrap">kcal</span>
+            <button type="button" onclick="showMealModal('dinner')" 
+              class="px-3 py-2 bg-indigo-500 text-white rounded text-sm hover:bg-indigo-600 transition whitespace-nowrap flex-shrink-0">
+              <i class="fas fa-camera mr-1"></i>撮影
+            </button>
+          </div>
+          
+          <!-- PFC入力 (折りたたみ) -->
+          <button type="button" onclick="toggleMealPFC('dinner')" 
+            class="w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-1 mb-1">
+            <i class="fas fa-plus-circle"></i>
+            <span>PFC詳細</span>
+            <i class="fas fa-chevron-down text-xs" id="dinner-pfc-arrow"></i>
+          </button>
+          
+          <div id="dinner-pfc" class="hidden grid grid-cols-3 gap-2 mt-2">
+            <div>
+              <input type="number" step="0.1" id="dinner-protein" value="${mealData?.dinner?.protein || 0}"
+                oninput="updateMealNutrition('dinner', 'protein', this.value)"
+                placeholder="P"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <div class="text-xs text-gray-500 text-center mt-1">たんぱく質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="dinner-fat" value="${mealData?.dinner?.fat || 0}"
+                oninput="updateMealNutrition('dinner', 'fat', this.value)"
+                placeholder="F"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <div class="text-xs text-gray-500 text-center mt-1">脂質(g)</div>
+            </div>
+            <div>
+              <input type="number" step="0.1" id="dinner-carbs" value="${mealData?.dinner?.carbs || 0}"
+                oninput="updateMealNutrition('dinner', 'carbs', this.value)"
+                placeholder="C"
+                class="w-full px-2 py-2 bg-white text-gray-800 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <div class="text-xs text-gray-500 text-center mt-1">炭水化物(g)</div>
+            </div>
+          </div>
+          
+          <div id="dinner-photos" class="mt-2 text-sm text-gray-600 text-center"></div>
+        </div>
+      </div>
+        
+      <!-- 合計 -->
+      <div class="mt-4 bg-gradient-to-br from-primary/10 to-pink-50 p-4 rounded-lg">
+        <div class="text-center">
+          <div class="text-sm text-gray-600 mb-2">今日の総カロリー</div>
+          <div class="flex items-center justify-center gap-2">
+            <input type="number" 
+              id="total-calories-input"
+              value="0"
+              oninput="updateTotalCaloriesDisplay()"
+              class="w-32 px-3 py-2 text-2xl font-bold text-primary text-center bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <span class="text-base text-gray-500">kcal</span>
+          </div>
+          <div class="text-sm text-gray-500 mt-2">
+            <span id="total-calories-breakdown">朝0 + 昼0 + 夕0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// 運動ログセクション (完全実装)
+function renderExerciseSection() {
+  return `
+    <div id="exercise-section" class="bg-white p-4 rounded-lg shadow-sm">
+      <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
+        <i class="fas fa-running text-primary"></i>
+        運動ログ
+      </label>
+        
+      <div id="exercise-tracker">
+        <!-- 運動サマリー -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-blue-50 p-3 rounded-lg text-center">
+            <div class="text-sm text-gray-600 mb-1">合計時間</div>
+            <div class="text-2xl font-bold text-blue-600" id="total-exercise-time">0</div>
+            <div class="text-sm text-gray-500">分</div>
+          </div>
+          <div class="bg-orange-50 p-3 rounded-lg text-center">
+            <div class="text-sm text-gray-600 mb-1">消費カロリー</div>
+            <div class="text-2xl font-bold text-orange-600" id="total-exercise-calories">0</div>
+            <div class="text-sm text-gray-500">kcal</div>
+          </div>
+        </div>
+        
+        <!-- 運動種目リスト -->
+        <div class="space-y-2">
+          ${[
+            { id: 'furdi', name: 'ファディー', icon: 'fa-dumbbell', met: 5, color: 'pink', time: 30 },
+            { id: 'weight-training', name: '筋トレ', icon: 'fa-dumbbell', met: 6, color: 'blue', time: 30 },
+            { id: 'running', name: 'ランニング', icon: 'fa-running', met: 8, color: 'green', time: 30 },
+            { id: 'jogging', name: 'ジョギング', icon: 'fa-shoe-prints', met: 5, color: 'teal', time: 20 },
+            { id: 'walking', name: 'ウォーキング', icon: 'fa-walking', met: 3, color: 'cyan', time: 30 },
+            { id: 'cycling', name: 'サイクリング', icon: 'fa-bicycle', met: 6, color: 'indigo', time: 30 },
+            { id: 'swimming', name: '水泳', icon: 'fa-swimmer', met: 8, color: 'blue', time: 30 },
+            { id: 'yoga', name: 'ヨガ', icon: 'fa-om', met: 3, color: 'purple', time: 30 },
+            { id: 'pilates', name: 'ピラティス', icon: 'fa-spa', met: 4, color: 'pink', time: 30 },
+            { id: 'stretch', name: 'ストレッチ', icon: 'fa-child', met: 2.5, color: 'purple', time: 15 },
+            { id: 'hiit', name: 'HIIT', icon: 'fa-fire', met: 10, color: 'red', time: 20 },
+            { id: 'dance', name: 'ダンス', icon: 'fa-music', met: 5, color: 'pink', time: 30 },
+            { id: 'boxing', name: 'ボクシング', icon: 'fa-hand-rock', met: 9, color: 'red', time: 30 }
+          ].map(ex => `
+            <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition">
+              <button type="button" 
+                onclick="toggleExercise('${ex.id}')"
+                id="exercise-toggle-${ex.id}"
+                class="w-14 h-8 bg-gray-200 rounded-full relative transition-all duration-300 flex-shrink-0"
+                data-active="false">
+                <div class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-all duration-300"></div>
+              </button>
+              <i class="fas ${ex.icon} text-${ex.color}-500 text-lg flex-shrink-0"></i>
+              <span class="text-sm font-medium text-gray-700 flex-1 min-w-0">${ex.name}</span>
+              <input type="number" 
+                id="exercise-time-${ex.id}"
+                value="${ex.time}"
+                onchange="updateExerciseSummary()"
+                class="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary">
+              <span class="text-sm text-gray-500 whitespace-nowrap">分</span>
+              <span class="text-sm text-gray-400 whitespace-nowrap w-16 text-right" id="exercise-cal-${ex.id}">0kcal</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <!-- 運動メモ -->
+        <div class="mt-4">
+          <label class="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+            <i class="fas fa-pencil-alt text-primary"></i>
+            運動メモ
+          </label>
+          <textarea id="condition-note-input" rows="3" 
+            placeholder="例：ジムでベンチプレス60kg × 10回 × 3セット"
+            oninput="syncHiddenField('condition-note-input', 'condition-note-hidden')"
+            class="w-full px-4 py-3 text-sm bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition"
+          >${todayLog?.condition_note || ''}</textarea>
+        </div>
+        
+        <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
+      </div>
+    </div>
+  `;
+}
+
+// 詳細記録セクション (完全実装)
+function renderDetailedInputsSection() {
+  return `
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+      <div id="detailed-inputs" class="space-y-6">
+        <!-- その他の記録 -->
+        <div class="pb-4 border-b border-gray-200">
+          <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <i class="fas fa-clipboard-list text-primary"></i>
+            その他の記録
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- 体温 -->
+            <div>
+              <label class="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <i class="fas fa-thermometer-half text-primary"></i>
+                体温
+              </label>
+              <div class="relative">
+                <input type="number" step="0.1" name="body_temperature" value="${todayLog?.body_temperature || ''}"
+                  placeholder="36.5"
+                  class="w-full px-4 py-3 text-base bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">°C</span>
+              </div>
+            </div>
+            
+            <!-- 水分摂取 -->
+            <div>
+              <label class="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <i class="fas fa-tint text-primary"></i>
+                水分摂取量
+              </label>
+              <div class="relative">
+                <input type="number" step="100" name="water_intake" value="${todayLog?.water_intake || ''}"
+                  placeholder="2000"
+                  class="w-full px-4 py-3 text-base bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">ml</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 便利ツール -->
+        <div>
+          <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <i class="fas fa-magic text-primary"></i>
+            便利ツール
+          </h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- BMI計算 -->
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg">
+              <h5 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-calculator text-purple-500"></i>
+                BMI計算
+              </h5>
+              <div class="space-y-2">
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">身長 (cm)</label>
+                  <input type="number" id="bmi-height" value="${currentUser?.height || ''}" step="0.1"
+                    class="w-full px-3 py-2 text-sm border border-purple-200 rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">体重 (kg)</label>
+                  <input type="number" id="bmi-weight" value="${todayLog?.weight || ''}" step="0.1"
+                    class="w-full px-3 py-2 text-sm border border-purple-200 rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button type="button" onclick="calculateBMI()" 
+                  class="w-full px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium">
+                  <i class="fas fa-calculator mr-1"></i>計算
+                </button>
+                <div id="bmi-result" class="text-center text-sm font-bold text-purple-600"></div>
+              </div>
+            </div>
+            
+            <!-- PFC目標計算 -->
+            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-lg">
+              <h5 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-balance-scale text-indigo-500"></i>
+                PFC目標計算
+              </h5>
+              <div class="space-y-2">
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">目標カロリー</label>
+                  <input type="number" id="target-calories" value="2000" 
+                    class="w-full px-3 py-2 text-sm border border-indigo-200 rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                  <label class="text-xs text-gray-600 block mb-1">目標タイプ</label>
+                  <select id="pfc-goal-type" 
+                    class="w-full px-3 py-2 text-sm border border-indigo-200 rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="maintain">維持 (P:30% F:25% C:45%)</option>
+                    <option value="lose">減量 (P:35% F:20% C:45%)</option>
+                    <option value="gain">増量 (P:30% F:30% C:40%)</option>
+                  </select>
+                </div>
+                <button type="button" onclick="calculatePFCGoal()" 
+                  class="w-full px-3 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition text-sm font-medium">
+                  <i class="fas fa-chart-pie mr-1"></i>計算
+                </button>
+                <div id="pfc-result" class="text-xs text-gray-700"></div>
+              </div>
+            </div>
+            
+            <!-- 水分補給リマインダー -->
+            <div class="bg-gradient-to-br from-cyan-50 to-teal-50 p-4 rounded-lg">
+              <h5 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-tint text-cyan-500"></i>
+                水分補給
+              </h5>
+              <div class="space-y-2">
+                <div class="bg-white p-3 rounded">
+                  <div class="text-xs text-gray-600 mb-1">今日の水分</div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold text-cyan-600" id="water-intake">0</span>
+                    <span class="text-sm text-gray-500">/ 2000 ml</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div id="water-progress" class="bg-cyan-500 h-full rounded-full transition-all" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="addWater(200)" 
+                    class="px-3 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition text-sm">
+                    +200ml
+                  </button>
+                  <button type="button" onclick="addWater(500)" 
+                    class="px-3 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition text-sm">
+                    +500ml
+                  </button>
+                </div>
+                <button type="button" onclick="resetWater()" 
+                  class="w-full px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition text-sm">
+                  <i class="fas fa-redo mr-1"></i>リセット
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// スタッフコメントとアドバイス部分を抽出
+function renderStaffCommentAndAdvice() {
+  const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+  const dateAdvices = advices.filter(a => a.log_date === displayDate);
+  const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai');
+  const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff');
+  
+  return `
+    ${latestStaffComment ? `
+      <div class="mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user-nurse text-white text-sm"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-bold text-blue-700">スタッフからのコメント</span>
+              <span class="text-xs text-gray-500">${latestStaffComment.staff_name} • ${formatRelativeTime(latestStaffComment.created_at)}</span>
+            </div>
+            <p class="text-sm text-gray-700 leading-relaxed">${latestStaffComment.comment}</p>
+          </div>
+        </div>
+      </div>
+    ` : ''}
+    
+    ${staffAdvices.length > 0 || aiAdvices.length > 0 ? `
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-lightbulb text-yellow-500"></i>
+            この日のアドバイス
+          </h3>
+          <a href="/mypage#advices-section" class="text-sm text-primary hover:text-pink-600">
+            すべて見る →
+          </a>
+        </div>
+        
+        <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl border border-white/40 shadow-sm">
+          <div class="space-y-2">
+            ${staffAdvices.map(advice => `
+              <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-7 h-7 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user-nurse text-white text-xs"></i>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-pink-600">スタッフ</span>
+                    ${advice.staff_name ? `<span class="text-xs text-gray-500">- ${advice.staff_name}</span>` : ''}
+                  </div>
+                </div>
+                <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
+                <p class="text-xs text-gray-600">${advice.content}</p>
+              </div>
+            `).join('')}
+            ${aiAdvices.map(advice => `
+              <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xs"></i>
+                  </div>
+                  <span class="text-xs font-bold text-blue-600">AI</span>
+                </div>
+                <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
+                <p class="text-xs text-gray-600">${advice.content}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    ` : ''}
+  `;
 }
 
 // 共通ヘッダー
@@ -590,9 +1399,41 @@ function renderHealthLogSection() {
             <p class="text-sm text-center text-green-700 mt-1">体重・食事・運動・体調を記録しましょう</p>
           </div>
           
+          <!-- タブナビゲーション -->
+          <div class="mb-4 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="flex border-b border-gray-200">
+              <button type="button" 
+                onclick="switchHealthLogTab('basic')" 
+                id="tab-basic"
+                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-primary bg-primary/5 text-primary">
+                <i class="fas fa-heartbeat mr-2"></i>基本データ
+              </button>
+              <button type="button" 
+                onclick="switchHealthLogTab('meals')" 
+                id="tab-meals"
+                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-utensils mr-2"></i>食事記録
+              </button>
+              <button type="button" 
+                onclick="switchHealthLogTab('exercise')" 
+                id="tab-exercise"
+                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-running mr-2"></i>運動ログ
+              </button>
+              <button type="button" 
+                onclick="switchHealthLogTab('detailed')" 
+                id="tab-detailed"
+                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-clipboard-list mr-2"></i>詳細記録
+              </button>
+            </div>
+          </div>
+          
           <!-- 入力フォーム -->
           <form id="health-log-form" class="space-y-2">
             
+            <!-- Tab 1: 基本データ -->
+            <div id="tab-content-basic" class="tab-content">
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 基本健康データ -->
@@ -685,8 +1526,11 @@ function renderHealthLogSection() {
                 </div>
               </div>
             </div>
+            </div>
+            <!-- End Tab 1 -->
             
-            <!-- 食事記録 -->
+            <!-- Tab 2: 食事記録 -->
+            <div id="tab-content-meals" class="tab-content hidden">
             <div id="meal-section" class="bg-white p-2 rounded-lg shadow-sm">
               <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <i class="fas fa-utensils text-accent"></i>
@@ -874,27 +1718,19 @@ function renderHealthLogSection() {
               </div>
               
             </div>
+            </div>
+            <!-- End Tab 2 -->
             
-            <!-- 隠しフィールド（詳細記録用） -->
-            <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
-            <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
-            <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
-            <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
-          </form>
-          
-          <!-- 運動ログ（フォーム外・独立） -->
-          <div id="exercise-section" class="mt-2">
+            <!-- Tab 3: 運動ログ -->
+            <div id="tab-content-exercise" class="tab-content hidden">
+            <div id="exercise-section">
             <div class="bg-white p-2 rounded-lg shadow-sm">
-              <button type="button" onclick="toggleExerciseTracker()" 
-                class="w-full flex items-center justify-between text-left group">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
-                  <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
-                  運動ログ
-                </label>
-                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
-              </button>
+              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
+                <i class="fas fa-running text-primary"></i>
+                運動ログ
+              </label>
                 
-              <div id="exercise-tracker" class="hidden mt-4">
+              <div id="exercise-tracker">
                 <!-- 運動サマリー -->
                   <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-blue-50 p-2 rounded-lg text-center">
@@ -961,19 +1797,13 @@ function renderHealthLogSection() {
                   </div>
               </div>
             </div>
+            </div>
+            <!-- End Tab 3 -->
             
-            <!-- 詳細ログ（折りたたみ） -->
-            <div class="mt-2 bg-white p-2 rounded-lg shadow-sm">
-              <button type="button" onclick="toggleDetailedInputs()" 
-                class="w-full flex items-center justify-between text-left group">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
-                  <i class="fas fa-clipboard-list text-primary group-hover:text-pink-500 transition"></i>
-                  詳細ログ
-                </label>
-                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
-              </button>
-              
-              <div id="detailed-inputs" class="hidden mt-4 space-y-6">
+            <!-- Tab 4: 詳細ログ -->
+            <div id="tab-content-detailed" class="tab-content hidden">
+            <div class="bg-white p-2 rounded-lg shadow-sm">
+              <div id="detailed-inputs" class="space-y-6">
                 <!-- その他の記録 -->
                 <div class="pb-4 border-b border-gray-200">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1200,7 +2030,15 @@ function renderHealthLogSection() {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+            <!-- End Tab 4 -->
+            
+            <!-- 隠しフィールド（詳細記録用） -->
+            <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
+            <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
+            <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
+            <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
+          </form>
           
           </div>
           
@@ -2314,8 +3152,11 @@ function showLoginModal(showAdminOption = false) {
       <div class="border-t pt-4 mt-4">
         <button onclick="quickAdminLogin()" class="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg text-sm font-medium transition shadow-sm">
           <i class="fas fa-user-shield mr-2"></i>
-          管理者ログイン（開発用）
+          管理者ログイン（仮）
         </button>
+        <p class="text-xs text-gray-500 text-center mt-2">
+          ※ ワンクリックで管理者としてログインできます
+        </p>
       </div>
       
       <button onclick="this.closest('.modal-backdrop').remove()" class="mt-6 w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
@@ -2849,18 +3690,45 @@ function renderHeroChart() {
     }
   }
   
+  // 30日分の日付配列を生成（データがない日も含む）
+  const allDates = [];
+  const dateToLogMap = {};
+  
   // データフィルタリング（期間内のログのみ）
   const filteredLogs = allHealthLogs.filter(log => {
     const logDate = dayjs(log.log_date);
     return logDate.isAfter(startDate) && logDate.isBefore(endDate.add(1, 'day'));
-  }).sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
+  });
   
-  // ラベルとデータ作成
-  const labels = filteredLogs.map(log => dayjs(log.log_date).format('M/D'));
-  const weightData = filteredLogs.map(log => log.weight || null);
-  const bodyfatData = filteredLogs.map(log => log.body_fat_percentage || null);
-  const sleepData = filteredLogs.map(log => log.sleep_hours || null);
-  const caloriesData = filteredLogs.map(log => log.meal_calories ? log.meal_calories / 100 : null);
+  // ログデータをマップに格納
+  filteredLogs.forEach(log => {
+    dateToLogMap[log.log_date] = log;
+  });
+  
+  // 30日分すべての日付を生成
+  for (let i = 0; i < 30; i++) {
+    const date = startDate.add(i + 1, 'day');
+    allDates.push(date.format('YYYY-MM-DD'));
+  }
+  
+  // ラベルとデータ作成（すべての日付分）
+  const labels = allDates.map(date => dayjs(date).format('M/D'));
+  const weightData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.weight || null) : null;
+  });
+  const bodyfatData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.body_fat_percentage || null) : null;
+  });
+  const sleepData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.sleep_hours || null) : null;
+  });
+  const caloriesData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log && log.meal_calories ? log.meal_calories / 100 : null;
+  });
   
   // 既存のチャートを破棄
   if (heroChart) {
@@ -2882,6 +3750,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2892,6 +3761,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2902,6 +3772,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2912,6 +3783,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         }
       ]
@@ -3122,6 +3994,82 @@ function toggleExerciseTracker() {
       tracker.classList.add('hidden');
       arrow.classList.remove('rotate-180');
     }
+  }
+}
+
+// メインタブの切り替え
+function switchMainTab(tabName) {
+  // すべてのタブボタンを非アクティブ化
+  const tabButtons = ['home', 'basic', 'meals', 'exercise', 'detailed'];
+  tabButtons.forEach(tab => {
+    const button = document.getElementById(`main-tab-${tab}`);
+    const content = document.getElementById(`main-tab-content-${tab}`);
+    
+    if (button && content) {
+      if (tab === tabName) {
+        // アクティブタブ
+        button.classList.add('border-primary', 'bg-primary/5', 'text-primary');
+        button.classList.remove('border-transparent', 'text-gray-500');
+        content.classList.remove('hidden');
+      } else {
+        // 非アクティブタブ
+        button.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500');
+        content.classList.add('hidden');
+      }
+    }
+  });
+  
+  // タブ切り替え後、必要な再計算を実行
+  setTimeout(() => {
+    if (tabName === 'home') {
+      renderHeroChart();
+    } else if (tabName === 'basic') {
+      updateBMIDisplay();
+    } else if (tabName === 'meals') {
+      updateTotalCaloriesDisplay();
+    } else if (tabName === 'exercise') {
+      updateExerciseSummary();
+    }
+  }, 100);
+}
+
+// 健康ログのタブ切り替え
+function switchHealthLogTab(tabName) {
+  // すべてのタブボタンを非アクティブ化
+  const tabButtons = ['basic', 'meals', 'exercise', 'detailed'];
+  tabButtons.forEach(tab => {
+    const button = document.getElementById(`tab-${tab}`);
+    const content = document.getElementById(`tab-content-${tab}`);
+    
+    if (button && content) {
+      if (tab === tabName) {
+        // アクティブタブ
+        button.classList.add('border-primary', 'bg-primary/5', 'text-primary');
+        button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
+        content.classList.remove('hidden');
+      } else {
+        // 非アクティブタブ
+        button.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
+        content.classList.add('hidden');
+      }
+    }
+  });
+  
+  // タブ切り替え後、必要な再計算を実行
+  if (tabName === 'basic') {
+    setTimeout(() => {
+      updateBMIDisplay();
+    }, 100);
+  } else if (tabName === 'meals') {
+    setTimeout(() => {
+      updateTotalCaloriesDisplay();
+    }, 100);
+  } else if (tabName === 'exercise') {
+    setTimeout(() => {
+      updateExerciseSummary();
+    }, 100);
   }
 }
 

@@ -234,6 +234,31 @@ html {
   background-color: #F9FAFB;
 }
 
+/* タブコンテンツ */
+.tab-content {
+  animation: fadeInTab 0.3s ease;
+}
+
+.main-tab-content {
+  animation: fadeInTab 0.3s ease;
+}
+
+@keyframes fadeInTab {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* タブボーダー */
+.border-b-3 {
+  border-bottom-width: 3px;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
   .table th,

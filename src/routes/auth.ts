@@ -378,4 +378,58 @@ auth.put('/password', async (c) => {
   }
 });
 
+// クイック管理者ログイン (開発用)
+auth.post('/quick-admin', async (c) => {
+  try {
+    const { email, name, googleId, photoUrl } = await c.req.json();
+    
+    // 管理者メールアドレスのチェック
+    if (email !== 'admin@furdi.jp') {
+      return c.json<ApiResponse>({ success: false, error: '管理者メールアドレスではありません' }, 403);
+    }
+    
+    // 管理者ユーザーを取得または作成
+    let user = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE email = ?'
+    ).bind(email).first<User>();
+
+    if (!user) {
+      // 管理者ユーザーを作成
+      const result = await c.env.DB.prepare(
+        'INSERT INTO users (email, name, auth_provider, auth_provider_id, avatar_url, role) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(email, name, 'google', googleId, photoUrl, 'admin').run();
+
+      user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(result.meta.last_row_id).first<User>();
+    } else if (user.role !== 'admin') {
+      // 既存ユーザーを管理者に昇格
+      await c.env.DB.prepare(
+        'UPDATE users SET role = ?, name = ?, avatar_url = ?, updated_at = datetime("now") WHERE id = ?'
+      ).bind('admin', name, photoUrl, user.id).run();
+      
+      user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first<User>();
+    }
+
+    if (!user) {
+      return c.json<ApiResponse>({ success: false, error: '管理者ユーザーの作成に失敗しました' }, 500);
+    }
+
+    // JWTトークン生成
+    const jwtToken = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+
+    return c.json<ApiResponse<{ token: string; user: User }>>({
+      success: true,
+      data: { token: jwtToken, user },
+    });
+  } catch (error) {
+    console.error('Quick admin login error:', error);
+    const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+    return c.json<ApiResponse>({ success: false, error: `管理者ログインに失敗しました: ${errorMessage}` }, 500);
+  }
+});
+
 export default auth;
