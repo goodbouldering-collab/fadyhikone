@@ -99,12 +99,6 @@ function renderHeader() {
               <i class="fas fa-chart-line mr-1"></i>
               マイデータ
             </a>
-            ${currentUser?.role === 'admin' ? `
-              <a href="/admin" class="px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
-                <i class="fas fa-user-shield mr-1"></i>
-                管理画面
-              </a>
-            ` : ''}
             <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
               ログアウト
             </button>
@@ -120,9 +114,19 @@ function renderUserProfile() {
   return `
     <section class="gradient-bg text-white py-8">
       <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto text-center">
-          <h2 class="text-3xl md:text-4xl font-bold mb-2">${currentUser.name}さんのマイページ</h2>
-          <p class="text-base opacity-90">あなたの健康データを分析・管理</p>
+        <div class="max-w-6xl mx-auto">
+          ${currentUser?.role === 'admin' ? `
+            <div class="text-right mb-3">
+              <a href="/admin" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
+                <i class="fas fa-user-shield"></i>
+                <span>管理画面</span>
+              </a>
+            </div>
+          ` : ''}
+          <div class="text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">${currentUser.name}さんのマイページ</h2>
+            <p class="text-base opacity-90">あなたの健康データを分析・管理</p>
+          </div>
         </div>
       </div>
     </section>

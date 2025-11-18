@@ -240,12 +240,6 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
-                ${currentUser.role === 'admin' ? `
-                  <a href="/admin" class="px-2.5 py-1.5 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg transition shadow-sm">
-                    <i class="fas fa-user-shield mr-1"></i>
-                    管理画面
-                  </a>
-                ` : ''}
                 <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
                   ログアウト
                 </button>
