@@ -597,23 +597,64 @@ function renderHealthLogSection() {
             
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <!-- 体重 & BMI -->
-              <div id="weight-section" class="bg-white p-2 rounded-lg shadow-sm">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                  <i class="fas fa-weight text-primary"></i>
-                  体重 & BMI
+              <!-- 基本健康データ -->
+              <div id="weight-section" class="bg-white p-3 rounded-lg shadow-sm">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                  <i class="fas fa-heartbeat text-primary"></i>
+                  基本健康データ
                 </label>
-                <div class="flex items-center gap-2">
-                  <div class="relative flex-1">
-                    <input type="number" step="0.1" name="weight" id="weight-input" value="${todayLog?.weight || ''}" 
-                      placeholder="65.5"
-                      oninput="updateBMIDisplay()"
-                      class="w-full px-4 py-2.5 text-xl font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">kg</span>
+                
+                <!-- 体重と体脂肪率 -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label class="text-xs text-gray-600 mb-1 block">体重</label>
+                    <div class="relative">
+                      <input type="number" step="0.1" name="weight" id="weight-input" value="${todayLog?.weight || ''}" 
+                        placeholder="65.5"
+                        oninput="updateBMIDisplay()"
+                        class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">kg</span>
+                    </div>
                   </div>
-                  <div class="text-center px-3 py-2 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg min-w-[80px]">
-                    <div class="text-xs text-gray-600 mb-0.5">BMI</div>
-                    <div class="text-lg font-bold" id="bmi-display">-</div>
+                  <div>
+                    <label class="text-xs text-gray-600 mb-1 block">体脂肪率</label>
+                    <div class="relative">
+                      <input type="number" step="0.1" name="body_fat_percentage" id="body-fat-input-main" value="${todayLog?.body_fat_percentage || ''}" 
+                        placeholder="25.0"
+                        oninput="syncHiddenField('body-fat-input-main', 'body-fat-hidden')"
+                        class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- BMI表示 -->
+                <div class="text-center py-2 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg mb-3">
+                  <div class="text-xs text-gray-600 mb-0.5">BMI</div>
+                  <div class="text-lg font-bold" id="bmi-display">-</div>
+                </div>
+                
+                <!-- 睡眠時間と運動時間 -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-xs text-gray-600 mb-1 block">睡眠時間</label>
+                    <div class="relative">
+                      <input type="number" step="0.5" name="sleep_hours" id="sleep-hours-input-main" value="${todayLog?.sleep_hours || ''}" 
+                        placeholder="7.5"
+                        oninput="syncHiddenField('sleep-hours-input-main', 'sleep-hours-hidden')"
+                        class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">時間</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-600 mb-1 block">運動時間</label>
+                    <div class="relative">
+                      <input type="number" step="5" name="exercise_minutes" id="exercise-minutes-input-main" value="${todayLog?.exercise_minutes || ''}" 
+                        placeholder="30"
+                        oninput="syncHiddenField('exercise-minutes-input-main', 'exercise-minutes-hidden')"
+                        class="w-full px-3 py-2 text-lg font-bold bg-gray-50 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition">
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
+                    </div>
                   </div>
                 </div>
               </div>
