@@ -1267,44 +1267,18 @@ function renderHealthLogSection() {
         <div class="max-w-6xl mx-auto">
           
           <!-- タイトル -->
-          <div class="mb-4">
-            <div class="text-center mb-3">
+          <div class="mb-2">
+            <div class="text-center mb-2">
               <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
-                健康ログ
+                ${(() => {
+                  const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+                  const isToday = displayDate === dayjs().format('YYYY-MM-DD');
+                  const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
+                  return isToday ? '今日の健康ログ' : `${formattedDate}の健康ログ`;
+                })()}
               </h3>
             </div>
-            
-            <!-- 日付選択 -->
-            <div class="flex items-center justify-center gap-2">
-              <button type="button" onclick="changeLogDate(-1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <div class="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-gray-200">
-                <i class="fas fa-calendar-alt text-primary"></i>
-                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-                  max="${dayjs().format('YYYY-MM-DD')}"
-                  onchange="changeLogDateFromPicker(this.value)"
-                  class="bg-transparent text-sm font-bold text-gray-700 border-none focus:outline-none cursor-pointer">
-              </div>
-              <button type="button" onclick="changeLogDate(1)" 
-                ${selectedDate === dayjs().format('YYYY-MM-DD') ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
-                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-              <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-bold">
-                今日
-              </button>
-            </div>
-            <p class="text-center text-gray-500 text-xs mt-2">
-              <i class="fas fa-info-circle mr-1"></i>
-              ${(() => {
-                const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
-                const isToday = displayDate === dayjs().format('YYYY-MM-DD');
-                const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
-                return isToday ? '今日の記録を入力・編集できます' : `${formattedDate}の記録を表示中`;
-              })()}
-            </p>
           </div>
           
 
@@ -1399,41 +1373,9 @@ function renderHealthLogSection() {
             <p class="text-sm text-center text-green-700 mt-1">体重・食事・運動・体調を記録しましょう</p>
           </div>
           
-          <!-- タブナビゲーション -->
-          <div class="mb-4 bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="flex border-b border-gray-200">
-              <button type="button" 
-                onclick="switchHealthLogTab('basic')" 
-                id="tab-basic"
-                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-primary bg-primary/5 text-primary">
-                <i class="fas fa-heartbeat mr-2"></i>基本データ
-              </button>
-              <button type="button" 
-                onclick="switchHealthLogTab('meals')" 
-                id="tab-meals"
-                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
-                <i class="fas fa-utensils mr-2"></i>食事記録
-              </button>
-              <button type="button" 
-                onclick="switchHealthLogTab('exercise')" 
-                id="tab-exercise"
-                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
-                <i class="fas fa-running mr-2"></i>運動ログ
-              </button>
-              <button type="button" 
-                onclick="switchHealthLogTab('detailed')" 
-                id="tab-detailed"
-                class="flex-1 py-3 px-4 text-sm font-bold text-center transition-all duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">
-                <i class="fas fa-clipboard-list mr-2"></i>詳細記録
-              </button>
-            </div>
-          </div>
-          
           <!-- 入力フォーム -->
           <form id="health-log-form" class="space-y-2">
             
-            <!-- Tab 1: 基本データ -->
-            <div id="tab-content-basic" class="tab-content">
             <!-- 体重と体調（横並び） -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 基本健康データ -->
@@ -1526,11 +1468,8 @@ function renderHealthLogSection() {
                 </div>
               </div>
             </div>
-            </div>
-            <!-- End Tab 1 -->
             
-            <!-- Tab 2: 食事記録 -->
-            <div id="tab-content-meals" class="tab-content hidden">
+            <!-- 食事記録 -->
             <div id="meal-section" class="bg-white p-2 rounded-lg shadow-sm">
               <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <i class="fas fa-utensils text-accent"></i>
@@ -1718,19 +1657,27 @@ function renderHealthLogSection() {
               </div>
               
             </div>
-            </div>
-            <!-- End Tab 2 -->
             
-            <!-- Tab 3: 運動ログ -->
-            <div id="tab-content-exercise" class="tab-content hidden">
-            <div id="exercise-section">
+            <!-- 隠しフィールド（詳細記録用） -->
+            <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
+            <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
+            <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
+            <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
+          </form>
+          
+          <!-- 運動ログ（フォーム外・独立） -->
+          <div id="exercise-section" class="mt-2">
             <div class="bg-white p-2 rounded-lg shadow-sm">
-              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                <i class="fas fa-running text-primary"></i>
-                運動ログ
-              </label>
+              <button type="button" onclick="toggleExerciseTracker()" 
+                class="w-full flex items-center justify-between text-left group">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+                  <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
+                  運動ログ
+                </label>
+                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
+              </button>
                 
-              <div id="exercise-tracker">
+              <div id="exercise-tracker" class="hidden mt-4">
                 <!-- 運動サマリー -->
                   <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-blue-50 p-2 rounded-lg text-center">
@@ -1797,13 +1744,19 @@ function renderHealthLogSection() {
                   </div>
               </div>
             </div>
-            </div>
-            <!-- End Tab 3 -->
             
-            <!-- Tab 4: 詳細ログ -->
-            <div id="tab-content-detailed" class="tab-content hidden">
-            <div class="bg-white p-2 rounded-lg shadow-sm">
-              <div id="detailed-inputs" class="space-y-6">
+            <!-- 詳細ログ（折りたたみ） -->
+            <div class="mt-2 bg-white p-2 rounded-lg shadow-sm">
+              <button type="button" onclick="toggleDetailedInputs()" 
+                class="w-full flex items-center justify-between text-left group">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+                  <i class="fas fa-clipboard-list text-primary group-hover:text-pink-500 transition"></i>
+                  詳細ログ
+                </label>
+                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="detailed-inputs-arrow"></i>
+              </button>
+              
+              <div id="detailed-inputs" class="hidden mt-4 space-y-6">
                 <!-- その他の記録 -->
                 <div class="pb-4 border-b border-gray-200">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2030,15 +1983,7 @@ function renderHealthLogSection() {
                 </div>
               </div>
             </div>
-            </div>
-            <!-- End Tab 4 -->
-            
-            <!-- 隠しフィールド（詳細記録用） -->
-            <input type="hidden" name="body_fat_percentage" id="body-fat-hidden" value="${todayLog?.body_fat_percentage || ''}">
-            <input type="hidden" name="sleep_hours" id="sleep-hours-hidden" value="${todayLog?.sleep_hours || ''}">
-            <input type="hidden" name="exercise_minutes" id="exercise-minutes-hidden" value="${todayLog?.exercise_minutes || ''}">
-            <input type="hidden" name="condition_note" id="condition-note-hidden" value="${todayLog?.condition_note || ''}">
-          </form>
+          </div>
           
           </div>
           
@@ -4032,45 +3977,6 @@ function switchMainTab(tabName) {
       updateExerciseSummary();
     }
   }, 100);
-}
-
-// 健康ログのタブ切り替え
-function switchHealthLogTab(tabName) {
-  // すべてのタブボタンを非アクティブ化
-  const tabButtons = ['basic', 'meals', 'exercise', 'detailed'];
-  tabButtons.forEach(tab => {
-    const button = document.getElementById(`tab-${tab}`);
-    const content = document.getElementById(`tab-content-${tab}`);
-    
-    if (button && content) {
-      if (tab === tabName) {
-        // アクティブタブ
-        button.classList.add('border-primary', 'bg-primary/5', 'text-primary');
-        button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
-        content.classList.remove('hidden');
-      } else {
-        // 非アクティブタブ
-        button.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
-        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
-        content.classList.add('hidden');
-      }
-    }
-  });
-  
-  // タブ切り替え後、必要な再計算を実行
-  if (tabName === 'basic') {
-    setTimeout(() => {
-      updateBMIDisplay();
-    }, 100);
-  } else if (tabName === 'meals') {
-    setTimeout(() => {
-      updateTotalCaloriesDisplay();
-    }, 100);
-  } else if (tabName === 'exercise') {
-    setTimeout(() => {
-      updateExerciseSummary();
-    }, 100);
-  }
 }
 
 // 詳細入力の折りたたみトグル
