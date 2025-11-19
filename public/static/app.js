@@ -2783,12 +2783,39 @@ function renderHeroChart() {
     return logDate.isAfter(startDate) && logDate.isBefore(endDate.add(1, 'day'));
   }).sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
   
+  // 全30日分の日付を生成（データがない日もnullとして表示）
+  const allDates = [];
+  const dateToLogMap = {};
+  
+  // 期間内の全ログをマップに登録
+  filteredLogs.forEach(log => {
+    dateToLogMap[log.log_date] = log;
+  });
+  
+  // 30日分の日付配列を作成
+  for (let i = 0; i < 30; i++) {
+    const date = startDate.add(i + 1, 'day');
+    allDates.push(date.format('YYYY-MM-DD'));
+  }
+  
   // ラベルとデータ作成
-  const labels = filteredLogs.map(log => dayjs(log.log_date).format('M/D'));
-  const weightData = filteredLogs.map(log => log.weight || null);
-  const bodyfatData = filteredLogs.map(log => log.body_fat_percentage || null);
-  const sleepData = filteredLogs.map(log => log.sleep_hours || null);
-  const caloriesData = filteredLogs.map(log => log.meal_calories ? log.meal_calories / 100 : null);
+  const labels = allDates.map(date => dayjs(date).format('M/D'));
+  const weightData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.weight || null) : null;
+  });
+  const bodyfatData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.body_fat_percentage || null) : null;
+  });
+  const sleepData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log ? (log.sleep_hours || null) : null;
+  });
+  const caloriesData = allDates.map(date => {
+    const log = dateToLogMap[date];
+    return log && log.meal_calories ? log.meal_calories / 100 : null;
+  });
   
   // 既存のチャートを破棄
   if (heroChart) {
@@ -2810,6 +2837,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2820,6 +2848,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2830,6 +2859,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         },
         {
@@ -2840,6 +2870,7 @@ function renderHeroChart() {
           borderWidth: 2,
           tension: 0.4,
           fill: false,
+          spanGaps: true,
           yAxisID: 'y'
         }
       ]

@@ -87,40 +87,28 @@ function renderPage() {
   showTab('users');
 }
 
-// ヘッダー
+// ヘッダー（トップページと同じ）
 function renderHeader() {
   return `
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
-          <div class="flex items-center gap-4">
-            <a href="/" class="flex items-center gap-2">
-              <i class="fas fa-dumbbell text-base" style="color: var(--color-primary)"></i>
-              <h1 class="text-base font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
-            </a>
-            
-            ${unprocessedOpinionCount > 0 ? `
-              <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-100 border border-orange-300 rounded-lg animate-pulse">
-                <i class="fas fa-bell text-orange-600"></i>
-                <span class="text-xs font-bold text-orange-700">未回答の質問: ${unprocessedOpinionCount}件</span>
-              </div>
-            ` : ''}
-          </div>
+          <a href="/" class="flex items-center gap-1.5">
+            <i class="fas fa-dumbbell text-base" style="color: var(--color-primary)"></i>
+            <h1 class="text-base font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
+          </a>
           
-          <nav class="flex items-center gap-3">
-            <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-              <i class="fas fa-chart-line mr-1"></i>
-              マイデータ
-            </a>
-            ${currentUser?.role === 'admin' ? `
-              <a href="/admin" class="px-3 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-sm">
-                <i class="fas fa-user-shield mr-1"></i>
-                管理画面
+          <nav class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:flex items-center gap-1.5 text-xs text-gray-700">
+                <i class="fas fa-user-circle text-primary text-sm"></i>
+                <span class="font-medium">${currentUser.name}さん</span>
+              </span>
+              <a href="/mypage" class="relative px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-chart-line mr-1"></i>
+                マイデータ
               </a>
-            ` : ''}
-            <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
-              ログアウト
-            </button>
+            </div>
           </nav>
         </div>
       </div>
