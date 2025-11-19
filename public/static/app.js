@@ -196,7 +196,6 @@ function renderPage() {
   const root = document.getElementById('root');
   root.innerHTML = `
     ${renderHeader()}
-    ${currentUser ? renderDateSelector() : ''}
     ${renderHero()}
     ${currentUser ? renderHealthLogSection() : ''}
     ${renderQuickToolsSection()}
@@ -241,9 +240,6 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
-                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
-                  ログアウト
-                </button>
               </div>
             ` : `
               <button onclick="showLoginModal()" class="px-4 py-1.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
@@ -255,45 +251,6 @@ function renderHeader() {
         </div>
       </div>
     </header>
-  `;
-}
-
-// 日付選択セクション（ヘッダー直下）
-function renderDateSelector() {
-  return `
-    <section class="bg-gray-50 border-b border-gray-200 py-3">
-      <div class="container mx-auto px-6 md:px-8">
-        <div class="flex items-center justify-center gap-2">
-          <button type="button" onclick="changeLogDate(-1)" class="w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-lg transition shadow-sm border border-gray-200">
-            <i class="fas fa-chevron-left text-sm"></i>
-          </button>
-          <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
-            <i class="fas fa-calendar-alt text-primary text-sm"></i>
-            <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
-              max="${dayjs().format('YYYY-MM-DD')}"
-              onchange="changeLogDateFromPicker(this.value)"
-              class="bg-transparent text-sm font-semibold text-gray-700 border-none focus:outline-none cursor-pointer">
-          </div>
-          <button type="button" onclick="changeLogDate(1)" 
-            ${selectedDate === dayjs().format('YYYY-MM-DD') ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
-            class="w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-lg transition shadow-sm border border-gray-200">
-            <i class="fas fa-chevron-right text-sm"></i>
-          </button>
-          <button type="button" onclick="goToToday()" class="px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-semibold">
-            今日
-          </button>
-        </div>
-        <p class="text-center text-gray-500 text-xs mt-2">
-          <i class="fas fa-info-circle mr-1"></i>
-          ${(() => {
-            const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
-            const isToday = displayDate === dayjs().format('YYYY-MM-DD');
-            const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
-            return isToday ? '今日の記録を入力・編集できます' : `${formattedDate}の記録を表示中`;
-          })()}
-        </p>
-      </div>
-    </section>
   `;
 }
 
@@ -518,21 +475,45 @@ function renderHealthLogSection() {
         <div class="max-w-6xl mx-auto">
           
           <!-- タイトル -->
-          <div class="mb-2">
-            <div class="text-center mb-2">
+          <div class="mb-4">
+            <div class="text-center mb-3">
               <h3 class="text-xl font-bold text-gray-800">
                 <i class="fas fa-edit mr-2" style="color: var(--color-primary)"></i>
-                ${(() => {
-                  const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
-                  const isToday = displayDate === dayjs().format('YYYY-MM-DD');
-                  const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
-                  return isToday ? '今日の健康ログ' : `${formattedDate}の健康ログ`;
-                })()}
+                健康ログ
               </h3>
             </div>
+            
+            <!-- 日付選択 -->
+            <div class="flex items-center justify-center gap-2">
+              <button type="button" onclick="changeLogDate(-1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-gray-200">
+                <i class="fas fa-calendar-alt text-primary"></i>
+                <input type="date" id="log-date-picker" value="${selectedDate || dayjs().format('YYYY-MM-DD')}" 
+                  max="${dayjs().format('YYYY-MM-DD')}"
+                  onchange="changeLogDateFromPicker(this.value)"
+                  class="bg-transparent text-sm font-bold text-gray-700 border-none focus:outline-none cursor-pointer">
+              </div>
+              <button type="button" onclick="changeLogDate(1)" 
+                ${selectedDate === dayjs().format('YYYY-MM-DD') ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+              <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-bold">
+                今日
+              </button>
+            </div>
+            <p class="text-center text-gray-500 text-xs mt-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              ${(() => {
+                const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+                const isToday = displayDate === dayjs().format('YYYY-MM-DD');
+                const formattedDate = dayjs(displayDate).format('YYYY年M月D日');
+                return isToday ? '今日の記録を入力・編集できます' : `${formattedDate}の記録を表示中`;
+              })()}
+            </p>
           </div>
-          
-
           
           <!-- スタッフコメント -->
           ${latestStaffComment ? `

@@ -95,10 +95,6 @@ function renderHeader() {
           </a>
           
           <nav class="flex items-center gap-3">
-            <a href="/mypage" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-              <i class="fas fa-chart-line mr-1"></i>
-              マイデータ
-            </a>
             <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
               ログアウト
             </button>
