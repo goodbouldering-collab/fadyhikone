@@ -142,6 +142,9 @@ function updateNotificationBadge() {
 // 指定日のログ読み込み
 async function loadLogForDate(date) {
   try {
+    showLoading();
+    
+    // 全ログを取得（グラフ用）
     const response = await apiCall('/api/health-logs');
     if (response.success) {
       // 全ログを保存（グラフ用）
@@ -157,6 +160,11 @@ async function loadLogForDate(date) {
           mealData = parsedMealData;
         } catch (e) {
           console.error('食事データのパースに失敗:', e);
+          mealData = {
+            breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+            lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+            dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+          };
         }
       } else {
         // データがない場合は初期化
@@ -185,9 +193,18 @@ async function loadLogForDate(date) {
       
       // ページを再レンダリング
       renderPage();
+      
+      // グラフを再描画（少し遅延させて確実にDOMが更新されてから）
+      setTimeout(() => {
+        renderHeroChart();
+      }, 100);
+      
+      hideLoading();
     }
   } catch (error) {
     console.error('ログの読み込みに失敗:', error);
+    hideLoading();
+    showToast('ログの読み込みに失敗しました', 'error');
   }
 }
 
@@ -1614,51 +1631,7 @@ function selectConditionRating(rating) {
 }
 
 // 指定日付のログを読み込む
-async function loadLogForDate(dateString) {
-  try {
-    showLoading();
-    
-    // 指定日付のログを取得
-    const response = await apiCall(`/api/health-logs?log_date=${dateString}`);
-    
-    if (response.success && response.data.length > 0) {
-      todayLog = response.data[0];
-      
-      // 食事データを復元
-      if (todayLog.meals) {
-        const meals = typeof todayLog.meals === 'string' ? JSON.parse(todayLog.meals) : todayLog.meals;
-        mealData = {
-          breakfast: meals.breakfast || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          lunch: meals.lunch || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          dinner: meals.dinner || { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
-        };
-      } else {
-        mealData = {
-          breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-          dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
-        };
-      }
-    } else {
-      // ログがない場合は空のデータを設定
-      todayLog = null;
-      mealData = {
-        breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-        lunch: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] },
-        dinner: { calories: 0, protein: 0, carbs: 0, fat: 0, photos: [] }
-      };
-    }
-    
-    // ページを再レンダリング
-    renderPage();
-    hideLoading();
-    
-  } catch (error) {
-    console.error('Failed to load log for date:', error);
-    hideLoading();
-    showToast('ログの読み込みに失敗しました', 'error');
-  }
-}
+// この関数は143行目のloadLogForDateに統合されたため削除
 
 // 日付変更ハンドラー（前後移動）
 async function changeLogDate(days) {
