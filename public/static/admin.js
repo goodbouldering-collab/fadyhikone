@@ -104,10 +104,7 @@ function renderHeader() {
                 <i class="fas fa-user-circle text-primary text-sm"></i>
                 <span class="font-medium">${currentUser.name}さん</span>
               </span>
-              <a href="/mypage" class="relative px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                <i class="fas fa-chart-line mr-1"></i>
-                マイデータ
-              </a>
+    
             </div>
           </nav>
         </div>
@@ -119,40 +116,40 @@ function renderHeader() {
 // 統計情報
 function renderStats() {
   return `
-    <section class="gradient-bg text-white py-8">
+    <section class="gradient-bg text-white py-4">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-lg">
-              <div class="flex items-center justify-between mb-1">
-                <i class="fas fa-users text-lg"></i>
+          <div class="grid grid-cols-4 gap-2">
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
+              <div class="flex items-center justify-center gap-2 mb-1">
+                <i class="fas fa-users text-sm"></i>
                 <span class="text-xs opacity-75">総顧客数</span>
               </div>
-              <div class="text-2xl font-bold">${stats.totalUsers || 0}</div>
+              <div class="text-xl font-bold text-center">${stats.totalUsers || 0}</div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-lg">
-              <div class="flex items-center justify-between mb-1">
-                <i class="fas fa-clipboard-list text-lg"></i>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
+              <div class="flex items-center justify-center gap-2 mb-1">
+                <i class="fas fa-clipboard-list text-sm"></i>
                 <span class="text-xs opacity-75">総ログ数</span>
               </div>
-              <div class="text-2xl font-bold">${stats.totalLogs || 0}</div>
+              <div class="text-xl font-bold text-center">${stats.totalLogs || 0}</div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-lg">
-              <div class="flex items-center justify-between mb-1">
-                <i class="fas fa-envelope text-lg"></i>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
+              <div class="flex items-center justify-center gap-2 mb-1">
+                <i class="fas fa-envelope text-sm"></i>
                 <span class="text-xs opacity-75">未対応</span>
               </div>
-              <div class="text-2xl font-bold">${stats.pendingInquiries || 0}</div>
+              <div class="text-xl font-bold text-center">${stats.pendingInquiries || 0}</div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-3 rounded-lg">
-              <div class="flex items-center justify-between mb-1">
-                <i class="fas fa-calendar-day text-lg"></i>
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
+              <div class="flex items-center justify-center gap-2 mb-1">
+                <i class="fas fa-calendar-day text-sm"></i>
                 <span class="text-xs opacity-75">今日のログ</span>
               </div>
-              <div class="text-2xl font-bold">${stats.todayLogs || 0}</div>
+              <div class="text-xl font-bold text-center">${stats.todayLogs || 0}</div>
             </div>
           </div>
         </div>
@@ -192,10 +189,6 @@ function renderTabs() {
             class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
             <i class="fas fa-envelope mr-2"></i>問い合わせ
           </button>
-          <button onclick="showTab('myhealth')" id="tab-myhealth" 
-            class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
-            <i class="fas fa-heartbeat mr-2"></i>自分の健康記録
-          </button>
             <button onclick="showTab('settings')" id="tab-settings" 
               class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
               <i class="fas fa-cog mr-1"></i>管理設定
@@ -232,8 +225,6 @@ function showTab(tab) {
     content.innerHTML = renderOpinionsTab();
   } else if (tab === 'inquiries') {
     content.innerHTML = renderInquiriesTab();
-  } else if (tab === 'myhealth') {
-    content.innerHTML = renderMyHealthTab();
   } else if (tab === 'settings') {
     loadSettingsData().then(() => {
       content.innerHTML = renderSettingsTab();
@@ -1022,55 +1013,7 @@ function renderSettingsTab() {
     <section class="bg-gray-50 py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <!-- お知らせ管理 -->
-          <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-2xl md:text-3xl font-bold">
-                <i class="fas fa-bullhorn text-primary mr-2"></i>お知らせ管理
-              </h2>
-              <button onclick="showAddAnnouncementModal()" 
-                class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90">
-                <i class="fas fa-plus mr-1"></i>お知らせ追加
-              </button>
-            </div>
-            
-            <div class="space-y-3">
-              ${announcements.map(announcement => `
-                <div class="border rounded-lg p-3">
-                  <div class="flex gap-3">
-                    ${announcement.image_url ? `
-                      <img src="${announcement.image_url}" alt="${announcement.title}" 
-                        class="w-24 h-24 object-cover rounded">
-                    ` : ''}
-                    <div class="flex-1">
-                      <div class="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 class="text-base font-bold">${announcement.title}</h3>
-                          <p class="text-xs text-gray-500">${formatDateTime(announcement.published_at)}</p>
-                        </div>
-                        <div class="flex gap-2">
-                          <span class="badge ${announcement.is_published ? 'badge-success' : 'badge-error'} text-xs">
-                            ${announcement.is_published ? '公開中' : '非公開'}
-                          </span>
-                          <button onclick="showEditAnnouncementModal(${announcement.id})" 
-                            class="text-blue-500 hover:text-blue-700 text-xs">
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          <button onclick="deleteAnnouncement(${announcement.id})" 
-                            class="text-red-500 hover:text-red-700 text-xs">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                      <p class="text-sm text-gray-700 line-clamp-2">${announcement.content}</p>
-                    </div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          
-          <!-- API設定 -->
+          <!-- システム設定 -->
           <div class="bg-white rounded-lg shadow-md p-4">
             <h2 class="text-2xl md:text-3xl font-bold mb-4">
               <i class="fas fa-cog text-primary mr-2"></i>システム設定
@@ -1953,64 +1896,4 @@ async function deleteBlog(id) {
 }
 
 // 管理者の健康記録タブ
-function renderMyHealthTab() {
-  return `
-    <section class="bg-gray-50 py-6">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
-          <div class="mb-4 text-center">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">
-              <i class="fas fa-heartbeat mr-2 text-primary"></i>
-              自分の健康記録
-            </h2>
-            <p class="text-gray-600">管理者も健康データを記録できます</p>
-          </div>
-          
-          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
-            <p class="text-sm text-center text-gray-700">
-              <i class="fas fa-info-circle mr-2"></i>
-              トップページと同じように健康データを記録・管理できます。<br>
-              まず<a href="/" class="text-primary font-bold hover:underline">トップページ</a>で記録を開始してください。
-            </p>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <a href="/" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition text-center">
-              <i class="fas fa-home text-4xl text-primary mb-3"></i>
-              <h3 class="font-bold text-lg mb-2">トップページへ</h3>
-              <p class="text-sm text-gray-600">健康データを記録</p>
-            </a>
-            
-            <a href="/mypage" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition text-center">
-              <i class="fas fa-chart-line text-4xl text-primary mb-3"></i>
-              <h3 class="font-bold text-lg mb-2">マイデータへ</h3>
-              <p class="text-sm text-gray-600">記録を確認・分析</p>
-            </a>
-          </div>
-          
-          <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="font-bold text-lg mb-4">記録できるデータ</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="text-center p-4 bg-blue-50 rounded-lg">
-                <i class="fas fa-weight text-2xl text-blue-600 mb-2"></i>
-                <div class="text-sm font-bold">体重・体脂肪</div>
-              </div>
-              <div class="text-center p-4 bg-green-50 rounded-lg">
-                <i class="fas fa-utensils text-2xl text-green-600 mb-2"></i>
-                <div class="text-sm font-bold">食事記録</div>
-              </div>
-              <div class="text-center p-4 bg-orange-50 rounded-lg">
-                <i class="fas fa-running text-2xl text-orange-600 mb-2"></i>
-                <div class="text-sm font-bold">運動ログ</div>
-              </div>
-              <div class="text-center p-4 bg-purple-50 rounded-lg">
-                <i class="fas fa-bed text-2xl text-purple-600 mb-2"></i>
-                <div class="text-sm font-bold">睡眠時間</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
-}
+// 自分の健康記録タブは削除されました（トップページとマイページを利用）
