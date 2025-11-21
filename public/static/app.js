@@ -257,6 +257,12 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
+                ${currentUser.role === 'admin' ? `
+                  <a href="/admin" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                    <i class="fas fa-user-shield mr-1"></i>
+                    管理ページ
+                  </a>
+                ` : ''}
                 <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                   <i class="fas fa-sign-out-alt mr-1"></i>
                   ログアウト
@@ -315,27 +321,17 @@ function renderHero() {
               </div>
             </div>
             
-            <!-- お知らせ（2件表示） -->
+            <!-- お知らせ（2件表示、枠なし、タイトルなし） -->
             ${announcements.length > 0 ? `
-              <div class="mb-4">
-                <div class="space-y-1.5">
+              <div class="mb-3">
+                <div class="space-y-1">
                   ${announcements.slice(0, 2).map(announcement => `
-                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-2 hover:bg-white/20 transition-all cursor-pointer"
+                    <div class="hover:bg-white/10 rounded px-2 py-1 transition-all cursor-pointer"
                          onclick="showAnnouncementDetail(${announcement.id})">
-                      <div class="flex gap-2 items-center">
-                        ${announcement.image_url ? `
-                          <img src="${announcement.image_url}" alt="${announcement.title}" 
-                            class="w-8 h-8 object-cover rounded flex-shrink-0">
-                        ` : `
-                          <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-bullhorn text-white text-xs"></i>
-                          </div>
-                        `}
-                        <div class="flex-1 min-w-0">
-                          <h4 class="text-xs font-bold text-white mb-0.5">${announcement.title}</h4>
-                          <p class="text-xs text-white/70 line-clamp-1">${announcement.content}</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-white/50 text-xs flex-shrink-0"></i>
+                      <div class="flex gap-1.5 items-center">
+                        <i class="fas fa-bullhorn text-white/60 text-[10px] flex-shrink-0"></i>
+                        <p class="text-[11px] text-white/80 line-clamp-1 flex-1">${announcement.title}</p>
+                        <i class="fas fa-chevron-right text-white/40 text-[10px] flex-shrink-0"></i>
                       </div>
                     </div>
                   `).join('')}

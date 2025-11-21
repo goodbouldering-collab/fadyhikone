@@ -108,6 +108,10 @@ function renderHeader() {
                 <i class="fas fa-chart-line mr-1"></i>
                 マイデータ
               </a>
+              <a href="/admin" class="px-2.5 py-1.5 text-xs text-primary font-bold hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-user-shield mr-1"></i>
+                管理ページ
+              </a>
               <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                 <i class="fas fa-sign-out-alt mr-1"></i>
                 ログアウト
@@ -261,30 +265,30 @@ function renderUsersTab() {
               <table class="table min-w-full text-sm">
                 <thead>
                   <tr>
-                    <th class="text-xs">顧客情報</th>
-                    <th class="text-xs">登録日</th>
-                    <th class="text-xs">ログ数</th>
-                    <th class="text-xs">操作</th>
+                    <th class="text-xs whitespace-nowrap">顧客情報</th>
+                    <th class="text-xs whitespace-nowrap w-32">登録日</th>
+                    <th class="text-xs whitespace-nowrap w-24">ログ数</th>
+                    <th class="text-xs whitespace-nowrap w-40">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${users.map(user => `
                     <tr>
-                      <td>
+                      <td class="whitespace-nowrap">
                         <div class="flex items-center gap-2">
                           <img src="${user.avatar_url || 'https://via.placeholder.com/40'}" 
                             class="w-8 h-8 rounded-full">
-                          <div>
+                          <div class="min-w-0">
                             <div class="font-medium text-sm">${user.name}</div>
-                            <div class="text-xs text-gray-500">${user.email}</div>
+                            <div class="text-xs text-gray-500 truncate max-w-xs">${user.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td class="text-sm">${formatDate(user.created_at)}</td>
-                      <td>
+                      <td class="text-sm whitespace-nowrap">${formatDate(user.created_at)}</td>
+                      <td class="whitespace-nowrap">
                         <span class="badge badge-primary text-xs" id="log-count-${user.id}">--</span>
                       </td>
-                      <td>
+                      <td class="whitespace-nowrap">
                         <div class="flex gap-2">
                           <button onclick="viewUserDetails(${user.id})" class="text-blue-500 hover:text-blue-700 text-xs">
                             <i class="fas fa-eye"></i> 詳細
@@ -1026,24 +1030,32 @@ function renderSettingsTab() {
               <i class="fas fa-cog text-primary mr-2"></i>システム設定
             </h2>
             
-            <div class="space-y-3">
-              ${settings.map(setting => `
-                <div class="border rounded-lg p-3">
-                  <div class="flex justify-between items-start mb-2">
-                    <div class="flex-1">
-                      <h3 class="text-sm font-bold">${setting.setting_key}</h3>
-                      <p class="text-xs text-gray-500">${setting.description || ''}</p>
-                    </div>
-                    <button onclick="showEditSettingModal('${setting.setting_key}', '${setting.setting_value.replace(/'/g, "\\'")}', '${setting.description || ''}')" 
-                      class="text-blue-500 hover:text-blue-700 text-xs">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                  </div>
-                  <div class="text-sm text-gray-700 font-mono bg-gray-50 p-2 rounded">
-                    ${setting.setting_value || '(未設定)'}
-                  </div>
-                </div>
-              `).join('')}
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">設定キー</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">説明</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">設定値</th>
+                    <th class="px-3 py-2 text-center text-xs font-bold text-gray-700 w-20">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${settings.map(setting => `
+                    <tr class="border-t hover:bg-gray-50">
+                      <td class="px-3 py-2 text-xs font-bold whitespace-nowrap">${setting.setting_key}</td>
+                      <td class="px-3 py-2 text-xs text-gray-500">${setting.description || '-'}</td>
+                      <td class="px-3 py-2 text-xs font-mono text-gray-700 max-w-md truncate" title="${setting.setting_value || '(未設定)'}">${setting.setting_value || '(未設定)'}</td>
+                      <td class="px-3 py-2 text-center">
+                        <button onclick="showEditSettingModal('${setting.setting_key}', '${setting.setting_value.replace(/'/g, "\\'")}', '${setting.description || ''}')" 
+                          class="text-blue-500 hover:text-blue-700 text-xs">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1716,23 +1728,23 @@ function renderBlogsTab() {
               <table class="min-w-full text-sm">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-4 py-3 text-left font-bold">タイトル</th>
-                    <th class="px-4 py-3 text-left font-bold">著者</th>
-                    <th class="px-4 py-3 text-left font-bold">ステータス</th>
-                    <th class="px-4 py-3 text-left font-bold">公開日</th>
-                    <th class="px-4 py-3 text-left font-bold">作成日</th>
-                    <th class="px-4 py-3 text-right font-bold">操作</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold whitespace-nowrap">タイトル</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold whitespace-nowrap w-32">著者</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold whitespace-nowrap w-24">ステータス</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold whitespace-nowrap w-32">公開日</th>
+                    <th class="px-3 py-2 text-left text-xs font-bold whitespace-nowrap w-32">作成日</th>
+                    <th class="px-3 py-2 text-right text-xs font-bold whitespace-nowrap w-40">操作</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   ${blogs.map(blog => `
                     <tr class="hover:bg-gray-50">
-                      <td class="px-4 py-3">
-                        <div class="font-medium text-gray-900">${blog.title}</div>
-                        <div class="text-xs text-gray-500">${blog.slug}</div>
+                      <td class="px-3 py-2">
+                        <div class="font-medium text-gray-900 text-sm">${blog.title}</div>
+                        <div class="text-xs text-gray-500 truncate max-w-md">${blog.slug}</div>
                       </td>
-                      <td class="px-4 py-3">${blog.author_name}</td>
-                      <td class="px-4 py-3">
+                      <td class="px-3 py-2 text-sm whitespace-nowrap">${blog.author_name}</td>
+                      <td class="px-3 py-2 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs font-bold rounded-full ${
                           blog.status === 'published' 
                             ? 'bg-green-100 text-green-800' 
@@ -1741,17 +1753,17 @@ function renderBlogsTab() {
                           ${blog.status === 'published' ? '公開' : '下書き'}
                         </span>
                       </td>
-                      <td class="px-4 py-3">
+                      <td class="px-3 py-2 text-sm whitespace-nowrap">
                         ${blog.published_at ? dayjs(blog.published_at).format('YYYY/MM/DD') : '-'}
                       </td>
-                      <td class="px-4 py-3">
+                      <td class="px-3 py-2 text-sm whitespace-nowrap">
                         ${dayjs(blog.created_at).format('YYYY/MM/DD')}
                       </td>
-                      <td class="px-4 py-3 text-right">
-                        <button onclick="editBlog(${blog.id})" class="px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded">
+                      <td class="px-3 py-2 text-right whitespace-nowrap">
+                        <button onclick="editBlog(${blog.id})" class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded">
                           <i class="fas fa-edit mr-1"></i>編集
                         </button>
-                        <button onclick="deleteBlog(${blog.id})" class="px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded">
+                        <button onclick="deleteBlog(${blog.id})" class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded">
                           <i class="fas fa-trash mr-1"></i>削除
                         </button>
                       </td>

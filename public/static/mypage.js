@@ -740,30 +740,30 @@ function renderHealthLogsTable() {
               <table class="table min-w-full text-sm">
                 <thead>
                   <tr>
-                    <th class="sticky left-0 bg-primary z-10 text-xs">日付</th>
-                    <th class="text-xs">体重</th>
-                    <th class="text-xs">体脂肪率</th>
-                    <th class="text-xs">体温</th>
-                    <th class="text-xs">睡眠</th>
-                    <th class="text-xs">カロリー</th>
-                    <th class="text-xs">運動</th>
-                    <th class="text-xs">運動記録</th>
-                    <th class="sticky right-0 bg-primary z-10 text-xs">操作</th>
+                    <th class="sticky left-0 bg-primary z-10 text-xs whitespace-nowrap w-28">日付</th>
+                    <th class="text-xs whitespace-nowrap w-20">体重</th>
+                    <th class="text-xs whitespace-nowrap w-24">体脂肪率</th>
+                    <th class="text-xs whitespace-nowrap w-20">体温</th>
+                    <th class="text-xs whitespace-nowrap w-20">睡眠</th>
+                    <th class="text-xs whitespace-nowrap w-24">カロリー</th>
+                    <th class="text-xs whitespace-nowrap w-20">運動</th>
+                    <th class="text-xs whitespace-nowrap">運動記録</th>
+                    <th class="sticky right-0 bg-primary z-10 text-xs whitespace-nowrap w-24">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${healthLogs.map(log => `
                     <tr>
-                      <td class="sticky left-0 bg-white z-10 font-medium">${formatDate(log.log_date)}</td>
-                      <td>${log.weight ? log.weight + ' kg' : '--'}</td>
-                      <td>${log.body_fat_percentage ? log.body_fat_percentage + ' %' : '--'}</td>
-                      <td>${log.body_temperature ? log.body_temperature + ' ℃' : '--'}</td>
-                      <td>${log.sleep_hours ? log.sleep_hours + ' 時間' : '--'}</td>
-                      <td>${log.meal_calories ? log.meal_calories + ' kcal' : '--'}</td>
-                      <td>${log.exercise_minutes ? log.exercise_minutes + ' 分' : '--'}</td>
-                      <td class="max-w-xs truncate">${log.condition_note || '--'}</td>
-                      <td class="sticky right-0 bg-white z-10">
-                        <div class="flex gap-2">
+                      <td class="sticky left-0 bg-white z-10 font-medium text-xs whitespace-nowrap">${formatDate(log.log_date)}</td>
+                      <td class="text-xs whitespace-nowrap">${log.weight ? log.weight + ' kg' : '--'}</td>
+                      <td class="text-xs whitespace-nowrap">${log.body_fat_percentage ? log.body_fat_percentage + ' %' : '--'}</td>
+                      <td class="text-xs whitespace-nowrap">${log.body_temperature ? log.body_temperature + ' ℃' : '--'}</td>
+                      <td class="text-xs whitespace-nowrap">${log.sleep_hours ? log.sleep_hours + ' 時間' : '--'}</td>
+                      <td class="text-xs whitespace-nowrap">${log.meal_calories ? log.meal_calories + ' kcal' : '--'}</td>
+                      <td class="text-xs whitespace-nowrap">${log.exercise_minutes ? log.exercise_minutes + ' 分' : '--'}</td>
+                      <td class="text-xs max-w-xs truncate">${log.condition_note || '--'}</td>
+                      <td class="sticky right-0 bg-white z-10 whitespace-nowrap">
+                        <div class="flex gap-1.5">
                           <button onclick="showEditLogModal(${log.id})" class="text-blue-500 hover:text-blue-700 text-xs">
                             <i class="fas fa-edit"></i>
                           </button>
