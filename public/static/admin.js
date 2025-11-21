@@ -108,10 +108,6 @@ function renderHeader() {
                 <i class="fas fa-chart-line mr-1"></i>
                 マイデータ
               </a>
-              <a href="/admin" class="px-2.5 py-1.5 text-xs text-primary font-bold hover:bg-gray-50 rounded-lg transition">
-                <i class="fas fa-user-shield mr-1"></i>
-                管理ページ
-              </a>
               <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                 <i class="fas fa-sign-out-alt mr-1"></i>
                 ログアウト

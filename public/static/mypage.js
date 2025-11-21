@@ -83,7 +83,7 @@ function renderPage() {
   }, 150);
 }
 
-// 共通ヘッダー
+// 共通ヘッダー（マイページ用）
 function renderHeader() {
   return `
     <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -105,11 +105,16 @@ function renderHeader() {
                   <i class="fas fa-user-shield mr-1"></i>
                   管理ページ
                 </a>
-              ` : ''}
-              <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                <i class="fas fa-sign-out-alt mr-1"></i>
-                ログアウト
-              </button>
+                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-sign-out-alt mr-1"></i>
+                  ログアウト
+                </button>
+              ` : `
+                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-sign-out-alt mr-1"></i>
+                  ログアウト
+                </button>
+              `}
             </div>
           </nav>
         </div>

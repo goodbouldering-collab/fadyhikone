@@ -234,7 +234,7 @@ function renderPage() {
   }
 }
 
-// 共通ヘッダー
+// 共通ヘッダー（トップページ用）
 function renderHeader() {
   return `
     <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -257,12 +257,6 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
-                ${currentUser.role === 'admin' ? `
-                  <a href="/admin" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                    <i class="fas fa-user-shield mr-1"></i>
-                    管理ページ
-                  </a>
-                ` : ''}
                 <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
                   <i class="fas fa-sign-out-alt mr-1"></i>
                   ログアウト
