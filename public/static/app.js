@@ -252,15 +252,11 @@ function renderHeader() {
                   <i class="fas fa-user-circle text-primary text-sm"></i>
                   <span class="font-medium">${currentUser.name}さん</span>
                 </span>
-                <a href="/mypage" class="relative px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                  <i class="fas fa-chart-line mr-1"></i>
-                  マイデータ
+                <a href="/mypage" class="relative px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-chart-line mr-1.5"></i>
+                  マイページ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
-                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                  <i class="fas fa-sign-out-alt mr-1"></i>
-                  ログアウト
-                </button>
               </div>
             ` : `
               <button onclick="showLoginModal()" class="px-4 py-1.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
@@ -315,17 +311,17 @@ function renderHero() {
               </div>
             </div>
             
-            <!-- お知らせ（2件表示、枠なし、タイトルなし） -->
+            <!-- お知らせ（2件表示、すりガラス効果） -->
             ${announcements.length > 0 ? `
-              <div class="mb-3">
-                <div class="space-y-1">
+              <div class="mb-4">
+                <div class="space-y-2">
                   ${announcements.slice(0, 2).map(announcement => `
-                    <div class="hover:bg-white/10 rounded px-2 py-1 transition-all cursor-pointer"
+                    <div class="bg-white/20 backdrop-blur-md rounded-lg px-3 py-2 hover:bg-white/30 transition-all cursor-pointer border border-white/30"
                          onclick="showAnnouncementDetail(${announcement.id})">
-                      <div class="flex gap-1.5 items-center">
-                        <i class="fas fa-bullhorn text-white/60 text-[10px] flex-shrink-0"></i>
-                        <p class="text-[11px] text-white/80 line-clamp-1 flex-1">${announcement.title}</p>
-                        <i class="fas fa-chevron-right text-white/40 text-[10px] flex-shrink-0"></i>
+                      <div class="flex gap-2 items-center">
+                        <i class="fas fa-bullhorn text-white text-sm flex-shrink-0"></i>
+                        <p class="text-sm text-white font-medium line-clamp-1 flex-1">${announcement.title}</p>
+                        <i class="fas fa-chevron-right text-white/60 text-sm flex-shrink-0"></i>
                       </div>
                     </div>
                   `).join('')}
