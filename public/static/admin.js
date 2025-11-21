@@ -104,7 +104,14 @@ function renderHeader() {
                 <i class="fas fa-user-circle text-primary text-sm"></i>
                 <span class="font-medium">${currentUser.name}さん</span>
               </span>
-    
+              <a href="/mypage" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-chart-line mr-1"></i>
+                マイデータ
+              </a>
+              <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-sign-out-alt mr-1"></i>
+                ログアウト
+              </button>
             </div>
           </nav>
         </div>

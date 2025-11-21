@@ -210,24 +210,47 @@ html {
 /* テーブル */
 .table-container {
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) #f1f1f1;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #FF5282;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  white-space: nowrap;
 }
 
 .table th {
   background-color: var(--color-primary);
   color: white;
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: left;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .table td {
-  padding: 1rem;
+  padding: 0.75rem;
   border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
 }
 
 .table tr:hover {

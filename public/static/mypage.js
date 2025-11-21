@@ -89,15 +89,28 @@ function renderHeader() {
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="container mx-auto px-6 md:px-8 py-3">
         <div class="flex justify-between items-center">
-          <a href="/" class="flex items-center gap-2">
+          <a href="/" class="flex items-center gap-1.5">
             <i class="fas fa-dumbbell text-base" style="color: var(--color-primary)"></i>
             <h1 class="text-base font-bold" style="color: var(--color-primary)">ファディー彦根</h1>
           </a>
           
-          <nav class="flex items-center gap-3">
-            <button onclick="logout()" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">
-              ログアウト
-            </button>
+          <nav class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:flex items-center gap-1.5 text-xs text-gray-700">
+                <i class="fas fa-user-circle text-primary text-sm"></i>
+                <span class="font-medium">${currentUser.name}さん</span>
+              </span>
+              ${currentUser?.role === 'admin' ? `
+                <a href="/admin" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-user-shield mr-1"></i>
+                  管理ページ
+                </a>
+              ` : ''}
+              <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                <i class="fas fa-sign-out-alt mr-1"></i>
+                ログアウト
+              </button>
+            </div>
           </nav>
         </div>
       </div>
@@ -111,14 +124,6 @@ function renderUserProfile() {
     <section class="gradient-bg text-white py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          ${currentUser?.role === 'admin' ? `
-            <div class="text-right mb-3">
-              <a href="/admin" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
-                <i class="fas fa-user-shield"></i>
-                <span>管理画面</span>
-              </a>
-            </div>
-          ` : ''}
           <div class="text-center">
             <h2 class="text-3xl md:text-4xl font-bold mb-2">${currentUser.name}さんのマイページ</h2>
             <p class="text-base opacity-90">あなたの健康データを分析・管理</p>

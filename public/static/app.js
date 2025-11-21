@@ -257,6 +257,10 @@ function renderHeader() {
                   マイデータ
                   <span id="advice-notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">0</span>
                 </a>
+                <button onclick="logout()" class="px-2.5 py-1.5 text-xs text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
+                  <i class="fas fa-sign-out-alt mr-1"></i>
+                  ログアウト
+                </button>
               </div>
             ` : `
               <button onclick="showLoginModal()" class="px-4 py-1.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg transition shadow-sm">
@@ -313,43 +317,28 @@ function renderHero() {
             
             <!-- お知らせ（2件表示） -->
             ${announcements.length > 0 ? `
-              <div class="mb-6">
-                <div class="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-base font-bold text-white flex items-center gap-2">
-                      <i class="fas fa-bell"></i>
-                      お知らせ
-                    </h3>
-                    ${announcements.length > 2 ? `
-                      <button onclick="showAllAnnouncements()" 
-                        class="text-sm text-white/90 hover:text-white font-medium transition-all hover:underline flex items-center gap-1">
-                        もっと見る
-                        <i class="fas fa-chevron-right text-xs"></i>
-                      </button>
-                    ` : ''}
-                  </div>
-                  <div class="space-y-2">
-                    ${announcements.slice(0, 2).map(announcement => `
-                      <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all cursor-pointer"
-                           onclick="showAnnouncementDetail(${announcement.id})">
-                        <div class="flex gap-3 items-center">
-                          ${announcement.image_url ? `
-                            <img src="${announcement.image_url}" alt="${announcement.title}" 
-                              class="w-12 h-12 object-cover rounded-lg flex-shrink-0">
-                          ` : `
-                            <div class="w-12 h-12 bg-gradient-to-br from-primary to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <i class="fas fa-bullhorn text-white text-base"></i>
-                            </div>
-                          `}
-                          <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-white mb-1">${announcement.title}</h4>
-                            <p class="text-xs text-white/80 line-clamp-2">${announcement.content}</p>
+              <div class="mb-4">
+                <div class="space-y-1.5">
+                  ${announcements.slice(0, 2).map(announcement => `
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-2 hover:bg-white/20 transition-all cursor-pointer"
+                         onclick="showAnnouncementDetail(${announcement.id})">
+                      <div class="flex gap-2 items-center">
+                        ${announcement.image_url ? `
+                          <img src="${announcement.image_url}" alt="${announcement.title}" 
+                            class="w-8 h-8 object-cover rounded flex-shrink-0">
+                        ` : `
+                          <div class="w-8 h-8 bg-gradient-to-br from-primary to-pink-500 rounded flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-bullhorn text-white text-xs"></i>
                           </div>
-                          <i class="fas fa-chevron-right text-white/60 text-sm flex-shrink-0"></i>
+                        `}
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-xs font-bold text-white mb-0.5">${announcement.title}</h4>
+                          <p class="text-xs text-white/70 line-clamp-1">${announcement.content}</p>
                         </div>
+                        <i class="fas fa-chevron-right text-white/50 text-xs flex-shrink-0"></i>
                       </div>
-                    `).join('')}
-                  </div>
+                    </div>
+                  `).join('')}
                 </div>
               </div>
             ` : ''}
