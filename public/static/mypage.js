@@ -1920,11 +1920,17 @@ async function speakAdvice(adviceId, title, content) {
     // 読み上げるテキストを作成
     const textToSpeak = `${title}。${content}`;
 
+    // トークンを取得
+    const token = getToken();
+    if (!token) {
+      throw new Error('ログインが必要です');
+    }
+
     // OpenAI TTS APIを呼び出し（直接Fetch使用でストリーミング受信）
     const response = await fetch('/api/tts/speak', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -1934,6 +1940,9 @@ async function speakAdvice(adviceId, title, content) {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('認証エラー。再ログインしてください');
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || '音声生成に失敗しました');
     }
