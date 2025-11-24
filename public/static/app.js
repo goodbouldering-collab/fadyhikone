@@ -611,8 +611,13 @@ function renderHealthLogSection() {
             const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
             const dateAdvices = advices.filter(a => a.log_date === displayDate);
             
-            const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai');
-            const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff');
+            // AIとスタッフそれぞれの最新1件のみ取得
+            const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai')
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 1);
+            const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff')
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 1);
             
             return `
               <div class="mb-4">
