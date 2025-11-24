@@ -21,7 +21,7 @@ tts.use('*', async (c, next) => {
   await next();
 });
 
-// OpenAI TTS APIを使用して音声を生成
+// OpenAI TTS APIを使用して音声を生成（ストリーミング版）
 tts.post('/speak', async (c) => {
   try {
     const { text, voice = 'nova' } = await c.req.json();
@@ -72,21 +72,13 @@ tts.post('/speak', async (c) => {
       }, 500);
     }
 
-    // 音声データを取得
-    const audioBuffer = await response.arrayBuffer();
-    
-    // 音声データをBase64エンコードして返す（クライアント側で再生）
-    const base64Audio = btoa(
-      String.fromCharCode(...new Uint8Array(audioBuffer))
-    );
-
-    return c.json({
-      success: true,
-      data: {
-        audio: `data:audio/mp3;base64,${base64Audio}`,
-        format: 'mp3',
-        voice: voice
-      }
+    // 音声データを直接ストリーミング（Base64エンコード不要）
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': 'inline',
+        'Cache-Control': 'public, max-age=3600',
+      },
     });
 
   } catch (error) {

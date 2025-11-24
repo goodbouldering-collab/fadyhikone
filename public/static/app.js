@@ -3514,21 +3514,30 @@ async function speakAdvice(adviceId, title, content) {
     // 読み上げるテキストを作成
     const textToSpeak = `${title}。${content}`;
 
-    // OpenAI TTS APIを呼び出し
-    const response = await apiCall('/api/tts/speak', {
+    // OpenAI TTS APIを呼び出し（直接Fetch使用でストリーミング受信）
+    const response = await fetch('/api/tts/speak', {
       method: 'POST',
-      data: {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         text: textToSpeak,
         voice: 'nova' // alloy, echo, fable, onyx, nova, shimmer
-      }
+      })
     });
 
-    if (!response.success) {
-      throw new Error(response.error || '音声生成に失敗しました');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '音声生成に失敗しました');
     }
 
-    // Base64音声データをAudioオブジェクトで再生
-    currentAudio = new Audio(response.data.audio);
+    // 音声データをBlobとして取得
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    // AudioオブジェクトでBlobを再生
+    currentAudio = new Audio(audioUrl);
 
     // 再生開始時の処理
     currentAudio.onplay = () => {
