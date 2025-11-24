@@ -120,7 +120,7 @@ function renderUserProfile() {
         <div class="max-w-6xl mx-auto">
           <div class="text-center">
             <div class="flex items-center justify-center gap-3 mb-2">
-              <h2 class="text-3xl md:text-4xl font-bold">${currentUser.name}さんのマイページ</h2>
+              <h2 class="text-3xl md:text-4xl font-bold">マイページ</h2>
               ${currentUser?.role === 'admin' ? `
                 <a href="/admin" class="px-3 py-2 text-sm bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
                   <i class="fas fa-user-shield mr-1.5"></i>
@@ -217,7 +217,7 @@ function renderStatsSection() {
           </div>
           
           <!-- チェックリスト（1行コンパクト表示） -->
-          <div class="bg-white p-2 rounded-lg shadow-sm mb-2">
+          <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm mb-2 border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-1.5">
                 <i class="fas ${latestLog?.weight ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xs"></i>
@@ -281,7 +281,7 @@ function renderTodayAdvices() {
         const staffAdvices = advicesByDate[date].staff;
         
         return `
-          <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-3 rounded-xl shadow-sm border border-purple-100">
+          <div class="bg-gradient-to-br from-indigo-50/60 via-purple-50/60 to-pink-50/60 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-purple-100/50 hover:from-indigo-50/80 hover:via-purple-50/80 hover:to-pink-50/80 hover:shadow-md transition-all duration-200">
             <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
               <i class="fas fa-calendar-day text-primary"></i>
               ${dayjs(date).format('YYYY年M月D日')}のアドバイス
@@ -289,7 +289,7 @@ function renderTodayAdvices() {
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <!-- AIアドバイス -->
-        <div class="bg-white p-2 rounded-lg shadow-sm">
+        <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
               <i class="fas fa-robot text-white text-sm"></i>
@@ -330,7 +330,7 @@ function renderTodayAdvices() {
         </div>
         
         <!-- スタッフアドバイス -->
-        <div class="bg-white p-2 rounded-lg shadow-sm">
+        <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
               <i class="fas fa-user-nurse text-white text-sm"></i>
@@ -394,7 +394,7 @@ function renderAdvicesList() {
   });
   
   return `
-    <section id="advices-section" class="bg-white py-8">
+    <section id="advices-section" class="bg-gradient-to-b from-gray-50/50 to-white/50 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
@@ -465,7 +465,7 @@ function renderAdvicesList() {
               const categoryIcon = categoryIcons[advice.advice_type] || '📋';
               
               return `
-              <div class="card-hover bg-gray-50 p-2 rounded-lg border-l-4 ${advice.is_read ? 'opacity-60' : ''}" 
+              <div class="card-hover bg-white/30 backdrop-blur-sm p-2 rounded-lg border-l-4 ${advice.is_read ? 'opacity-60' : ''}" 
                 style="border-color: var(--color-${getAdviceColor(advice.advice_type)})">
                 <div class="flex justify-between items-start mb-1">
                   <div class="flex-1">
@@ -557,7 +557,7 @@ function renderOpinionBox() {
           </h3>
           
           <!-- 質問フォーム（アイコン削除、幅広く） -->
-          <div class="bg-white p-2 rounded-xl shadow-sm mb-2">
+          <div class="bg-white/30 backdrop-blur-sm p-2 rounded-xl shadow-sm mb-2 border border-white/40">
             <textarea 
               id="opinion-question" 
               rows="3" 
@@ -587,7 +587,7 @@ function renderOpinionBox() {
                   </h4>
                   <div class="space-y-2">
                     ${pendingOpinions.map(opinion => `
-                      <div class="bg-white p-2 rounded-xl shadow-sm border-l-2 border-orange-400">
+                      <div class="bg-white/40 backdrop-blur-sm p-2 rounded-xl shadow-sm border-l-2 border-orange-400">
                         <div class="flex justify-between items-start mb-1">
                           <div class="flex items-center gap-1">
                             <i class="fas fa-clock text-orange-500 text-xs"></i>
@@ -595,7 +595,7 @@ function renderOpinionBox() {
                           </div>
                           <span class="badge badge-warning text-xs">回答待ち</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded mb-1">
+                        <div class="bg-white/20 backdrop-blur-sm p-2 rounded mb-1">
                           <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
                         </div>
                         <p class="text-xs text-gray-500 italic">スタッフが確認中です。しばらくお待ちください。</p>
@@ -614,7 +614,7 @@ function renderOpinionBox() {
                   </h4>
                   <div class="space-y-2">
                     ${answeredOpinions.map(opinion => `
-                      <div class="bg-white p-2 rounded-xl shadow-sm border-l-2 border-green-400">
+                      <div class="bg-white/40 backdrop-blur-sm p-2 rounded-xl shadow-sm border-l-2 border-green-400">
                         <div class="flex justify-between items-start mb-1">
                           <div class="flex items-center gap-1">
                             <i class="fas fa-calendar text-green-500 text-xs"></i>
@@ -642,7 +642,7 @@ function renderOpinionBox() {
               ` : ''}
             </div>
           ` : `
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center">
+            <div class="bg-white/30 backdrop-blur-sm p-4 rounded-xl shadow-sm text-center border border-white/40">
               <div class="w-12 h-12 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
                 <i class="fas fa-comments text-xl text-gray-300"></i>
               </div>
@@ -659,7 +659,7 @@ function renderOpinionBox() {
 function renderHealthLogsTable() {
   if (healthLogs.length === 0) {
     return `
-      <section class="bg-gray-50 py-8">
+      <section class="bg-gradient-to-b from-white/50 to-gray-50/50 backdrop-blur-sm py-8">
         <div class="container mx-auto px-6 md:px-8">
           <div class="max-w-6xl mx-auto text-center">
             <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-3"></i>
@@ -696,7 +696,7 @@ function renderHealthLogsTable() {
             </div>
             
             <!-- フィルター機能 -->
-            <div class="bg-white p-3 rounded-lg shadow-sm flex flex-wrap items-center gap-2">
+            <div class="bg-white/30 backdrop-blur-sm p-3 rounded-lg shadow-sm flex flex-wrap items-center gap-2 border border-white/40">
               <div class="flex items-center gap-2">
                 <label class="text-xs font-medium text-gray-600">期間:</label>
                 <select id="log-filter-period" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
@@ -737,7 +737,7 @@ function renderHealthLogsTable() {
             </div>
           </div>
           
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white/20 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-white/30">
             <div class="scroll-container overflow-x-auto">
               <table class="table min-w-full text-sm">
                 <thead>
@@ -789,7 +789,7 @@ function renderHealthLogsTable() {
 // グラフセクション
 function renderChartsSection() {
   return `
-    <section class="bg-white py-8">
+    <section class="bg-gradient-to-b from-gray-50/50 to-white/50 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
@@ -797,7 +797,7 @@ function renderChartsSection() {
             健康データ推移（最新30日）
           </h3>
           
-          <div class="bg-gray-50 p-2 rounded-lg">
+          <div class="bg-white/20 backdrop-blur-sm p-2 rounded-lg border border-white/30">
             <div style="height: 350px;">
               <canvas id="combined-chart"></canvas>
             </div>
@@ -1193,7 +1193,7 @@ function renderSettingsSection() {
           </h3>
           
           <!-- タブナビゲーション -->
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white/20 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-white/30">
             <div class="flex border-b border-gray-200">
               <button onclick="showSettingsTab('profile')" id="settings-tab-profile" 
                 class="settings-tab flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition border-b-2 border-transparent">

@@ -37,7 +37,8 @@
    - **複数枚の食事写真**アップロード対応
    - **PFCバランス**（タンパク質・脂質・炭水化物）自動計算
    - 1日の合計カロリー・栄養素表示
-   - AI食事解析（モック）
+   - **AI包括的アドバイス自動生成**: 保存時に全データを分析し、過去トレンド・今後の課題を含むアドバイスを自動作成
+   - **総カロリー自動計算**: 朝食+昼食+夕食の合計カロリーを自動計算・記録
 4. **特徴セクション**: AIパーソナルジムの3つの特徴を紹介
 5. **FAQセクション**: よくある質問をアコーディオン形式で表示
 6. **お問い合わせフォーム**: 未登録ユーザーからの問い合わせを受付
@@ -64,10 +65,34 @@
 ### D1 Database (SQLite)
 ```
 - users: ユーザー情報（認証、ロール）
-- health_logs: 健康ログ（体重、体脂肪率、体温、睡眠、食事、運動）
-- advices: スタッフアドバイス（種類、タイトル、内容）
+- health_logs: 健康ログ（体重、体脂肪率、睡眠、食事カロリー・栄養素、運動）
+- meals: 食事詳細（朝昼夕別、カロリー、PFCバランス、AI解析データ）
+- meal_photos: 食事写真（複数枚対応）
+- advices: アドバイス（AI自動生成・スタッフ作成、種類、タイトル、内容、信頼度スコア）
 - inquiries: 問い合わせ（名前、メール、件名、メッセージ、ステータス）
+- settings: システム設定（OpenAI APIキーなど）
 ```
+
+### AI アドバイス生成システム
+**OpenAI GPT-4o-mini 使用**
+
+#### 自動生成タイミング
+- 健康ログを保存（POST）・更新（PUT）する度に自動実行
+- 非同期処理で実行されるため、ログ保存は即座に完了
+
+#### 包括的分析内容
+1. **現在の状態分析**: 今日入力した全データ（体重、体脂肪、食事、PFC、運動、睡眠）を総合評価
+2. **過去トレンド分析**: 過去7日間の詳細データ + 過去30日間の統計データを比較
+3. **今後の課題**: 短期目標（今週〜来週）と中期目標（今月〜来月）を提示
+4. **具体的アクション**: 数値を含む実行可能な推奨事項（カロリー調整、運動時間など）
+5. **クライミング的視点**: ファディー彦根の30年のクライミング経験を活かしたアドバイス
+
+#### 生成されるアドバイス形式
+- **カテゴリー**: meal / exercise / mental / sleep / weight のいずれか
+- **タイトル**: 20文字以内の具体的なタイトル
+- **内容**: 250-400文字の包括的アドバイス
+- **信頼度スコア**: データの充実度に基づく 0.0-1.0
+- **AI分析データ**: 現状評価、トレンド、課題、良い点、推奨事項を含むJSON
 
 ### R2 Storage
 - 食事写真の保存
@@ -86,13 +111,13 @@
 
 ### 健康ログ
 - `GET /api/health-logs` - ログ一覧取得
-- `POST /api/health-logs` - ログ作成
-- `PUT /api/health-logs/:id` - ログ更新
+- `POST /api/health-logs` - ログ作成（自動的にAI包括アドバイス生成）
+- `PUT /api/health-logs/:id` - ログ更新（自動的にAI包括アドバイス生成）
 - `DELETE /api/health-logs/:id` - ログ削除
 - `POST /api/health-logs/upload-meal` - 食事写真アップロード&AI解析
 
 ### アドバイス
-- `GET /api/advices` - アドバイス一覧取得
+- `GET /api/advices` - アドバイス一覧取得（AI生成・スタッフ作成の両方）
 - `PUT /api/advices/:id/read` - 既読にする
 
 ### 問い合わせ
@@ -128,7 +153,7 @@
 ## 未実装の機能
 
 - 本番環境の外部OAuth認証（Google/LINE）
-- 実際のAI画像解析API統合（現在はモック）
+- 食事写真の実際のAI画像解析（現在は手動入力のみ）
 - メール通知機能
 - データエクスポート機能
 - 多言語対応
@@ -137,10 +162,11 @@
 ## 推奨される次のステップ
 
 1. **外部OAuth統合**: Google Cloud ConsoleとLINE Developersでアプリケーション登録
-2. **AI解析API統合**: OpenAI Vision APIまたはGoogle Gemini統合
-3. **メール通知**: SendGridやMailgun統合でアドバイス通知
-4. **本番デプロイ**: Cloudflare Pagesへの本番デプロイ
+2. **AI画像解析統合**: OpenAI Vision APIで食事写真から自動的にカロリー・栄養素を抽出
+3. **本番環境でのAI設定**: Cloudflare DashboardでOpenAI API keyを環境変数として設定
+4. **メール通知**: SendGridやMailgun統合でAIアドバイス通知
 5. **モニタリング**: エラーログ、アクセスログの収集と分析
+6. **AIアドバイスの改善**: ユーザーフィードバックに基づいたプロンプト最適化
 
 ## 開発環境
 
@@ -241,9 +267,25 @@ npx wrangler pages deploy dist --project-name fadyhikone --branch main
 
 **オプション設定 (Settings > Environment Variables):**
 - `JWT_SECRET` - セキュリティ強化用
-- `GEMINI_API_KEY` - AI機能用
+- `OPENAI_API_KEY` - AI包括アドバイス生成用（**重要**: 本番環境では必須）
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - OAuth用
 - `LINE_CHANNEL_ID` / `LINE_CHANNEL_SECRET` - LINE OAuth用
+
+**📝 OpenAI API キーの設定方法:**
+
+ローカル開発環境とCloudflare本番環境では異なる設定方法を使用します。
+
+**ローカル開発（サンドボックス）:**
+1. データベースの `settings` テーブルに直接設定:
+   ```bash
+   npx wrangler d1 execute fadyhikone-production --local --command="INSERT OR REPLACE INTO settings (setting_key, setting_value, description) VALUES ('openai_api_key', 'sk-proj-YOUR_API_KEY', 'OpenAI API キー（食事解析・アドバイス生成用）')"
+   ```
+2. または管理画面の「詳細設定」から設定可能
+
+**Cloudflare本番環境:**
+1. Cloudflare Dashboard > Pages > fadyhikone > Settings > Environment Variables
+2. `OPENAI_API_KEY` = `sk-proj-YOUR_API_KEY` を追加
+3. 本番データベースの `settings` テーブルにも同様に設定（管理画面から設定可能）
 
 ### 📚 詳細なデプロイガイド
 

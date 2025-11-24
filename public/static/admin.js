@@ -108,10 +108,6 @@ function renderHeader() {
                 <i class="fas fa-chart-line mr-1.5"></i>
                 マイページ
               </a>
-              <button onclick="logout()" class="px-3 py-2 text-sm text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition">
-                <i class="fas fa-sign-out-alt mr-1.5"></i>
-                ログアウト
-              </button>
             </div>
           </nav>
         </div>
@@ -197,8 +193,8 @@ function renderTabs() {
             <i class="fas fa-envelope mr-2"></i>問い合わせ
           </button>
             <button onclick="showTab('settings')" id="tab-settings" 
-              class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:border-primary transition">
-              <i class="fas fa-cog mr-1"></i>管理設定
+              class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-bold border-b-3 border-transparent hover:border-primary transition whitespace-nowrap">
+              <i class="fas fa-cog mr-2"></i>詳細設定
             </button>
           </div>
         </div>
@@ -242,7 +238,7 @@ function showTab(tab) {
 // 顧客管理タブ
 function renderUsersTab() {
   return `
-    <section class="bg-gray-50 py-8">
+    <section class="bg-gradient-to-b from-gray-50/30 to-white/30 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
@@ -256,7 +252,7 @@ function renderUsersTab() {
             </div>
           </div>
           
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white/20 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-white/30">
             <div class="table-container overflow-x-auto">
               <table class="table min-w-full text-sm">
                 <thead>
@@ -313,7 +309,7 @@ function renderUserDetails() {
   if (!selectedUser) return '';
   
   return `
-    <div class="mt-6 bg-white rounded-lg shadow-md p-4">
+    <div class="mt-6 bg-white/20 backdrop-blur-md rounded-lg shadow-md p-4 border border-white/30">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-bold">
           ${selectedUser.name} さんの詳細情報
@@ -456,7 +452,7 @@ function renderOpinionsTab() {
   const answeredOpinions = opinions.filter(op => op.status === 'answered');
   
   return `
-    <section class="bg-gray-50 py-8">
+    <section class="bg-gradient-to-b from-gray-50/30 to-white/30 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
@@ -475,7 +471,7 @@ function renderOpinionsTab() {
               </h3>
               <div class="space-y-3">
                 ${pendingOpinions.map(opinion => `
-                  <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-orange-500">
+                  <div class="bg-white/40 backdrop-blur-sm p-5 rounded-lg shadow-md border-l-4 border-orange-500">
                     <div class="flex justify-between items-start mb-3">
                       <div class="flex-1">
                         <div class="flex items-center gap-3 mb-2">
@@ -493,7 +489,7 @@ function renderOpinionsTab() {
                       </div>
                     </div>
                     
-                    <div class="bg-gray-50 p-3 rounded mb-3">
+                    <div class="bg-white/20 backdrop-blur-sm p-3 rounded mb-3 border border-white/20">
                       <p class="text-sm font-medium text-gray-700 mb-1">質問内容:</p>
                       <p class="text-sm text-gray-800 whitespace-pre-wrap">${opinion.question}</p>
                     </div>
@@ -510,7 +506,7 @@ function renderOpinionsTab() {
               </div>
             </div>
           ` : `
-            <div class="bg-white p-6 rounded-lg shadow-md text-center mb-6">
+            <div class="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-md text-center mb-6 border border-white/40">
               <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
               <p class="text-sm text-gray-700 font-medium">すべての質問に回答済みです！</p>
             </div>
@@ -525,7 +521,7 @@ function renderOpinionsTab() {
               </h3>
               <div class="space-y-3">
                 ${answeredOpinions.map(opinion => `
-                  <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500">
+                  <div class="bg-white/40 backdrop-blur-sm p-5 rounded-lg shadow-sm border-l-4 border-green-500">
                     <div class="flex justify-between items-start mb-3">
                       <div class="flex-1">
                         <div class="flex items-center gap-3 mb-2">
@@ -543,7 +539,7 @@ function renderOpinionsTab() {
                       </div>
                     </div>
                     
-                    <div class="bg-gray-50 p-3 rounded mb-3">
+                    <div class="bg-white/20 backdrop-blur-sm p-3 rounded mb-3 border border-white/20">
                       <p class="text-sm font-medium text-gray-700 mb-1">質問内容:</p>
                       <p class="text-sm text-gray-800 whitespace-pre-wrap">${opinion.question}</p>
                     </div>
@@ -578,7 +574,7 @@ function renderOpinionsTab() {
 // 問い合わせタブ
 function renderInquiriesTab() {
   return `
-    <section class="bg-gray-50 py-8">
+    <section class="bg-gradient-to-b from-gray-50/30 to-white/30 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
@@ -593,7 +589,7 @@ function renderInquiriesTab() {
           
           <div class="space-y-3">
             ${inquiries.map(inquiry => `
-              <div class="bg-white rounded-lg shadow-md p-4">
+              <div class="bg-white/30 backdrop-blur-md rounded-lg shadow-md p-4 border border-white/40">
                 <div class="flex justify-between items-start mb-3">
                   <div>
                     <div class="flex items-center gap-2 mb-1">
@@ -611,7 +607,7 @@ function renderInquiriesTab() {
                   <span class="text-xs text-gray-500">${formatDateTime(inquiry.created_at)}</span>
                 </div>
                 
-                <div class="bg-gray-50 p-3 rounded-lg mb-3">
+                <div class="bg-white/20 backdrop-blur-sm p-3 rounded-lg mb-3 border border-white/20">
                   <p class="text-sm text-gray-700">${inquiry.message}</p>
                 </div>
                 
@@ -794,7 +790,7 @@ function showReplyModal(inquiryId) {
     <div class="modal-content p-5 max-w-2xl">
       <h3 class="text-lg font-bold mb-3">問い合わせに返信</h3>
       
-      <div class="bg-gray-50 p-3 rounded-lg mb-3">
+      <div class="bg-white/20 backdrop-blur-sm p-3 rounded-lg mb-3 border border-white/20">
         <div class="text-xs text-gray-600 mb-1">
           <strong>${inquiry.name}</strong> (${inquiry.email})
         </div>
@@ -1017,35 +1013,37 @@ async function loadSettingsData() {
 // 管理設定タブ
 function renderSettingsTab() {
   return `
-    <section class="bg-gray-50 py-8">
+    <section class="bg-gradient-to-b from-gray-50/30 to-white/30 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto">
-          <!-- システム設定 -->
-          <div class="bg-white rounded-lg shadow-md p-4">
-            <h2 class="text-2xl md:text-3xl font-bold mb-4">
-              <i class="fas fa-cog text-primary mr-2"></i>システム設定
+        <div class="max-w-full mx-auto">
+          <!-- 詳細設定 -->
+          <div class="bg-white/20 backdrop-blur-md rounded-xl shadow-lg p-4 border border-white/30">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-gray-800">
+              <i class="fas fa-cog text-primary mr-2"></i>詳細設定
             </h2>
             
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead class="bg-gray-50">
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+              <table class="min-w-full text-sm bg-white/50 backdrop-blur-sm">
+                <thead class="bg-primary/10 backdrop-blur-sm">
                   <tr>
-                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">設定キー</th>
-                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">説明</th>
-                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-700">設定値</th>
-                    <th class="px-3 py-2 text-center text-xs font-bold text-gray-700 w-20">操作</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 whitespace-nowrap min-w-[200px]">設定キー</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 whitespace-nowrap min-w-[250px]">説明</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 whitespace-nowrap min-w-[300px]">設定値</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-800 whitespace-nowrap w-24">操作</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-white/30 backdrop-blur-sm">
                   ${settings.map(setting => `
-                    <tr class="border-t hover:bg-gray-50">
-                      <td class="px-3 py-2 text-xs font-bold whitespace-nowrap">${setting.setting_key}</td>
-                      <td class="px-3 py-2 text-xs text-gray-500">${setting.description || '-'}</td>
-                      <td class="px-3 py-2 text-xs font-mono text-gray-700 max-w-md truncate" title="${setting.setting_value || '(未設定)'}">${setting.setting_value || '(未設定)'}</td>
-                      <td class="px-3 py-2 text-center">
+                    <tr class="border-t border-gray-200 hover:bg-white/50 transition">
+                      <td class="px-4 py-3 text-xs font-bold text-gray-900 whitespace-nowrap">${setting.setting_key}</td>
+                      <td class="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">${setting.description || '-'}</td>
+                      <td class="px-4 py-3 text-xs font-mono text-gray-700 whitespace-nowrap" title="${setting.setting_value || '(未設定)'}">
+                        <div class="max-w-md truncate whitespace-nowrap">${setting.setting_value || '(未設定)'}</div>
+                      </td>
+                      <td class="px-4 py-3 text-center whitespace-nowrap">
                         <button onclick="showEditSettingModal('${setting.setting_key}', '${setting.setting_value.replace(/'/g, "\\'")}', '${setting.description || ''}')" 
-                          class="text-blue-500 hover:text-blue-700 text-xs">
-                          <i class="fas fa-edit"></i>
+                          class="px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs font-medium">
+                          <i class="fas fa-edit mr-1"></i>編集
                         </button>
                       </td>
                     </tr>
@@ -1235,28 +1233,30 @@ function showEditSettingModal(key, value, description) {
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
   modal.innerHTML = `
-    <div class="modal-content p-5 max-w-2xl">
-      <h3 class="text-lg font-bold mb-3">設定編集: ${key}</h3>
-      <form id="edit-setting-form" class="space-y-3">
+    <div class="modal-content bg-white/95 backdrop-blur-xl p-6 max-w-3xl border border-white/30 shadow-2xl">
+      <h3 class="text-xl font-bold mb-4 text-gray-800">
+        <i class="fas fa-cog text-primary mr-2"></i>設定編集: ${key}
+      </h3>
+      <form id="edit-setting-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-medium mb-1">設定値 *</label>
+          <label class="block text-sm font-bold mb-2 text-gray-700">設定値 *</label>
           <input type="text" name="value" required value="${value}"
-            class="w-full px-3 py-2 text-sm border rounded-lg">
+            class="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white/50 backdrop-blur-sm">
         </div>
         
         <div>
-          <label class="block text-xs font-medium mb-1">説明</label>
+          <label class="block text-sm font-bold mb-2 text-gray-700">説明</label>
           <input type="text" name="description" value="${description}"
-            class="w-full px-3 py-2 text-sm border rounded-lg">
+            class="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white/50 backdrop-blur-sm">
         </div>
         
-        <div class="flex gap-2 justify-end">
+        <div class="flex gap-3 justify-end pt-4">
           <button type="button" onclick="this.closest('.modal-backdrop').remove()" 
-            class="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg">
+            class="px-5 py-2.5 text-sm bg-gray-200/80 backdrop-blur-sm hover:bg-gray-300/80 rounded-lg font-medium transition">
             キャンセル
           </button>
-          <button type="submit" class="px-3 py-1.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg">
-            更新
+          <button type="submit" class="px-5 py-2.5 text-sm bg-primary text-white hover:bg-opacity-90 rounded-lg font-bold shadow-lg transition">
+            <i class="fas fa-save mr-1.5"></i>更新
           </button>
         </div>
       </form>
@@ -1299,7 +1299,7 @@ function showAnswerOpinionModal(opinionId) {
     <div class="modal-content p-5 max-w-2xl">
       <h3 class="text-lg font-bold mb-3">質問に回答する</h3>
       
-      <div class="bg-gray-50 p-4 rounded-lg mb-4">
+      <div class="bg-white/20 backdrop-blur-sm p-4 rounded-lg mb-4 border border-white/30">
         <div class="flex items-center gap-3 mb-3">
           <img src="${opinion.avatar_url || 'https://via.placeholder.com/40'}" 
             class="w-10 h-10 rounded-full">
@@ -1308,7 +1308,7 @@ function showAnswerOpinionModal(opinionId) {
             <div class="text-xs text-gray-500">${opinion.user_email}</div>
           </div>
         </div>
-        <div class="bg-white p-3 rounded">
+        <div class="bg-white/30 backdrop-blur-sm p-3 rounded border border-white/30">
           <p class="text-sm font-medium text-gray-700 mb-1">質問内容:</p>
           <p class="text-sm text-gray-800 whitespace-pre-wrap">${opinion.question}</p>
         </div>
@@ -1392,7 +1392,7 @@ async function deleteOpinion(opinionId) {
 // お知らせタブ
 function renderAnnouncementsTab() {
   return `
-    <section class="bg-gray-50 py-8">
+    <section class="bg-gradient-to-b from-gray-50/30 to-white/30 backdrop-blur-sm py-8">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="flex justify-between items-center mb-4">
@@ -1719,7 +1719,7 @@ function renderBlogsTab() {
             </button>
           </div>
           
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white/20 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-white/30">
             <div class="overflow-x-auto">
               <table class="min-w-full text-sm">
                 <thead class="bg-gray-50">
