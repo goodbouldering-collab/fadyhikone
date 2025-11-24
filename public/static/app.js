@@ -613,14 +613,24 @@ function renderHealthLogSection() {
                     <div class="space-y-2">
                       ${staffAdvices.map(advice => `
                         <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30 hover:bg-white/60 hover:scale-[1.01] transition-all duration-200">
-                          <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                              <i class="fas fa-user-nurse text-white text-xs"></i>
-                            </div>
+                          <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
-                              <span class="text-xs font-bold text-pink-600">スタッフ</span>
-                              ${advice.staff_name ? `<span class="text-xs text-gray-500">- ${advice.staff_name}</span>` : ''}
+                              <div class="w-7 h-7 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <i class="fas fa-user-nurse text-white text-xs"></i>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-pink-600">スタッフ</span>
+                                ${advice.staff_name ? `<span class="text-xs text-gray-500">- ${advice.staff_name}</span>` : ''}
+                              </div>
                             </div>
+                            <button 
+                              type="button"
+                              id="speak-btn-${advice.id}"
+                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              class="w-6 h-6 flex items-center justify-center bg-pink-100 hover:bg-pink-200 rounded-full transition-colors flex-shrink-0"
+                              title="音声で読み上げる">
+                              <i class="fas fa-volume-up text-pink-600 text-xs"></i>
+                            </button>
                           </div>
                           <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
                           <p class="text-xs text-gray-600">${advice.content}</p>
@@ -628,13 +638,23 @@ function renderHealthLogSection() {
                       `).join('')}
                       ${aiAdvices.map(advice => `
                         <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30 hover:bg-white/60 hover:scale-[1.01] transition-all duration-200">
-                          <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                              <i class="fas fa-robot text-white text-xs"></i>
-                            </div>
+                          <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
-                              <span class="text-xs font-bold text-blue-600">AI</span>
+                              <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <i class="fas fa-robot text-white text-xs"></i>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-blue-600">AI</span>
+                              </div>
                             </div>
+                            <button 
+                              type="button"
+                              id="speak-btn-${advice.id}"
+                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              class="w-6 h-6 flex items-center justify-center bg-blue-100 hover:bg-blue-200 rounded-full transition-colors flex-shrink-0"
+                              title="音声で読み上げる">
+                              <i class="fas fa-volume-up text-blue-600 text-xs"></i>
+                            </button>
                           </div>
                           <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
                           <p class="text-xs text-gray-600">${advice.content}</p>
@@ -3421,4 +3441,82 @@ function loadExerciseOrder() {
 window.addEventListener('DOMContentLoaded', () => {
   loadExerciseOrder();
 });
+
+// =============================================================================
+// 音声読み上げ機能
+// =============================================================================
+
+// 音声読み上げの状態管理
+let currentSpeech = null;
+let isSpeaking = false;
+
+// アドバイスを音声で読み上げ
+function speakAdvice(adviceId, title, content) {
+  // Web Speech API がサポートされているか確認
+  if (!('speechSynthesis' in window)) {
+    showToast('お使いのブラウザは音声読み上げに対応していません', 'error');
+    return;
+  }
+
+  const button = document.getElementById(`speak-btn-${adviceId}`);
+  const icon = button?.querySelector('i');
+
+  // 既に同じアドバイスを読み上げ中の場合は停止
+  if (isSpeaking && currentSpeech && currentSpeech.adviceId === adviceId) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up';
+    }
+    return;
+  }
+
+  // 他のアドバイスを読み上げ中の場合は停止
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+  }
+
+  // 読み上げるテキストを作成
+  const textToSpeak = `${title}。${content}`;
+
+  // 音声合成オブジェクトを作成
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.lang = 'ja-JP'; // 日本語
+  utterance.rate = 1.0; // 速度（0.1〜10、デフォルト1）
+  utterance.pitch = 1.0; // ピッチ（0〜2、デフォルト1）
+  utterance.volume = 1.0; // 音量（0〜1、デフォルト1）
+
+  // 読み上げ開始時の処理
+  utterance.onstart = () => {
+    isSpeaking = true;
+    currentSpeech = { adviceId, utterance };
+    if (icon) {
+      icon.className = 'fas fa-stop';
+    }
+  };
+
+  // 読み上げ終了時の処理
+  utterance.onend = () => {
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up';
+    }
+  };
+
+  // エラー時の処理
+  utterance.onerror = (event) => {
+    console.error('音声読み上げエラー:', event);
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up';
+    }
+    showToast('音声読み上げに失敗しました', 'error');
+  };
+
+  // 読み上げを開始
+  window.speechSynthesis.speak(utterance);
+}
 

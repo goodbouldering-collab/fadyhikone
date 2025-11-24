@@ -310,15 +310,25 @@ function renderTodayAdvices() {
           ${aiAdvices.length > 0 ? `
             <div class="space-y-2">
               ${aiAdvices.map(advice => `
-                <div class="text-xs text-gray-700 line-clamp-3">
-                  <strong class="text-gray-800">${advice.title}</strong><br>
-                  ${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}
-                </div>
-                ${advice.content.length > 100 ? `
-                  <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
-                    もっと見る →
+                <div class="relative">
+                  <button 
+                    type="button"
+                    id="speak-btn-${advice.id}"
+                    onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                    class="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-blue-100 hover:bg-blue-200 rounded-full transition-colors z-10"
+                    title="音声で読み上げる">
+                    <i class="fas fa-volume-up text-blue-600 text-xs"></i>
                   </button>
-                ` : ''}
+                  <div class="text-xs text-gray-700 line-clamp-3">
+                    <strong class="text-gray-800">${advice.title}</strong><br>
+                    ${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}
+                  </div>
+                  ${advice.content.length > 100 ? `
+                    <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
+                      もっと見る →
+                    </button>
+                  ` : ''}
+                </div>
               `).join('')}
             </div>
           ` : `
@@ -341,19 +351,29 @@ function renderTodayAdvices() {
           ${staffAdvices.length > 0 ? `
             <div class="space-y-2">
               ${staffAdvices.map(advice => `
-                <div class="text-xs text-gray-700">
-                  <div class="flex items-center gap-1 mb-1">
-                    <i class="fas fa-user-circle text-primary text-xs"></i>
-                    <span class="font-medium text-gray-800">${advice.staff_name}</span>
-                  </div>
-                  <strong class="text-gray-800">${advice.title}</strong><br>
-                  <div class="line-clamp-3">${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}</div>
-                </div>
-                ${advice.content.length > 100 ? `
-                  <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
-                    もっと見る →
+                <div class="relative">
+                  <button 
+                    type="button"
+                    id="speak-btn-${advice.id}"
+                    onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                    class="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-pink-100 hover:bg-pink-200 rounded-full transition-colors z-10"
+                    title="音声で読み上げる">
+                    <i class="fas fa-volume-up text-pink-600 text-xs"></i>
                   </button>
-                ` : ''}
+                  <div class="text-xs text-gray-700">
+                    <div class="flex items-center gap-1 mb-1">
+                      <i class="fas fa-user-circle text-primary text-xs"></i>
+                      <span class="font-medium text-gray-800">${advice.staff_name}</span>
+                    </div>
+                    <strong class="text-gray-800">${advice.title}</strong><br>
+                    <div class="line-clamp-3">${advice.content.substring(0, 100)}${advice.content.length > 100 ? '...' : ''}</div>
+                  </div>
+                  ${advice.content.length > 100 ? `
+                    <button onclick="showAdviceDetail(${advice.id})" class="text-xs text-primary hover:underline mt-1">
+                      もっと見る →
+                    </button>
+                  ` : ''}
+                </div>
               `).join('')}
             </div>
           ` : `
@@ -1847,4 +1867,82 @@ function showAllAnnouncements() {
   `;
   
   document.body.appendChild(modal);
+}
+
+// =============================================================================
+// 音声読み上げ機能
+// =============================================================================
+
+// 音声読み上げの状態管理
+let currentSpeech = null;
+let isSpeaking = false;
+
+// アドバイスを音声で読み上げ
+function speakAdvice(adviceId, title, content) {
+  // Web Speech API がサポートされているか確認
+  if (!('speechSynthesis' in window)) {
+    showToast('お使いのブラウザは音声読み上げに対応していません', 'error');
+    return;
+  }
+
+  const button = document.getElementById(`speak-btn-${adviceId}`);
+  const icon = button?.querySelector('i');
+
+  // 既に同じアドバイスを読み上げ中の場合は停止
+  if (isSpeaking && currentSpeech && currentSpeech.adviceId === adviceId) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up text-blue-600 text-xs';
+    }
+    return;
+  }
+
+  // 他のアドバイスを読み上げ中の場合は停止
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+  }
+
+  // 読み上げるテキストを作成
+  const textToSpeak = `${title}。${content}`;
+
+  // 音声合成オブジェクトを作成
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.lang = 'ja-JP'; // 日本語
+  utterance.rate = 1.0; // 速度（0.1〜10、デフォルト1）
+  utterance.pitch = 1.0; // ピッチ（0〜2、デフォルト1）
+  utterance.volume = 1.0; // 音量（0〜1、デフォルト1）
+
+  // 読み上げ開始時の処理
+  utterance.onstart = () => {
+    isSpeaking = true;
+    currentSpeech = { adviceId, utterance };
+    if (icon) {
+      icon.className = 'fas fa-stop text-blue-600 text-xs';
+    }
+  };
+
+  // 読み上げ終了時の処理
+  utterance.onend = () => {
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up text-blue-600 text-xs';
+    }
+  };
+
+  // エラー時の処理
+  utterance.onerror = (event) => {
+    console.error('音声読み上げエラー:', event);
+    isSpeaking = false;
+    currentSpeech = null;
+    if (icon) {
+      icon.className = 'fas fa-volume-up text-blue-600 text-xs';
+    }
+    showToast('音声読み上げに失敗しました', 'error');
+  };
+
+  // 読み上げを開始
+  window.speechSynthesis.speak(utterance);
 }
