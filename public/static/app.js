@@ -3462,80 +3462,115 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // =============================================================================
-// 音声読み上げ機能
+// 音声読み上げ機能（OpenAI TTS使用）
 // =============================================================================
 
 // 音声読み上げの状態管理
-let currentSpeech = null;
+let currentAudio = null;
 let isSpeaking = false;
+let currentAdviceId = null;
 
-// アドバイスを音声で読み上げ
-function speakAdvice(adviceId, title, content) {
-  // Web Speech API がサポートされているか確認
-  if (!('speechSynthesis' in window)) {
-    showToast('お使いのブラウザは音声読み上げに対応していません', 'error');
-    return;
-  }
-
-  const button = document.getElementById(`speak-btn-${adviceId}`);
+// アドバイスを音声で読み上げ（OpenAI TTS API使用）
+async function speakAdvice(adviceId, title, content) {
+  const button = document.getElementById(`speak-btn-${adviceId}`) || 
+                 document.getElementById(`speak-btn-hero-${adviceId}`);
   const icon = button?.querySelector('i');
 
   // 既に同じアドバイスを読み上げ中の場合は停止
-  if (isSpeaking && currentSpeech && currentSpeech.adviceId === adviceId) {
-    window.speechSynthesis.cancel();
+  if (isSpeaking && currentAdviceId === adviceId) {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
     isSpeaking = false;
-    currentSpeech = null;
+    currentAdviceId = null;
     if (icon) {
-      icon.className = 'fas fa-volume-up';
+      icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
     }
     return;
   }
 
   // 他のアドバイスを読み上げ中の場合は停止
-  if (isSpeaking) {
-    window.speechSynthesis.cancel();
+  if (isSpeaking && currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+    // 前のボタンのアイコンをリセット
+    const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`) || 
+                       document.getElementById(`speak-btn-hero-${currentAdviceId}`);
+    const prevIcon = prevButton?.querySelector('i');
+    if (prevIcon) {
+      prevIcon.className = prevIcon.className.replace('fa-stop', 'fa-volume-up');
+    }
   }
 
-  // 読み上げるテキストを作成
-  const textToSpeak = `${title}。${content}`;
+  // ローディング状態に設定
+  isSpeaking = true;
+  currentAdviceId = adviceId;
+  if (icon) {
+    icon.className = icon.className.replace('fa-volume-up', 'fa-spinner fa-spin');
+  }
 
-  // 音声合成オブジェクトを作成
-  const utterance = new SpeechSynthesisUtterance(textToSpeak);
-  utterance.lang = 'ja-JP'; // 日本語
-  utterance.rate = 1.0; // 速度（0.1〜10、デフォルト1）
-  utterance.pitch = 1.0; // ピッチ（0〜2、デフォルト1）
-  utterance.volume = 1.0; // 音量（0〜1、デフォルト1）
+  try {
+    // 読み上げるテキストを作成
+    const textToSpeak = `${title}。${content}`;
 
-  // 読み上げ開始時の処理
-  utterance.onstart = () => {
-    isSpeaking = true;
-    currentSpeech = { adviceId, utterance };
-    if (icon) {
-      icon.className = 'fas fa-stop';
+    // OpenAI TTS APIを呼び出し
+    const response = await apiCall('/api/tts/speak', {
+      method: 'POST',
+      data: {
+        text: textToSpeak,
+        voice: 'nova' // alloy, echo, fable, onyx, nova, shimmer
+      }
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || '音声生成に失敗しました');
     }
-  };
 
-  // 読み上げ終了時の処理
-  utterance.onend = () => {
+    // Base64音声データをAudioオブジェクトで再生
+    currentAudio = new Audio(response.data.audio);
+
+    // 再生開始時の処理
+    currentAudio.onplay = () => {
+      if (icon) {
+        icon.className = icon.className.replace('fa-spinner fa-spin', 'fa-stop');
+      }
+    };
+
+    // 再生終了時の処理
+    currentAudio.onended = () => {
+      isSpeaking = false;
+      currentAdviceId = null;
+      currentAudio = null;
+      if (icon) {
+        icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
+      }
+    };
+
+    // エラー時の処理
+    currentAudio.onerror = (event) => {
+      console.error('音声再生エラー:', event);
+      isSpeaking = false;
+      currentAdviceId = null;
+      currentAudio = null;
+      if (icon) {
+        icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
+      }
+      showToast('音声再生に失敗しました', 'error');
+    };
+
+    // 再生開始
+    await currentAudio.play();
+
+  } catch (error) {
+    console.error('TTS error:', error);
     isSpeaking = false;
-    currentSpeech = null;
+    currentAdviceId = null;
+    currentAudio = null;
     if (icon) {
-      icon.className = 'fas fa-volume-up';
+      icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
     }
-  };
-
-  // エラー時の処理
-  utterance.onerror = (event) => {
-    console.error('音声読み上げエラー:', event);
-    isSpeaking = false;
-    currentSpeech = null;
-    if (icon) {
-      icon.className = 'fas fa-volume-up';
-    }
-    showToast('音声読み上げに失敗しました', 'error');
-  };
-
-  // 読み上げを開始
-  window.speechSynthesis.speak(utterance);
+    showToast(error.message || '音声生成に失敗しました', 'error');
+  }
 }
 

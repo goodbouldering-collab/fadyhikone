@@ -14,6 +14,7 @@ import comments from './routes/comments';
 import settings from './routes/settings';
 import opinions from './routes/opinions';
 import blogs from './routes/blogs';
+import tts from './routes/tts';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -34,6 +35,7 @@ app.route('/api/comments', comments);
 app.route('/api/settings', settings);
 app.route('/api/opinions', opinions);
 app.route('/api/blogs', blogs);
+app.route('/api/tts', tts);
 
 // R2から画像を取得するルート（R2未設定の場合は404を返す）
 app.get('/api/images/:path{.+}', async (c) => {
