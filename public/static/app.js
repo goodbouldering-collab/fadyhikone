@@ -379,10 +379,19 @@ function renderHero() {
                 
                 <!-- 最新のアドバイス（グラフ内に統合） -->
                 ${(() => {
-                  // 最新のアドバイスを取得（最大2件）
-                  const latestAdvices = [...advices]
-                    .sort((a, b) => new Date(b.log_date || b.created_at) - new Date(a.log_date || a.created_at))
-                    .slice(0, 2);
+                  // AIとスタッフそれぞれの最新アドバイスを取得
+                  const aiAdvices = advices.filter(a => a.advice_source === 'ai');
+                  const staffAdvices = advices.filter(a => a.advice_source === 'staff');
+                  
+                  const latestAI = aiAdvices.sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                  )[0];
+                  
+                  const latestStaff = staffAdvices.sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                  )[0];
+                  
+                  const latestAdvices = [latestStaff, latestAI].filter(Boolean);
                   
                   if (latestAdvices.length === 0) return '';
                   
@@ -395,17 +404,27 @@ function renderHero() {
                       <div class="space-y-1">
                         ${latestAdvices.map(advice => `
                           <div class="bg-white/60 backdrop-blur-sm rounded-lg p-2 hover:bg-white/80 transition-all border border-white/30">
-                            <div class="flex items-center gap-1 mb-1">
-                              <div class="w-5 h-5 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded flex items-center justify-center flex-shrink-0">
-                                <i class="fas ${advice.advice_source === 'staff' ? 'fa-user-nurse' : 'fa-robot'} text-white" style="font-size: 9px;"></i>
-                              </div>
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-1">
-                                  <span class="text-xs font-bold ${advice.advice_source === 'staff' ? 'text-pink-600' : 'text-blue-600'}">${advice.advice_source === 'staff' ? 'スタッフ' : 'AI'}</span>
-                                  ${advice.staff_name ? `<span class="text-xs text-gray-500 truncate">- ${advice.staff_name}</span>` : ''}
-                                  ${advice.log_date ? `<span class="text-xs text-gray-400">・${dayjs(advice.log_date).format('M/D')}</span>` : ''}
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                              <div class="flex items-center gap-1 flex-1 min-w-0">
+                                <div class="w-5 h-5 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded flex items-center justify-center flex-shrink-0">
+                                  <i class="fas ${advice.advice_source === 'staff' ? 'fa-user-nurse' : 'fa-robot'} text-white" style="font-size: 9px;"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex items-center gap-1">
+                                    <span class="text-xs font-bold ${advice.advice_source === 'staff' ? 'text-pink-600' : 'text-blue-600'}">${advice.advice_source === 'staff' ? 'スタッフ' : 'AI'}</span>
+                                    ${advice.staff_name ? `<span class="text-xs text-gray-500 truncate">- ${advice.staff_name}</span>` : ''}
+                                    ${advice.log_date ? `<span class="text-xs text-gray-400">・${dayjs(advice.log_date).format('M/D')}</span>` : ''}
+                                  </div>
                                 </div>
                               </div>
+                              <button 
+                                type="button"
+                                id="speak-btn-hero-${advice.id}"
+                                onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                                class="w-5 h-5 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-pink-100 hover:bg-pink-200' : 'bg-blue-100 hover:bg-blue-200'} rounded-full transition-colors flex-shrink-0"
+                                title="音声で読み上げる">
+                                <i class="fas fa-volume-up ${advice.advice_source === 'staff' ? 'text-pink-600' : 'text-blue-600'}" style="font-size: 8px;"></i>
+                              </button>
                             </div>
                             <strong class="text-xs font-bold text-gray-800 block mb-0.5">${advice.title}</strong>
                             <p class="text-xs text-gray-600 leading-tight">${advice.content}</p>
