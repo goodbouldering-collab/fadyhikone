@@ -1749,14 +1749,30 @@ async function handleHealthLogSubmit(e) {
       const datePickerEl = document.getElementById('log-date-picker');
       if (datePickerEl) datePickerEl.value = selectedDate;
       
+      // 運動データを保持（再レンダリング後に復元するため）
+      const savedExerciseActivities = data.exercise_activities;
+      
       // 選択された日付のログを再読み込み
       await loadLogForDate(selectedDate);
+      
+      // 運動データを即座に復元（renderPageの後に実行）
+      if (savedExerciseActivities && savedExerciseActivities.length > 0) {
+        setTimeout(() => {
+          restoreExerciseActivities(savedExerciseActivities);
+        }, 100);
+      }
       
       // AI分析完了を待って未読カウントを更新（3秒後）
       setTimeout(async () => {
         await loadUnreadCount();
         await loadTodayAdvices();
         renderPage();
+        // 3秒後のrenderPageの後も運動データを復元
+        if (savedExerciseActivities && savedExerciseActivities.length > 0) {
+          setTimeout(() => {
+            restoreExerciseActivities(savedExerciseActivities);
+          }, 100);
+        }
       }, 3000);
     }
   } catch (error) {
