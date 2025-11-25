@@ -213,6 +213,13 @@ async function loadLogForDate(date) {
       // ページを再レンダリング
       renderPage();
       
+      // 運動データの復元（レンダリング後に実行）
+      if (todayLog?.exercise_activities && Array.isArray(todayLog.exercise_activities)) {
+        setTimeout(() => {
+          restoreExerciseActivities(todayLog.exercise_activities);
+        }, 100);
+      }
+      
       // グラフを再描画（少し遅延させて確実にDOMが更新されてから）
       setTimeout(() => {
         renderHeroChart();
@@ -3301,6 +3308,37 @@ function collectExerciseActivities() {
   });
   
   return activities;
+}
+
+// 運動データの復元（DBから取得したデータをフォームに設定）
+function restoreExerciseActivities(activities) {
+  if (!activities || !Array.isArray(activities)) {
+    console.log('No exercise activities to restore');
+    return;
+  }
+  
+  console.log('Restoring exercise activities:', activities);
+  
+  activities.forEach(activity => {
+    const toggle = document.getElementById(`exercise-toggle-${activity.exercise_type}`);
+    const timeInput = document.getElementById(`exercise-time-${activity.exercise_type}`);
+    
+    if (toggle && timeInput) {
+      // トグルを有効化
+      toggle.setAttribute('data-active', 'true');
+      toggle.classList.remove('bg-gray-300');
+      toggle.classList.add('bg-primary');
+      const circle = toggle.querySelector('.transform');
+      if (circle) {
+        circle.classList.add('translate-x-6');
+      }
+      
+      // 時間を設定
+      timeInput.value = activity.duration_minutes;
+      
+      console.log(`Restored: ${activity.exercise_name} - ${activity.duration_minutes}min`);
+    }
+  });
 }
 
 // =============================================================================
