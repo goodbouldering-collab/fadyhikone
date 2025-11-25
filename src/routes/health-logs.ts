@@ -42,7 +42,8 @@ async function generateAIAdvice(
   userId: number,
   logDate: string,
   healthLog: HealthLog,
-  meals: any
+  meals: any,
+  exerciseActivities?: any[]
 ): Promise<void> {
   try {
     // OpenAI APIキーを取得
@@ -85,6 +86,21 @@ async function generateAIAdvice(
     const totalCarbs = (meals?.breakfast?.carbs || 0) + (meals?.lunch?.carbs || 0) + (meals?.dinner?.carbs || 0);
     const totalFat = (meals?.breakfast?.fat || 0) + (meals?.lunch?.fat || 0) + (meals?.dinner?.fat || 0);
 
+    // 運動データの取得（パラメータにない場合はDBから取得）
+    let activities = exerciseActivities;
+    if (!activities) {
+      const activitiesResult = await env.DB.prepare(`
+        SELECT * FROM exercise_activities WHERE health_log_id = ?
+      `).bind(healthLog.id).all();
+      activities = activitiesResult.results;
+    }
+
+    // 運動データの集計
+    const totalExerciseCalories = activities?.reduce((sum: number, act: any) => sum + (act.calories_burned || 0), 0) || 0;
+    const exerciseDetails = activities?.map((act: any) => 
+      `${act.exercise_name}: ${act.duration_minutes}分（強度: ${act.intensity}, 消費: ${act.calories_burned}kcal）`
+    ).join('\n') || 'なし';
+
     // AI分析用の包括的プロンプト作成
     const prompt = `あなたはファディー彦根のプロフェッショナルトレーナーです。30年のクライミング経験と科学的知見を基に、ユーザーの健康データを包括的に分析し、実用的なアドバイスを提供してください。
 
@@ -99,10 +115,15 @@ async function generateAIAdvice(
 - 体脂肪率: ${healthLog.body_fat_percentage || '未記録'}%
 - 睡眠時間: ${healthLog.sleep_hours || '未記録'}時間
 
-## 運動データ
-- 運動時間: ${healthLog.exercise_minutes || '未記録'}分
+## 運動データ（詳細）
+- 記録された運動種目数: ${activities?.length || 0}種目
+- 総運動時間: ${healthLog.exercise_minutes || '未記録'}分
+- 総消費カロリー: ${totalExerciseCalories}kcal
 - 体調評価: ${healthLog.condition_rating || 3}/5
 - 運動メモ: ${healthLog.condition_note || 'なし'}
+
+### 運動詳細リスト
+${exerciseDetails}
 
 ## 食事データ（本日）
 - **朝食**: ${meals?.breakfast?.calories || 0}kcal (P:${meals?.breakfast?.protein || 0}g / C:${meals?.breakfast?.carbs || 0}g / F:${meals?.breakfast?.fat || 0}g)
@@ -133,23 +154,28 @@ ${pastLogs.results.map((log: HealthLog, i: number) =>
 - 今日入力されたすべてのデータ（体重、体脂肪率、食事、運動、睡眠）を総合評価
 - PFC（タンパク質・脂質・炭水化物）バランスの評価
 - カロリー摂取量の適切性（ユーザーの目標に対して）
+- **運動種目と強度の評価**（記録された各運動の時間・強度・消費カロリーを分析）
+- **摂取カロリーと消費カロリーのバランス**（食事による摂取 vs 運動による消費）
 
 ## 2. 過去データとの比較
 - 過去7日間のトレンド変化（増加/減少/安定）
 - 過去30日間の統計と比較した今日の位置づけ
 - 継続的に改善できている点、注意すべき点
+- **運動習慣の継続性**（運動種目の多様性、頻度、強度の変化）
 
 ## 3. 今後の課題と改善提案
 - 短期目標（今週〜来週）
 - 中期目標（今月〜来月）
 - 具体的な数値目標（カロリー調整、運動時間増加など）
 - ファディー彦根でのトレーニングへの取り組み方
+- **運動プログラムの最適化**（推奨する運動種目、時間配分、強度調整）
 
 ## 4. 健康・トレーニングアドバイス
 - クライミング的な視点での体作り
 - 栄養バランスの最適化提案
 - 回復とコンディショニング
 - モチベーション維持のヒント
+- **運動効果の最大化**（ファディー、ストレッチ、筋トレ等の効果的な組み合わせ）
 
 # 出力形式（JSON）
 
@@ -215,6 +241,14 @@ ${pastLogs.results.map((log: HealthLog, i: number) =>
 
     const aiAdvice = JSON.parse(aiText);
 
+    // 既存のAIアドバイスを削除（上書きするため）
+    await env.DB.prepare(`
+      DELETE FROM advices 
+      WHERE user_id = ? AND log_date = ? AND advice_source = 'ai'
+    `).bind(userId, logDate).run();
+    
+    console.log('🗑️ Deleted old AI advice for user', userId, 'date', logDate);
+
     // advicesテーブルに保存
     await env.DB.prepare(`
       INSERT INTO advices (
@@ -269,7 +303,7 @@ healthLogs.get('/', async (c) => {
       'SELECT * FROM health_logs WHERE user_id = ? ORDER BY log_date DESC'
     ).bind(userId).all<HealthLog>();
 
-    // 各ログに食事データを追加
+    // 各ログに食事データと運動データを追加
     const logsWithMeals = await Promise.all(logs.results.map(async (log) => {
       const meals = await c.env.DB.prepare(`
         SELECT m.*, GROUP_CONCAT(mp.photo_url, '|||') as photo_urls
@@ -294,7 +328,16 @@ healthLogs.get('/', async (c) => {
         };
       });
 
-      return { ...log, meals: mealsObj };
+      // 運動アクティビティを取得
+      const exerciseActivities = await c.env.DB.prepare(`
+        SELECT * FROM exercise_activities WHERE health_log_id = ?
+      `).bind(log.id).all();
+
+      return { 
+        ...log, 
+        meals: mealsObj,
+        exercise_activities: exerciseActivities.results || []
+      };
     }));
 
     return c.json<ApiResponse<any[]>>({
@@ -328,27 +371,31 @@ healthLogs.post('/', async (c) => {
       }, 400);
     }
 
-    // 食事データの合計を計算
+    // 食事データの合計を計算（間食も含む）
     const totalMealCalories = (body.meals?.breakfast?.calories || 0) + 
                               (body.meals?.lunch?.calories || 0) + 
-                              (body.meals?.dinner?.calories || 0);
+                              (body.meals?.dinner?.calories || 0) +
+                              (body.meals?.snack?.calories || 0);
     const totalMealProtein = (body.meals?.breakfast?.protein || 0) + 
                              (body.meals?.lunch?.protein || 0) + 
-                             (body.meals?.dinner?.protein || 0);
+                             (body.meals?.dinner?.protein || 0) +
+                             (body.meals?.snack?.protein || 0);
     const totalMealCarbs = (body.meals?.breakfast?.carbs || 0) + 
                            (body.meals?.lunch?.carbs || 0) + 
-                           (body.meals?.dinner?.carbs || 0);
+                           (body.meals?.dinner?.carbs || 0) +
+                           (body.meals?.snack?.carbs || 0);
     const totalMealFat = (body.meals?.breakfast?.fat || 0) + 
                          (body.meals?.lunch?.fat || 0) + 
-                         (body.meals?.dinner?.fat || 0);
+                         (body.meals?.dinner?.fat || 0) +
+                         (body.meals?.snack?.fat || 0);
 
     // 1. health_logsレコードを作成（食事データも含む）
     const result = await c.env.DB.prepare(`
       INSERT INTO health_logs (
         user_id, log_date, weight, body_fat_percentage, body_temperature,
         sleep_hours, exercise_minutes, condition_rating, condition_note,
-        meal_calories, meal_protein, meal_carbs, meal_fat
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        meal_calories, meal_protein, meal_carbs, meal_fat, total_calories
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       userId,
       body.log_date,
@@ -362,10 +409,12 @@ healthLogs.post('/', async (c) => {
       totalMealCalories,
       totalMealProtein,
       totalMealCarbs,
-      totalMealFat
+      totalMealFat,
+      body.total_calories || totalMealCalories  // ユーザー入力値 or 自動計算値
     ).run();
 
     const healthLogId = result.meta.last_row_id;
+    console.log(`✅ Health log created: ID=${healthLogId}, meal_calories=${totalMealCalories}, total_calories=${body.total_calories || totalMealCalories}`);
 
     // 2. mealsテーブルの作成（エラーがあっても継続）
     try {
@@ -374,8 +423,7 @@ healthLogs.post('/', async (c) => {
           if (mealData && typeof mealData === 'object') {
             const meal: any = mealData;
             
-            // カロリーが0の場合はスキップ
-            if ((meal.calories || 0) === 0) continue;
+            // カロリーが0でも保存する（空データも記録）
             
             const mealResult = await c.env.DB.prepare(`
               INSERT INTO meals (
@@ -395,15 +443,18 @@ healthLogs.post('/', async (c) => {
             ).run();
 
             const mealId = mealResult.meta.last_row_id;
+            console.log(`✅ Saved meal: ${mealType}, calories: ${meal.calories || 0}, protein: ${meal.protein || 0}`);
 
             // meal_photosレコードを作成（複数写真対応）
             if (meal.photos && Array.isArray(meal.photos) && meal.photos.length > 0) {
               for (let i = 0; i < meal.photos.length; i++) {
                 if (meal.photos[i]) {
+                  // 写真URLを文字列として取得（objectの場合はtoStringで変換）
+                  const photoUrl = typeof meal.photos[i] === 'string' ? meal.photos[i] : String(meal.photos[i]);
                   await c.env.DB.prepare(`
                     INSERT INTO meal_photos (meal_id, photo_url, photo_order)
                     VALUES (?, ?, ?)
-                  `).bind(mealId, meal.photos[i], i + 1).run();
+                  `).bind(mealId, photoUrl, i + 1).run();
                 }
               }
             }
@@ -415,6 +466,35 @@ healthLogs.post('/', async (c) => {
       console.error('meals table error (continuing):', mealsError);
     }
 
+    // 運動アクティビティを保存
+    try {
+      if (body.exercise_activities && Array.isArray(body.exercise_activities)) {
+        console.log(`💪 Saving ${body.exercise_activities.length} exercise activities for health_log_id=${healthLogId}`);
+        
+        for (const activity of body.exercise_activities) {
+          const result = await c.env.DB.prepare(`
+            INSERT INTO exercise_activities (
+              health_log_id, exercise_type, exercise_name,
+              duration_minutes, intensity, calories_burned
+            ) VALUES (?, ?, ?, ?, ?, ?)
+          `).bind(
+            healthLogId,
+            activity.exercise_type || 'other',
+            activity.exercise_name || '',
+            activity.duration_minutes || 0,
+            activity.intensity || 'medium',
+            activity.calories_burned || 0
+          ).run();
+          
+          console.log(`✅ Saved exercise: ${activity.exercise_name}, duration: ${activity.duration_minutes}min, calories: ${activity.calories_burned}`);
+        }
+      } else {
+        console.log('ℹ️ No exercise activities to save');
+      }
+    } catch (exerciseError) {
+      console.error('❌ exercise_activities table error (continuing):', exerciseError);
+    }
+
     const newLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
     ).bind(healthLogId).first<HealthLog>();
@@ -422,7 +502,7 @@ healthLogs.post('/', async (c) => {
     // AI自動分析を非同期で実行（レスポンスをブロックしない）
     if (c.executionCtx) {
       c.executionCtx.waitUntil(
-        generateAIAdvice(c.env, userId, body.log_date, newLog as HealthLog, body.meals || {})
+        generateAIAdvice(c.env, userId, body.log_date, newLog as HealthLog, body.meals || {}, body.exercise_activities || [])
       );
     }
 
@@ -631,19 +711,23 @@ healthLogs.put('/:id', async (c) => {
       return c.json<ApiResponse>({ success: false, error: 'ログが見つかりません' }, 404);
     }
 
-    // 食事データの合計を計算
+    // 食事データの合計を計算（間食も含む）
     const totalMealCalories = (body.meals?.breakfast?.calories || 0) + 
                               (body.meals?.lunch?.calories || 0) + 
-                              (body.meals?.dinner?.calories || 0);
+                              (body.meals?.dinner?.calories || 0) +
+                              (body.meals?.snack?.calories || 0);
     const totalMealProtein = (body.meals?.breakfast?.protein || 0) + 
                              (body.meals?.lunch?.protein || 0) + 
-                             (body.meals?.dinner?.protein || 0);
+                             (body.meals?.dinner?.protein || 0) +
+                             (body.meals?.snack?.protein || 0);
     const totalMealCarbs = (body.meals?.breakfast?.carbs || 0) + 
                            (body.meals?.lunch?.carbs || 0) + 
-                           (body.meals?.dinner?.carbs || 0);
+                           (body.meals?.dinner?.carbs || 0) +
+                           (body.meals?.snack?.carbs || 0);
     const totalMealFat = (body.meals?.breakfast?.fat || 0) + 
                          (body.meals?.lunch?.fat || 0) + 
-                         (body.meals?.dinner?.fat || 0);
+                         (body.meals?.dinner?.fat || 0) +
+                         (body.meals?.snack?.fat || 0);
 
     // 1. health_logsレコードを更新（食事データも含む）
     await c.env.DB.prepare(`
@@ -652,6 +736,7 @@ healthLogs.put('/:id', async (c) => {
         sleep_hours = ?, exercise_minutes = ?,
         condition_rating = ?, condition_note = ?,
         meal_calories = ?, meal_protein = ?, meal_carbs = ?, meal_fat = ?,
+        total_calories = ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).bind(
@@ -666,8 +751,11 @@ healthLogs.put('/:id', async (c) => {
       totalMealProtein,
       totalMealCarbs,
       totalMealFat,
+      body.total_calories || totalMealCalories,  // ユーザー入力値 or 自動計算値
       logId
     ).run();
+    
+    console.log(`✅ Health log updated: ID=${logId}, meal_calories=${totalMealCalories}, total_calories=${body.total_calories || totalMealCalories}`);
 
     // 2. mealsテーブルの更新（エラーがあっても継続）
     try {
@@ -680,8 +768,7 @@ healthLogs.put('/:id', async (c) => {
           if (mealData && typeof mealData === 'object') {
             const meal: any = mealData;
             
-            // カロリーが0の場合はスキップ
-            if ((meal.calories || 0) === 0) continue;
+            // カロリーが0でも保存する（空データも記録）
             
             const mealResult = await c.env.DB.prepare(`
               INSERT INTO meals (
@@ -701,15 +788,18 @@ healthLogs.put('/:id', async (c) => {
             ).run();
 
             const mealId = mealResult.meta.last_row_id;
+            console.log(`✅ Saved meal: ${mealType}, calories: ${meal.calories || 0}, protein: ${meal.protein || 0}`);
 
             // meal_photosレコードを作成（複数写真対応）
             if (meal.photos && Array.isArray(meal.photos) && meal.photos.length > 0) {
               for (let i = 0; i < meal.photos.length; i++) {
                 if (meal.photos[i]) {
+                  // 写真URLを文字列として取得（objectの場合はtoStringで変換）
+                  const photoUrl = typeof meal.photos[i] === 'string' ? meal.photos[i] : String(meal.photos[i]);
                   await c.env.DB.prepare(`
                     INSERT INTO meal_photos (meal_id, photo_url, photo_order)
                     VALUES (?, ?, ?)
-                  `).bind(mealId, meal.photos[i], i + 1).run();
+                  `).bind(mealId, photoUrl, i + 1).run();
                 }
               }
             }
@@ -721,6 +811,39 @@ healthLogs.put('/:id', async (c) => {
       console.error('meals table error (continuing):', mealsError);
     }
 
+    // 運動アクティビティを更新（既存を削除して再作成）
+    try {
+      // 既存のexercise_activitiesレコードを削除
+      await c.env.DB.prepare('DELETE FROM exercise_activities WHERE health_log_id = ?').bind(logId).run();
+      console.log(`🗑️ Deleted old exercise activities for health_log_id=${logId}`);
+
+      if (body.exercise_activities && Array.isArray(body.exercise_activities)) {
+        console.log(`💪 Saving ${body.exercise_activities.length} exercise activities for health_log_id=${logId}`);
+        
+        for (const activity of body.exercise_activities) {
+          const result = await c.env.DB.prepare(`
+            INSERT INTO exercise_activities (
+              health_log_id, exercise_type, exercise_name,
+              duration_minutes, intensity, calories_burned
+            ) VALUES (?, ?, ?, ?, ?, ?)
+          `).bind(
+            logId,
+            activity.exercise_type || 'other',
+            activity.exercise_name || '',
+            activity.duration_minutes || 0,
+            activity.intensity || 'medium',
+            activity.calories_burned || 0
+          ).run();
+          
+          console.log(`✅ Saved exercise: ${activity.exercise_name}, duration: ${activity.duration_minutes}min, calories: ${activity.calories_burned}`);
+        }
+      } else {
+        console.log('ℹ️ No exercise activities to save');
+      }
+    } catch (exerciseError) {
+      console.error('❌ exercise_activities table error (continuing):', exerciseError);
+    }
+
     const updatedLog = await c.env.DB.prepare(
       'SELECT * FROM health_logs WHERE id = ?'
     ).bind(logId).first<HealthLog>();
@@ -728,7 +851,7 @@ healthLogs.put('/:id', async (c) => {
     // AI自動分析を非同期で実行（既存のアドバイスがあれば上書き）
     if (c.executionCtx) {
       c.executionCtx.waitUntil(
-        generateAIAdvice(c.env, userId, log.log_date, updatedLog as HealthLog, body.meals || {})
+        generateAIAdvice(c.env, userId, log.log_date, updatedLog as HealthLog, body.meals || {}, body.exercise_activities || [])
       );
     }
 

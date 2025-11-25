@@ -18,6 +18,21 @@
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
   --color-text-light: #9CA3AF;
+  
+  /* フォントサイズ統一基準 */
+  --font-xs: 0.8125rem;    /* 13px - 最小テキスト */
+  --font-sm: 0.875rem;     /* 14px - 小さめテキスト */
+  --font-base: 0.9375rem;  /* 15px - 基本テキスト */
+  --font-md: 1rem;         /* 16px - 中サイズ */
+  --font-lg: 1.125rem;     /* 18px - 大きめテキスト */
+  --font-xl: 1.25rem;      /* 20px - 見出し */
+  --font-2xl: 1.5rem;      /* 24px - 大見出し */
+  
+  /* 共通padding基準 (情報量重視で少なめ) */
+  --padding-xs: 0.375rem;  /* 6px */
+  --padding-sm: 0.5rem;    /* 8px */
+  --padding-md: 0.75rem;   /* 12px */
+  --padding-lg: 1rem;      /* 16px */
 }
 
 /* スムーズスクロール */
@@ -282,11 +297,71 @@ html {
   border-bottom-width: 3px;
 }
 
+/* 統一フォントサイズクラス */
+.text-unified-xs { font-size: var(--font-xs) !important; }
+.text-unified-sm { font-size: var(--font-sm) !important; }
+.text-unified-base { font-size: var(--font-base) !important; }
+.text-unified-md { font-size: var(--font-md) !important; }
+.text-unified-lg { font-size: var(--font-lg) !important; }
+.text-unified-xl { font-size: var(--font-xl) !important; }
+.text-unified-2xl { font-size: var(--font-2xl) !important; }
+
+/* 統一paddingクラス */
+.p-unified-xs { padding: var(--padding-xs) !important; }
+.p-unified-sm { padding: var(--padding-sm) !important; }
+.p-unified-md { padding: var(--padding-md) !important; }
+.p-unified-lg { padding: var(--padding-lg) !important; }
+
+/* 枠線の簡略化 */
+.border-unified {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.bg-unified-card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.bg-unified-container {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(16px);
+}
+
+/* 全ページ共通フォントサイズの上書き（情報量重視） */
+body {
+  font-size: var(--font-base);
+}
+
+/* Tailwindのtext-*クラスを上書き */
+.text-xs { font-size: var(--font-xs) !important; }
+.text-sm { font-size: var(--font-sm) !important; }
+.text-base { font-size: var(--font-base) !important; }
+.text-lg { font-size: var(--font-lg) !important; }
+.text-xl { font-size: var(--font-xl) !important; }
+.text-2xl { font-size: var(--font-2xl) !important; }
+
+/* padding削減（情報量重視） */
+.p-1 { padding: 0.375rem !important; }  /* 6px */
+.p-1\.5 { padding: 0.5rem !important; }  /* 8px */
+.p-2 { padding: 0.625rem !important; }  /* 10px */
+.p-2\.5 { padding: 0.75rem !important; }  /* 12px */
+.p-3 { padding: 0.875rem !important; }  /* 14px */
+.p-4 { padding: 1rem !important; }      /* 16px */
+
+/* 枠線・影の簡略化 */
+.shadow-sm { box-shadow: none !important; }
+.shadow-md { box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; }
+.shadow-lg { box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important; }
+
+/* ホバー効果を控えめに */
+.hover\:shadow-lg:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important; }
+.hover\:shadow-xl:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1) !important; }
+
 /* レスポンシブ */
 @media (max-width: 768px) {
   .table th,
   .table td {
     padding: 0.5rem;
-    font-size: 0.875rem;
+    font-size: var(--font-sm);
   }
 }

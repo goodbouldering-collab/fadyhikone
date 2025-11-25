@@ -122,37 +122,54 @@ function renderStats() {
     <section class="gradient-bg text-white py-4">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <div class="grid grid-cols-4 gap-2">
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
-              <div class="flex items-center justify-center gap-2 mb-1">
-                <i class="fas fa-users text-sm"></i>
-                <span class="text-xs opacity-75">総顧客数</span>
+          <!-- コンパクトダイジェスト：4カラムグリッド（常に横1列、マイページと統一） -->
+          <div class="grid grid-cols-4 gap-1.5">
+            <!-- 総顧客数 -->
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-users text-xs"></i>
+                <span class="text-xs font-bold opacity-90">顧客数</span>
               </div>
-              <div class="text-xl font-bold text-center">${stats.totalUsers || 0}</div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold">${stats.totalUsers || 0}</span>
+                <span class="text-xs opacity-75">人</span>
+              </div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
-              <div class="flex items-center justify-center gap-2 mb-1">
-                <i class="fas fa-clipboard-list text-sm"></i>
-                <span class="text-xs opacity-75">総ログ数</span>
+            <!-- 総ログ数 -->
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-clipboard-list text-xs"></i>
+                <span class="text-xs font-bold opacity-90">ログ数</span>
               </div>
-              <div class="text-xl font-bold text-center">${stats.totalLogs || 0}</div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold">${stats.totalLogs || 0}</span>
+                <span class="text-xs opacity-75">件</span>
+              </div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
-              <div class="flex items-center justify-center gap-2 mb-1">
-                <i class="fas fa-envelope text-sm"></i>
-                <span class="text-xs opacity-75">未対応</span>
+            <!-- 未対応 -->
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-envelope text-xs"></i>
+                <span class="text-xs font-bold opacity-90">未対応</span>
               </div>
-              <div class="text-xl font-bold text-center">${stats.pendingInquiries || 0}</div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold">${stats.pendingInquiries || 0}</span>
+                <span class="text-xs opacity-75">件</span>
+              </div>
             </div>
             
-            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg">
-              <div class="flex items-center justify-center gap-2 mb-1">
-                <i class="fas fa-calendar-day text-sm"></i>
-                <span class="text-xs opacity-75">今日のログ</span>
+            <!-- 今日のログ -->
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg shadow-sm">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="fas fa-calendar-day text-xs"></i>
+                <span class="text-xs font-bold opacity-90">今日</span>
               </div>
-              <div class="text-xl font-bold text-center">${stats.todayLogs || 0}</div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-bold">${stats.todayLogs || 0}</span>
+                <span class="text-xs opacity-75">件</span>
+              </div>
             </div>
           </div>
         </div>

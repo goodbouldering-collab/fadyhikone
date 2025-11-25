@@ -18,7 +18,8 @@ let allHealthLogs = []; // 全ての健康ログデータ（グラフ用）
 let mealData = {
   breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
   lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-  dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+  dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+  snack: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
 };
 
 // ページ初期化
@@ -159,11 +160,12 @@ async function loadLogForDate(date) {
       
       // 食事データの復元（新フォーマット: meals オブジェクト）
       if (todayLog?.meals) {
-        // 新フォーマット: { breakfast: {...}, lunch: {...}, dinner: {...} }
+        // 新フォーマット: { breakfast: {...}, lunch: {...}, dinner: {...}, snack: {...} }
         mealData = {
           breakfast: todayLog.meals.breakfast || { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
           lunch: todayLog.meals.lunch || { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-          dinner: todayLog.meals.dinner || { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+          dinner: todayLog.meals.dinner || { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+          snack: todayLog.meals.snack || { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
         };
       } else if (todayLog?.meal_analysis) {
         // 旧フォーマット: meal_analysis (JSON文字列)
@@ -175,7 +177,8 @@ async function loadLogForDate(date) {
           mealData = {
             breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
             lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-            dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+            dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+            snack: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
           };
         }
       } else {
@@ -183,21 +186,25 @@ async function loadLogForDate(date) {
         mealData = {
           breakfast: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
           lunch: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
-          dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
+          dinner: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 },
+          snack: { photos: [], calories: 0, protein: 0, fat: 0, carbs: 0 }
         };
       }
       
-      // 食事データの合計を計算してtodayLogに追加
+      // 食事データの合計を計算してtodayLogに追加（間食も含む）
       if (todayLog) {
         todayLog.total_calories = (mealData.breakfast?.calories || 0) + 
                                    (mealData.lunch?.calories || 0) + 
-                                   (mealData.dinner?.calories || 0);
+                                   (mealData.dinner?.calories || 0) +
+                                   (mealData.snack?.calories || 0);
         todayLog.total_protein = (mealData.breakfast?.protein || 0) + 
                                   (mealData.lunch?.protein || 0) + 
-                                  (mealData.dinner?.protein || 0);
+                                  (mealData.dinner?.protein || 0) +
+                                  (mealData.snack?.protein || 0);
         todayLog.total_carbs = (mealData.breakfast?.carbs || 0) + 
                                 (mealData.lunch?.carbs || 0) + 
-                                (mealData.dinner?.carbs || 0);
+                                (mealData.dinner?.carbs || 0) +
+                                (mealData.snack?.carbs || 0);
         todayLog.total_fat = (mealData.breakfast?.fat || 0) + 
                               (mealData.lunch?.fat || 0) + 
                               (mealData.dinner?.fat || 0);
@@ -326,10 +333,10 @@ function renderHero() {
             </div>
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-3 bg-white/20 backdrop-blur-md rounded-xl p-2 shadow-lg border border-white/30 hover:bg-white/25 hover:shadow-xl transition-all duration-300">
+            <div class="mb-2 bg-white/40 backdrop-blur-xl rounded-lg p-2 border border-white/30">
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <h3 class="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                  <h3 class="font-semibold text-gray-700 flex items-center gap-1" style="font-size: var(--font-base);">
                     <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
                     健康データ推移
                   </h3>
@@ -339,7 +346,7 @@ function renderHero() {
                       id="graph-prev-btn">
                       <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="text-xs text-gray-500 min-w-[120px] text-center" id="graph-period-label">最新30日</span>
+                    <span class="text-gray-500 min-w-[120px] text-center" id="graph-period-label" style="font-size: var(--font-sm);">最新30日</span>
                     <button onclick="navigateGraphPeriod(1)" 
                       class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
                       id="graph-next-btn"
@@ -348,13 +355,12 @@ function renderHero() {
                     </button>
                   </div>
                 </div>
-                <div class="bg-white/30 backdrop-blur-sm rounded-lg p-1 border border-white/30">
-                  <div style="height: 200px;">
-                    <canvas id="hero-chart"></canvas>
-                  </div>
+                <!-- グラフ -->
+                <div class="bg-white/60 backdrop-blur-sm rounded-lg p-3" style="height: 200px;">
+                  <canvas id="hero-chart"></canvas>
                 </div>
                 <!-- 凡例 -->
-                <div class="flex flex-wrap justify-center gap-2 mt-1 text-xs">
+                <div class="flex flex-wrap justify-center gap-2 mt-1" style="font-size: var(--font-sm);">
                   <div class="flex items-center gap-1">
                     <div class="w-3 h-3 rounded-full" style="background: var(--color-weight);"></div>
                     <span class="text-gray-600">体重</span>
@@ -396,15 +402,15 @@ function renderHero() {
                   if (latestAdvices.length === 0) return '';
                   
                   return `
-                    <div class="mt-2 pt-2 border-t border-gray-300/50">
+                    <div class="mt-2 pt-2 border-t border-white/40">
                       <div class="flex items-center gap-1 mb-1">
-                        <i class="fas fa-lightbulb text-yellow-600 text-xs"></i>
-                        <h4 class="text-xs font-bold text-gray-700">最新のアドバイス</h4>
+                        <i class="fas fa-lightbulb text-yellow-600"></i>
+                        <h4 class="font-bold text-gray-700" style="font-size: var(--font-base);">最新のアドバイス</h4>
                       </div>
                       <div class="space-y-1">
                         ${latestAdvices.map(advice => `
-                          <div class="bg-white/60 backdrop-blur-sm rounded-lg p-2 hover:bg-white/80 transition-all border border-white/30">
-                            <div class="flex items-center justify-between gap-1 mb-1">
+                          <div class="bg-white/70 rounded-lg p-1.5">
+                            <div class="flex items-center justify-between gap-1 mb-0.5">
                               <div class="flex items-center gap-1 flex-1 min-w-0">
                                 <div class="w-5 h-5 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded flex items-center justify-center flex-shrink-0">
                                   <i class="fas ${advice.advice_source === 'staff' ? 'fa-user-nurse' : 'fa-robot'} text-white" style="font-size: 9px;"></i>
@@ -421,13 +427,13 @@ function renderHero() {
                                 type="button"
                                 id="speak-btn-hero-${advice.id}"
                                 onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-                                class="w-5 h-5 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-pink-100 hover:bg-pink-200' : 'bg-blue-100 hover:bg-blue-200'} rounded-full transition-colors flex-shrink-0"
+                                class="w-7 h-7 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500' : 'bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500'} rounded-full transition-all duration-200 shadow-md flex-shrink-0"
                                 title="音声で読み上げる">
-                                <i class="fas fa-volume-up ${advice.advice_source === 'staff' ? 'text-pink-600' : 'text-blue-600'}" style="font-size: 8px;"></i>
+                                <i class="fas fa-volume-up text-white text-xs"></i>
                               </button>
                             </div>
-                            <strong class="text-xs font-bold text-gray-800 block mb-0.5">${advice.title}</strong>
-                            <p class="text-xs text-gray-600 leading-tight">${advice.content}</p>
+                            <strong class="font-bold text-gray-800 block truncate" style="font-size: var(--font-sm);">${advice.title}</strong>
+                            <div class="text-gray-600 leading-tight line-clamp-2" style="font-size: var(--font-xs);">${advice.content}</div>
                           </div>
                         `).join('')}
                       </div>
@@ -437,17 +443,17 @@ function renderHero() {
               </div>
             </div>
             
-            <!-- お知らせ（2件表示、すりガラス効果） -->
+            <!-- お知らせ -->
             ${announcements.length > 0 ? `
-              <div class="mb-3">
+              <div class="mb-2 bg-white/40 backdrop-blur-xl rounded-lg p-2 border border-white/30">
                 <div class="flex items-center justify-between mb-1">
                   <div class="flex items-center gap-2">
-                    <i class="fas fa-bullhorn text-white"></i>
-                    <h3 class="text-sm font-bold text-white">お知らせ</h3>
+                    <i class="fas fa-bullhorn text-gray-700"></i>
+                    <h3 class="font-bold text-gray-700" style="font-size: var(--font-base);">お知らせ</h3>
                   </div>
                   ${announcements.length > 2 ? `
                     <button onclick="switchTab('announcements')" 
-                            class="text-xs text-white/80 hover:text-white transition-colors flex items-center gap-1">
+                            class="text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1" style="font-size: var(--font-sm);">
                       もっと見る
                       <i class="fas fa-chevron-right text-xs"></i>
                     </button>
@@ -455,12 +461,12 @@ function renderHero() {
                 </div>
                 <div class="space-y-1">
                   ${announcements.slice(0, 2).map(announcement => `
-                    <div class="bg-white/20 backdrop-blur-md rounded-lg px-2 py-1.5 hover:bg-white/30 transition-all cursor-pointer border border-white/30"
+                    <div class="bg-white/70 rounded-lg px-2 py-1.5 cursor-pointer"
                          onclick="showAnnouncementDetail(${announcement.id})">
                       <div class="flex gap-2 items-center">
-                        <i class="fas fa-bullhorn text-white text-xs flex-shrink-0"></i>
-                        <p class="text-xs text-white font-medium line-clamp-1 flex-1">${announcement.title}</p>
-                        <i class="fas fa-chevron-right text-white/60 text-xs flex-shrink-0"></i>
+                        <i class="fas fa-bullhorn text-gray-600 flex-shrink-0"></i>
+                        <p class="text-gray-800 font-medium line-clamp-1 flex-1" style="font-size: var(--font-sm);">${announcement.title}</p>
+                        <i class="fas fa-chevron-right text-gray-500 flex-shrink-0"></i>
                       </div>
                     </div>
                   `).join('')}
@@ -581,10 +587,20 @@ function renderHealthLogSection() {
                 class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition shadow-sm border border-gray-200">
                 <i class="fas fa-chevron-right"></i>
               </button>
-              <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-bold">
+              <button type="button" onclick="goToToday()" class="px-4 py-2.5 text-sm bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-lg hover:from-pink-500 hover:to-rose-500 transition shadow-md font-bold">
                 今日
               </button>
             </div>
+          </div>
+          
+          <!-- 入力エリア開始の明示 -->
+          <div class="mb-2 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border-2 border-green-200 shadow-sm">
+            <div class="flex items-center justify-center gap-2">
+              <i class="fas fa-edit text-green-600 text-lg"></i>
+              <h3 class="text-base font-bold text-green-800">ここから記録を入力してください</h3>
+              <i class="fas fa-arrow-down text-green-600 animate-bounce"></i>
+            </div>
+            <p class="text-xs text-center text-green-700 mt-1">体重・食事・運動・体調を記録しましょう</p>
           </div>
           
           <!-- スタッフコメント -->
@@ -604,106 +620,6 @@ function renderHealthLogSection() {
               </div>
             </div>
           ` : ''}
-          
-
-          <!-- この日のアドバイス（クールデザイン） -->
-          ${(() => {
-            const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
-            const dateAdvices = advices.filter(a => a.log_date === displayDate);
-            
-            // AIとスタッフそれぞれの最新1件のみ取得
-            const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai')
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-              .slice(0, 1);
-            const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff')
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-              .slice(0, 1);
-            
-            return `
-              <div class="mb-4">
-                <div class="flex justify-between items-center mb-3">
-                  <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-lightbulb text-yellow-500"></i>
-                    この日のアドバイス
-                  </h3>
-                  <a href="/mypage#advices-section" class="text-sm text-primary hover:text-pink-600 transition-colors">
-                    すべて見る →
-                  </a>
-                </div>
-                
-                <!-- 統合アドバイス（スタッフ優先） -->
-                <div class="bg-white/30 backdrop-blur-xl p-4 rounded-xl hover:bg-white/40 hover:shadow-[0_6px_20px_0_rgba(31,38,135,0.25)] transition-all duration-300 border border-white/40 shadow-[0_4px_16px_0_rgba(31,38,135,0.2)]">
-                  ${staffAdvices.length > 0 || aiAdvices.length > 0 ? `
-                    <div class="space-y-2">
-                      ${staffAdvices.map(advice => `
-                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30 hover:bg-white/60 hover:scale-[1.01] transition-all duration-200">
-                          <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                              <div class="w-7 h-7 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <i class="fas fa-user-nurse text-white text-xs"></i>
-                              </div>
-                              <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-pink-600">スタッフ</span>
-                                ${advice.staff_name ? `<span class="text-xs text-gray-500">- ${advice.staff_name}</span>` : ''}
-                              </div>
-                            </div>
-                            <button 
-                              type="button"
-                              id="speak-btn-${advice.id}"
-                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-                              class="w-6 h-6 flex items-center justify-center bg-pink-100 hover:bg-pink-200 rounded-full transition-colors flex-shrink-0"
-                              title="音声で読み上げる">
-                              <i class="fas fa-volume-up text-pink-600 text-xs"></i>
-                            </button>
-                          </div>
-                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
-                          <p class="text-xs text-gray-600">${advice.content}</p>
-                        </div>
-                      `).join('')}
-                      ${aiAdvices.map(advice => `
-                        <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg border border-white/30 hover:bg-white/60 hover:scale-[1.01] transition-all duration-200">
-                          <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                              <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <i class="fas fa-robot text-white text-xs"></i>
-                              </div>
-                              <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-blue-600">AI</span>
-                              </div>
-                            </div>
-                            <button 
-                              type="button"
-                              id="speak-btn-${advice.id}"
-                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-                              class="w-6 h-6 flex items-center justify-center bg-blue-100 hover:bg-blue-200 rounded-full transition-colors flex-shrink-0"
-                              title="音声で読み上げる">
-                              <i class="fas fa-volume-up text-blue-600 text-xs"></i>
-                            </button>
-                          </div>
-                          <strong class="text-sm font-bold text-gray-800 block mb-1">${advice.title}</strong>
-                          <p class="text-xs text-gray-600">${advice.content}</p>
-                        </div>
-                      `).join('')}
-                    </div>
-                  ` : `
-                    <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
-                      <p class="text-xs text-gray-400">まだアドバイスがありません</p>
-                    </div>
-                  `}
-                </div>
-              </div>
-            `;
-          })()}
-          
-          <!-- 入力エリア開始の明示 -->
-          <div class="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 shadow-sm">
-            <div class="flex items-center justify-center gap-2">
-              <i class="fas fa-edit text-green-600 text-xl"></i>
-              <h3 class="text-lg font-bold text-green-800">ここから記録を入力してください</h3>
-              <i class="fas fa-arrow-down text-green-600 animate-bounce"></i>
-            </div>
-            <p class="text-sm text-center text-green-700 mt-1">体重・食事・運動・体調を記録しましょう</p>
-          </div>
           
           <!-- 入力フォーム -->
           <form id="health-log-form" class="space-y-2">
@@ -950,6 +866,59 @@ function renderHealthLogSection() {
                   
                   <div id="dinner-photos" class="mt-1 text-xs text-gray-600 text-center"></div>
                 </div>
+                
+                <!-- 間食・おやつ -->
+                <div class="bg-gradient-to-br from-purple-50/60 to-pink-50/60 backdrop-blur-sm p-2 rounded-lg hover:from-purple-50/80 hover:to-pink-50/80 hover:shadow-md transition-all duration-200">
+                  <!-- タイトル・カロリー・撮影ボタンを1行に -->
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="text-xs font-bold text-gray-700 whitespace-nowrap">
+                      <i class="fas fa-cookie-bite text-purple-500"></i> 間食
+                    </div>
+                    <input type="number" id="snack-calories" value="${mealData?.snack?.calories || 0}"
+                      oninput="updateMealNutrition('snack', 'calories', this.value)"
+                      placeholder="0"
+                      class="flex-1 px-2 py-1 bg-white text-gray-800 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 text-center text-sm font-bold min-w-0">
+                    <span class="text-xs text-gray-500 whitespace-nowrap">kcal</span>
+                    <button type="button" onclick="showMealModal('snack')" 
+                      class="px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition whitespace-nowrap flex-shrink-0">
+                      <i class="fas fa-camera"></i>
+                    </button>
+                  </div>
+                  
+                  <!-- PFC入力 (折りたたみ) -->
+                  <button type="button" onclick="toggleMealPFC('snack')" 
+                    class="w-full text-xs text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1 py-0.5">
+                    <i class="fas fa-plus-circle text-xs"></i>
+                    <span>PFC</span>
+                    <i class="fas fa-chevron-down text-xs" id="snack-pfc-arrow"></i>
+                  </button>
+                  
+                  <div id="snack-pfc" class="hidden grid grid-cols-3 gap-1 mt-1">
+                    <div>
+                      <input type="number" step="0.1" id="snack-protein" value="${mealData?.snack?.protein || 0}"
+                        oninput="updateMealNutrition('snack', 'protein', this.value)"
+                        placeholder="P"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">P(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="snack-fat" value="${mealData?.snack?.fat || 0}"
+                        oninput="updateMealNutrition('snack', 'fat', this.value)"
+                        placeholder="F"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">F(g)</div>
+                    </div>
+                    <div>
+                      <input type="number" step="0.1" id="snack-carbs" value="${mealData?.snack?.carbs || 0}"
+                        oninput="updateMealNutrition('snack', 'carbs', this.value)"
+                        placeholder="C"
+                        class="w-full px-2 py-1 bg-white text-gray-800 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
+                      <div class="text-xs text-gray-500 text-center mt-0.5">C(g)</div>
+                    </div>
+                  </div>
+                  
+                  <div id="snack-photos" class="mt-1 text-xs text-gray-600 text-center"></div>
+                </div>
               </div>
                 
               <!-- 合計 -->
@@ -965,7 +934,7 @@ function renderHealthLogSection() {
                     <span class="text-sm text-gray-500">kcal</span>
                   </div>
                   <div class="text-xs text-gray-500 mt-1">
-                    <span id="total-calories-breakdown">朝0 + 昼0 + 夕0</span>
+                    <span id="total-calories-breakdown">朝0 + 昼0 + 夕0 + 間0</span>
                   </div>
                 </div>
               </div>
@@ -1156,10 +1125,105 @@ function renderHealthLogSection() {
           <!-- 保存ボタン（質問・相談の下） -->
           <div class="mt-2">
             <button type="submit" form="health-log-form" class="w-full btn-primary px-4 py-2.5 rounded-lg font-bold shadow-md hover:shadow-lg transition">
-              <i class="fas fa-save mr-2"></i>
-              ログを保存
+              <i class="fas ${todayLog ? 'fa-sync-alt' : 'fa-save'} mr-2"></i>
+              ${todayLog ? 'ログを上書き保存' : 'ログを保存'}
             </button>
+            ${todayLog ? `
+              <p class="text-center mt-1.5 text-yellow-600 font-medium" style="font-size: var(--font-xs);">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                ${formatDateDisplay(selectedDate || dayjs().format('YYYY-MM-DD'))}のログは既に存在します
+              </p>
+            ` : ''}
           </div>
+          
+          <!-- この日のアドバイス（最下部に配置） -->
+          ${(() => {
+            const displayDate = selectedDate || dayjs().format('YYYY-MM-DD');
+            const dateAdvices = advices.filter(a => a.log_date === displayDate);
+            
+            // AIとスタッフそれぞれの最新1件のみ取得
+            const aiAdvices = dateAdvices.filter(a => a.advice_source === 'ai')
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 1);
+            const staffAdvices = dateAdvices.filter(a => a.advice_source === 'staff')
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 1);
+            
+            return `
+              <div class="mt-4 mb-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                    この日のアドバイス
+                  </h3>
+                  <a href="/mypage#advices-section" class="text-sm text-primary hover:text-pink-600 transition-colors">
+                    すべて見る →
+                  </a>
+                </div>
+                
+                <!-- 統合アドバイス（スタッフ優先） -->
+                <div class="bg-white/40 backdrop-blur-xl p-2 rounded-lg border border-white/30">
+                  ${staffAdvices.length > 0 || aiAdvices.length > 0 ? `
+                    <div class="space-y-1.5">
+                      ${staffAdvices.map(advice => `
+                        <div class="bg-white/70 p-1.5 rounded-lg">
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                              <div class="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user-nurse text-white" style="font-size: 10px;"></i>
+                              </div>
+                              <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-xs font-bold text-pink-600">スタッフ</span>
+                                ${advice.staff_name ? `<span class="text-xs text-gray-500 truncate">- ${advice.staff_name}</span>` : ''}
+                              </div>
+                            </div>
+                            <button 
+                              type="button"
+                              id="speak-btn-${advice.id}"
+                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
+                              title="音声で読み上げる">
+                              <i class="fas fa-volume-up text-white text-lg"></i>
+                            </button>
+                          </div>
+                          <strong class="font-bold text-gray-800 block truncate mb-0.5" style="font-size: var(--font-sm);">${advice.title}</strong>
+                          <div class="text-gray-600 leading-tight line-clamp-2" style="font-size: var(--font-xs);">${advice.content}</div>
+                        </div>
+                      `).join('')}
+                      ${aiAdvices.map(advice => `
+                        <div class="bg-white/70 p-1.5 rounded-lg">
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                              <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white" style="font-size: 10px;"></i>
+                              </div>
+                              <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold text-blue-600">AI</span>
+                              </div>
+                            </div>
+                            <button 
+                              type="button"
+                              id="speak-btn-${advice.id}"
+                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 rounded-full transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
+                              title="音声で読み上げる">
+                              <i class="fas fa-volume-up text-white text-lg"></i>
+                            </button>
+                          </div>
+                          <strong class="font-bold text-gray-800 block truncate mb-0.5" style="font-size: var(--font-sm);">${advice.title}</strong>
+                          <div class="text-gray-600 leading-tight line-clamp-2" style="font-size: var(--font-xs);">${advice.content}</div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : `
+                    <div class="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center border border-white/30">
+                      <p class="text-xs text-gray-400">まだアドバイスがありません</p>
+                    </div>
+                  `}
+                </div>
+              </div>
+            `;
+          })()}
           
           <!-- マイページリンク -->
           <div class="mt-3 text-center">
@@ -1584,11 +1648,15 @@ async function handleHealthLogSubmit(e) {
   
   const formData = new FormData(e.target);
   
-  // 合計栄養素を計算
-  const totalCalories = mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories;
-  const totalProtein = mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein;
-  const totalFat = mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat;
-  const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs;
+  // 合計栄養素を計算（間食も含む）
+  const totalCalories = mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories + mealData.snack.calories;
+  const totalProtein = mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein + mealData.snack.protein;
+  const totalFat = mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat + mealData.snack.fat;
+  const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs + mealData.snack.carbs;
+  
+  // 総カロリー入力値を取得（手動入力優先）
+  const totalCaloriesInput = document.getElementById('total-calories-input');
+  const totalCaloriesValue = totalCaloriesInput ? parseInt(totalCaloriesInput.value) || 0 : 0;
   
   const data = {
     log_date: selectedDate || dayjs().format('YYYY-MM-DD'),
@@ -1599,7 +1667,8 @@ async function handleHealthLogSubmit(e) {
     exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
     condition_rating: formData.get('condition_rating') ? parseInt(formData.get('condition_rating')) : 3,
     condition_note: formData.get('condition_note') || null,
-    // 食事データ (新フォーマット: 朝昼晩の内訳 + 写真配列)
+    total_calories: totalCaloriesValue,  // ユーザーが入力した総カロリー
+    // 食事データ (新フォーマット: 朝昼晩+間食の内訳 + 写真配列)
     meals: {
       breakfast: {
         calories: mealData.breakfast.calories || 0,
@@ -1624,13 +1693,33 @@ async function handleHealthLogSubmit(e) {
         fat: mealData.dinner.fat || 0,
         photos: mealData.dinner.photos || [],
         input_method: mealData.dinner.photos?.length > 0 ? 'ai' : 'manual'
+      },
+      snack: {
+        calories: mealData.snack.calories || 0,
+        protein: mealData.snack.protein || 0,
+        carbs: mealData.snack.carbs || 0,
+        fat: mealData.snack.fat || 0,
+        photos: mealData.snack.photos || [],
+        input_method: mealData.snack.photos?.length > 0 ? 'ai' : 'manual'
       }
-    }
+    },
+    // 運動データ（全種目）
+    exercise_activities: collectExerciseActivities()
   };
   
   try {
     let response;
+    
+    // 既存ログがある場合は上書き確認
     if (todayLog) {
+      const dateStr = formatDateDisplay(data.log_date);
+      const confirmMsg = `${dateStr}のログは既に存在します。\n上書き保存しますか？`;
+      
+      if (!confirm(confirmMsg)) {
+        showToast('保存をキャンセルしました', 'info');
+        return;
+      }
+      
       response = await apiCall(`/api/health-logs/${todayLog.id}`, {
         method: 'PUT',
         data: data,
@@ -1643,7 +1732,8 @@ async function handleHealthLogSubmit(e) {
     }
     
     if (response.success) {
-      showToast('健康ログを保存しました', 'success');
+      const action = todayLog ? '更新' : '保存';
+      showToast(`健康ログを${action}しました`, 'success');
       
       // 保存した日付を選択日付として設定
       selectedDate = data.log_date;
@@ -1674,7 +1764,8 @@ function showMealModal(mealType) {
   const mealNames = {
     breakfast: '朝食',
     lunch: '昼食',
-    dinner: '夕食'
+    dinner: '夕食',
+    snack: '間食'
   };
   
   const modal = document.createElement('div');
@@ -1831,10 +1922,10 @@ function updateMealDisplay(mealType) {
 // 合計栄養素を更新
 function updateTotalNutrition() {
   const total = {
-    calories: mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories,
-    protein: mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein,
-    fat: mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat,
-    carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs
+    calories: mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories + mealData.snack.calories,
+    protein: mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein + mealData.snack.protein,
+    fat: mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat + mealData.snack.fat,
+    carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs + mealData.snack.carbs
   };
   
   // 総カロリー入力フィールド更新
@@ -1844,7 +1935,7 @@ function updateTotalNutrition() {
   // ブレークダウン表示更新
   const breakdownEl = document.getElementById('total-calories-breakdown');
   if (breakdownEl) {
-    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories}`;
+    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories} + 間${mealData.snack.calories}`;
   }
   
   const totalProteinEl = document.getElementById('total-protein');
@@ -1867,7 +1958,7 @@ function updateTotalCaloriesDisplay() {
   // ブレークダウン表示更新
   const breakdownEl = document.getElementById('total-calories-breakdown');
   if (breakdownEl) {
-    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories}`;
+    breakdownEl.textContent = `朝${mealData.breakfast.calories} + 昼${mealData.lunch.calories} + 夕${mealData.dinner.calories} + 間${mealData.snack.calories}`;
   }
 }
 
@@ -2700,46 +2791,66 @@ function renderHeroChart() {
         {
           label: '体重 (kg)',
           data: weightData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
+          borderColor: '#0ea5e9',
+          backgroundColor: 'rgba(14, 165, 233, 0.2)',
+          borderWidth: 3,
           tension: 0.4,
           fill: false,
           spanGaps: true,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          pointBackgroundColor: '#0ea5e9',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         },
         {
           label: '体脂肪率 (%)',
           data: bodyfatData,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          borderWidth: 2,
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249, 115, 22, 0.2)',
+          borderWidth: 3,
           tension: 0.4,
           fill: false,
           spanGaps: true,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          pointBackgroundColor: '#f97316',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         },
         {
           label: '睡眠時間 (h)',
           data: sleepData,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
-          borderWidth: 2,
+          borderColor: '#a855f7',
+          backgroundColor: 'rgba(168, 85, 247, 0.2)',
+          borderWidth: 3,
           tension: 0.4,
           fill: false,
           spanGaps: true,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          pointBackgroundColor: '#a855f7',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         },
         {
           label: 'カロリー (÷100)',
           data: caloriesData,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          borderWidth: 2,
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34, 197, 94, 0.2)',
+          borderWidth: 3,
           tension: 0.4,
           fill: false,
           spanGaps: true,
-          yAxisID: 'y'
+          yAxisID: 'y',
+          pointBackgroundColor: '#22c55e',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         }
       ]
     },
@@ -2747,18 +2858,39 @@ function renderHeroChart() {
       responsive: true,
       maintainAspectRatio: false,
       interaction: {
-        mode: 'index',
-        intersect: false
+        mode: 'point',
+        intersect: true
+      },
+      onClick: (event, activeElements, chart) => {
+        // グラフ外をクリックした場合、ツールチップを非表示
+        if (activeElements.length === 0) {
+          chart.tooltip.setActiveElements([]);
+          chart.update();
+        }
       },
       plugins: {
         legend: {
           display: false
         },
         tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          padding: 12,
-          titleFont: { size: 12 },
-          bodyFont: { size: 11 },
+          enabled: true,
+          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          titleColor: '#1f2937',
+          bodyColor: '#374151',
+          borderColor: 'rgba(203, 213, 225, 0.8)',
+          borderWidth: 2,
+          padding: 14,
+          titleFont: { size: 13, weight: 'bold' },
+          bodyFont: { size: 12, weight: '600' },
+          displayColors: true,
+          boxWidth: 10,
+          boxHeight: 10,
+          boxPadding: 6,
+          usePointStyle: true,
+          cornerRadius: 8,
+          caretSize: 8,
+          caretPadding: 12,
+          multiKeyBackground: 'rgba(255, 255, 255, 0.9)',
           callbacks: {
             label: function(context) {
               let label = context.dataset.label || '';
@@ -2784,21 +2916,32 @@ function renderHeroChart() {
       scales: {
         x: {
           grid: {
-            display: false
+            display: true,
+            color: 'rgba(255, 255, 255, 0.5)',
+            lineWidth: 1,
+            drawBorder: true,
+            borderColor: 'rgba(255, 255, 255, 0.3)'
           },
           ticks: {
-            font: { size: 9 },
+            font: { size: 9, weight: 'bold' },
+            color: '#4b5563',
             maxRotation: 45,
-            minRotation: 45
+            minRotation: 45,
+            padding: 6
           }
         },
         y: {
           beginAtZero: false,
           grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
+            color: 'rgba(255, 255, 255, 0.5)',
+            lineWidth: 1,
+            drawBorder: true,
+            borderColor: 'rgba(255, 255, 255, 0.3)'
           },
           ticks: {
-            font: { size: 10 }
+            font: { size: 10, weight: 'bold' },
+            color: '#4b5563',
+            padding: 8
           }
         }
       }
@@ -3110,6 +3253,54 @@ function updateExerciseSummary() {
   if (exerciseMinutesHidden) {
     exerciseMinutesHidden.value = totalTime;
   }
+}
+
+// 運動データを収集（保存用）
+function collectExerciseActivities() {
+  const activities = [];
+  const weight = currentUser?.weight || 60;
+  
+  // 運動リストから全ての有効な運動を収集
+  const exerciseListData = window.exerciseList || [
+    { id: 'furdi', name: 'ファディー', icon: 'fa-dumbbell', met: 5, color: 'pink', time: 30 },
+    { id: 'stretch', name: 'ストレッチ', icon: 'fa-child', met: 2.5, color: 'purple', time: 15 },
+    { id: 'weight-training', name: '筋トレ', icon: 'fa-dumbbell', met: 6, color: 'blue', time: 30 },
+    { id: 'running', name: 'ランニング', icon: 'fa-running', met: 8, color: 'green', time: 30 },
+    { id: 'jogging', name: 'ジョギング', icon: 'fa-shoe-prints', met: 5, color: 'teal', time: 20 },
+    { id: 'walking', name: 'ウォーキング', icon: 'fa-walking', met: 3, color: 'cyan', time: 30 },
+    { id: 'cycling', name: 'サイクリング', icon: 'fa-bicycle', met: 6, color: 'indigo', time: 30 },
+    { id: 'swimming', name: '水泳', icon: 'fa-swimmer', met: 8, color: 'blue', time: 30 },
+    { id: 'yoga', name: 'ヨガ', icon: 'fa-om', met: 3, color: 'purple', time: 30 },
+    { id: 'pilates', name: 'ピラティス', icon: 'fa-spa', met: 4, color: 'pink', time: 30 },
+    { id: 'hiit', name: 'HIIT', icon: 'fa-fire', met: 10, color: 'red', time: 20 },
+    { id: 'dance', name: 'ダンス', icon: 'fa-music', met: 5, color: 'pink', time: 30 },
+    { id: 'boxing', name: 'ボクシング', icon: 'fa-hand-rock', met: 9, color: 'red', time: 30 }
+  ];
+  
+  exerciseListData.forEach(exercise => {
+    const toggle = document.getElementById(`exercise-toggle-${exercise.id}`);
+    const timeInput = document.getElementById(`exercise-time-${exercise.id}`);
+    
+    if (!toggle || !timeInput) return;
+    
+    const isActive = toggle.getAttribute('data-active') === 'true';
+    const minutes = parseInt(timeInput.value) || 0;
+    
+    if (isActive && minutes > 0) {
+      const met = exercise.met;
+      const caloriesBurned = Math.round(met * weight * (minutes / 60) * 1.05);
+      
+      activities.push({
+        exercise_type: exercise.id,
+        exercise_name: exercise.name,
+        duration_minutes: minutes,
+        intensity: met >= 8 ? 'high' : (met >= 5 ? 'medium' : 'low'),
+        calories_burned: caloriesBurned
+      });
+    }
+  });
+  
+  return activities;
 }
 
 // =============================================================================
