@@ -340,22 +340,22 @@ function renderHero() {
             </div>
             
             <!-- 健康データグラフ（30日単位） -->
-            <div class="mb-2 bg-white/40 backdrop-blur-xl rounded-lg p-2 border border-white/30">
-              <div>
-                <div class="flex items-center justify-between mb-1">
+            <div class="mb-2">
+              <div class="bg-white/60 backdrop-blur-xl rounded-lg p-3 border border-white/30">
+                <div class="flex items-center justify-between mb-2">
                   <h3 class="font-semibold text-gray-700 flex items-center gap-1" style="font-size: var(--font-base);">
                     <i class="fas fa-chart-line" style="color: var(--color-primary);"></i>
                     健康データ推移
                   </h3>
                   <div class="flex items-center gap-1">
                     <button onclick="navigateGraphPeriod(-1)" 
-                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/50 transition text-gray-600 hover:text-gray-800 text-sm"
                       id="graph-prev-btn">
                       <i class="fas fa-chevron-left"></i>
                     </button>
                     <span class="text-gray-500 min-w-[120px] text-center" id="graph-period-label" style="font-size: var(--font-sm);">最新30日</span>
                     <button onclick="navigateGraphPeriod(1)" 
-                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-800 text-sm"
+                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/50 transition text-gray-600 hover:text-gray-800 text-sm"
                       id="graph-next-btn"
                       ${graphPeriodOffset === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
                       <i class="fas fa-chevron-right"></i>
@@ -363,11 +363,11 @@ function renderHero() {
                   </div>
                 </div>
                 <!-- グラフ -->
-                <div class="bg-white/60 backdrop-blur-sm rounded-lg p-3" style="height: 200px;">
+                <div class="bg-white/40 rounded-lg p-2" style="height: 200px;">
                   <canvas id="hero-chart"></canvas>
                 </div>
                 <!-- 凡例 -->
-                <div class="flex flex-wrap justify-center gap-2 mt-1" style="font-size: var(--font-sm);">
+                <div class="flex flex-wrap justify-center gap-2 mt-2" style="font-size: var(--font-sm);">
                   <div class="flex items-center gap-1">
                     <div class="w-3 h-3 rounded-full" style="background: var(--color-weight);"></div>
                     <span class="text-gray-600">体重</span>
@@ -409,15 +409,15 @@ function renderHero() {
                   if (latestAdvices.length === 0) return '';
                   
                   return `
-                    <div class="mt-2 pt-2 border-t border-white/40">
-                      <div class="flex items-center gap-1 mb-1">
+                    <div class="mt-3 pt-2 border-t border-white/40">
+                      <div class="flex items-center gap-1 mb-2">
                         <i class="fas fa-lightbulb text-yellow-600"></i>
                         <h4 class="font-bold text-gray-700" style="font-size: var(--font-base);">最新のアドバイス</h4>
                       </div>
-                      <div class="space-y-1">
+                      <div class="space-y-2">
                         ${latestAdvices.map(advice => `
-                          <div class="bg-white/70 rounded-lg p-1.5">
-                            <div class="flex items-center justify-between gap-1 mb-0.5">
+                          <div class="bg-white/50 rounded-lg p-2">
+                            <div class="flex items-center justify-between gap-1 mb-1">
                               <div class="flex items-center gap-1 flex-1 min-w-0">
                                 <div class="w-5 h-5 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded flex items-center justify-center flex-shrink-0">
                                   <i class="fas ${advice.advice_source === 'staff' ? 'fa-user-nurse' : 'fa-robot'} text-white" style="font-size: 9px;"></i>
@@ -452,39 +452,41 @@ function renderHero() {
             
             <!-- お知らせ -->
             ${announcements.length > 0 ? `
-              <div class="mb-2 bg-white/40 backdrop-blur-xl rounded-lg p-2 border border-white/30">
-                <div class="flex items-center justify-between mb-1">
-                  <div class="flex items-center gap-2">
-                    <i class="fas fa-bullhorn text-gray-700"></i>
-                    <h3 class="font-bold text-gray-700" style="font-size: var(--font-base);">お知らせ</h3>
-                  </div>
-                  ${announcements.length > 2 ? `
-                    <button onclick="switchTab('announcements')" 
-                            class="text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1" style="font-size: var(--font-sm);">
-                      もっと見る
-                      <i class="fas fa-chevron-right text-xs"></i>
-                    </button>
-                  ` : ''}
-                </div>
-                <div class="space-y-1">
-                  ${announcements.slice(0, 2).map(announcement => `
-                    <div class="bg-white/70 rounded-lg px-2 py-1.5 cursor-pointer"
-                         onclick="showAnnouncementDetail(${announcement.id})">
-                      <div class="flex gap-2 items-center">
-                        <i class="fas fa-bullhorn text-gray-600 flex-shrink-0"></i>
-                        <p class="text-gray-800 font-medium line-clamp-1 flex-1" style="font-size: var(--font-sm);">${announcement.title}</p>
-                        <i class="fas fa-chevron-right text-gray-500 flex-shrink-0"></i>
-                      </div>
+              <div class="mb-2">
+                <div class="bg-white/60 backdrop-blur-xl rounded-lg p-3 border border-white/30">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-bullhorn text-gray-700"></i>
+                      <h3 class="font-bold text-gray-700" style="font-size: var(--font-base);">お知らせ</h3>
                     </div>
-                  `).join('')}
+                    ${announcements.length > 2 ? `
+                      <button onclick="switchTab('announcements')" 
+                              class="text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1" style="font-size: var(--font-sm);">
+                        もっと見る
+                        <i class="fas fa-chevron-right text-xs"></i>
+                      </button>
+                    ` : ''}
+                  </div>
+                  <div class="space-y-2">
+                    ${announcements.slice(0, 2).map(announcement => `
+                      <div class="bg-white/50 rounded-lg px-2 py-2 cursor-pointer hover:bg-white/70 transition"
+                           onclick="showAnnouncementDetail(${announcement.id})">
+                        <div class="flex gap-2 items-center">
+                          <i class="fas fa-bullhorn text-gray-600 flex-shrink-0"></i>
+                          <p class="text-gray-800 font-medium line-clamp-1 flex-1" style="font-size: var(--font-sm);">${announcement.title}</p>
+                          <i class="fas fa-chevron-right text-gray-500 flex-shrink-0"></i>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
                 </div>
               </div>
             ` : ''}
           ` : `
             <!-- ログイン前 -->
             <div class="text-center">
-              <h1 class="text-5xl md:text-6xl font-bold mb-4 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                ファディ健康ログ
+              <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] opacity-90">
+                ファディー健康管理
               </h1>
               <p class="text-xl text-white/90 mb-8 drop-shadow-lg">AI × プロトレーナーで理想の健康を</p>
               <div class="flex justify-center gap-8">
