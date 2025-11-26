@@ -410,13 +410,22 @@ function renderHero() {
                   
                   return `
                     <div class="mt-3 pt-2 border-t border-white/40">
-                      <div class="flex items-center gap-1 mb-2">
-                        <i class="fas fa-lightbulb text-yellow-600"></i>
-                        <h4 class="font-bold text-gray-700" style="font-size: var(--font-base);">最新のアドバイス</h4>
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-1">
+                          <i class="fas fa-lightbulb text-yellow-600"></i>
+                          <h4 class="font-bold text-gray-700" style="font-size: var(--font-base);">最新のアドバイス</h4>
+                        </div>
+                        ${advices.length > 2 ? `
+                          <button onclick="showAllAdvices()" 
+                                  class="text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1" style="font-size: var(--font-sm);">
+                            もっと見る
+                            <i class="fas fa-chevron-right text-xs"></i>
+                          </button>
+                        ` : ''}
                       </div>
                       <div class="space-y-2">
                         ${latestAdvices.map(advice => `
-                          <div class="bg-white/50 rounded-lg p-2">
+                          <div class="bg-white/50 rounded-lg p-2 relative overflow-hidden">
                             <div class="flex items-center justify-between gap-1 mb-1">
                               <div class="flex items-center gap-1 flex-1 min-w-0">
                                 <div class="w-5 h-5 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded flex items-center justify-center flex-shrink-0">
@@ -435,15 +444,19 @@ function renderHero() {
                                 id="speak-btn-hero-${advice.id}"
                                 onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                                 class="w-7 h-7 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500' : 'bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500'} rounded-full transition-all duration-200 shadow-md flex-shrink-0"
+                                data-speaking="false"
                                 title="音声で読み上げる">
                                 <i class="fas fa-volume-up text-white text-xs"></i>
                               </button>
                             </div>
                             <strong class="font-bold text-gray-800 block truncate" style="font-size: var(--font-sm);">${advice.title}</strong>
-                            <div class="text-gray-600 leading-tight line-clamp-2 cursor-pointer hover:text-gray-800 transition" 
-                                 style="font-size: var(--font-xs);"
-                                 onclick="showAdviceDetail(${advice.id})">
-                              ${advice.content}
+                            <div class="relative">
+                              <div class="text-gray-600 leading-tight line-clamp-2 cursor-pointer hover:text-gray-800 transition" 
+                                   style="font-size: var(--font-xs);"
+                                   onclick="showAdviceDetail(${advice.id})">
+                                ${advice.content}
+                              </div>
+                              <div class="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white/50 to-transparent pointer-events-none"></div>
                             </div>
                           </div>
                         `).join('')}
@@ -2725,6 +2738,126 @@ function showAllAnnouncements() {
   document.body.appendChild(modal);
 }
 
+// 全てのアドバイスを表示
+function showAllAdvices() {
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
+  // AIとスタッフのアドバイスを分類
+  const aiAdvices = advices.filter(a => a.advice_source === 'ai').sort((a, b) => 
+    new Date(b.created_at) - new Date(a.created_at)
+  );
+  const staffAdvices = advices.filter(a => a.advice_source === 'staff').sort((a, b) => 
+    new Date(b.created_at) - new Date(a.created_at)
+  );
+  
+  modal.innerHTML = `
+    <div class="bg-white/95 backdrop-blur-xl rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/50" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-6 pb-4 border-b sticky top-0 bg-white">
+        <h3 class="text-2xl font-bold text-gray-800">
+          <i class="fas fa-lightbulb text-yellow-600 mr-2"></i>
+          アドバイス一覧
+        </h3>
+        <button onclick="this.closest('.fixed').remove()" 
+          class="text-gray-400 hover:text-gray-600 text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      ${staffAdvices.length > 0 ? `
+        <div class="mb-6">
+          <h4 class="text-lg font-bold text-pink-600 mb-3 flex items-center gap-2">
+            <i class="fas fa-user-nurse"></i>
+            スタッフからのアドバイス
+          </h4>
+          <div class="space-y-3">
+            ${staffAdvices.map(advice => `
+              <div class="bg-gradient-to-r from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100 p-4 rounded-xl transition cursor-pointer border border-pink-200 hover:border-pink-400"
+                   onclick="this.closest('.fixed').remove(); showAdviceDetail(${advice.id});">
+                <div class="flex gap-4 items-start">
+                  <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user-nurse text-white text-xl"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                      <h5 class="text-base font-bold text-gray-800">${advice.title}</h5>
+                      <button 
+                        onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                        id="speak-btn-${advice.id}"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md"
+                        data-speaking="false"
+                        title="音声で読み上げる">
+                        <i class="fas fa-volume-up text-white text-sm"></i>
+                      </button>
+                    </div>
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">${advice.content}</p>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                      ${advice.staff_name ? `<span><i class="fas fa-user mr-1"></i>${advice.staff_name}</span>` : ''}
+                      ${advice.log_date ? `<span><i class="fas fa-calendar mr-1"></i>${dayjs(advice.log_date).format('YYYY年MM月DD日')}</span>` : ''}
+                    </div>
+                  </div>
+                  <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+      
+      ${aiAdvices.length > 0 ? `
+        <div>
+          <h4 class="text-lg font-bold text-blue-600 mb-3 flex items-center gap-2">
+            <i class="fas fa-robot"></i>
+            AIからのアドバイス
+          </h4>
+          <div class="space-y-3">
+            ${aiAdvices.map(advice => `
+              <div class="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 p-4 rounded-xl transition cursor-pointer border border-blue-200 hover:border-blue-400"
+                   onclick="this.closest('.fixed').remove(); showAdviceDetail(${advice.id});">
+                <div class="flex gap-4 items-start">
+                  <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                      <h5 class="text-base font-bold text-gray-800">${advice.title}</h5>
+                      <button 
+                        onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                        id="speak-btn-${advice.id}"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 rounded-full transition-all duration-200 shadow-md"
+                        data-speaking="false"
+                        title="音声で読み上げる">
+                        <i class="fas fa-volume-up text-white text-sm"></i>
+                      </button>
+                    </div>
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">${advice.content}</p>
+                    <div class="text-xs text-gray-500">
+                      ${advice.log_date ? `<i class="fas fa-calendar mr-1"></i>${dayjs(advice.log_date).format('YYYY年MM月DD日')}` : ''}
+                    </div>
+                  </div>
+                  <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+      
+      ${advices.length === 0 ? `
+        <div class="text-center py-12 text-gray-400">
+          <i class="fas fa-inbox text-5xl mb-4"></i>
+          <p>アドバイスはまだありません</p>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
 // スタッフコメント取得（最新1件）
 async function loadLatestStaffComment() {
   try {
@@ -3802,6 +3935,10 @@ async function speakAdvice(adviceId, title, content) {
     }
     isSpeaking = false;
     currentAdviceId = null;
+    if (button) {
+      button.setAttribute('data-speaking', 'false');
+      button.setAttribute('title', '音声で読み上げる');
+    }
     if (icon) {
       icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
     }
@@ -3812,9 +3949,13 @@ async function speakAdvice(adviceId, title, content) {
   if (isSpeaking && currentAudio) {
     currentAudio.pause();
     currentAudio = null;
-    // 前のボタンのアイコンをリセット
+    // 前のボタンのアイコンとツールチップをリセット
     const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`) || 
                        document.getElementById(`speak-btn-hero-${currentAdviceId}`);
+    if (prevButton) {
+      prevButton.setAttribute('data-speaking', 'false');
+      prevButton.setAttribute('title', '音声で読み上げる');
+    }
     const prevIcon = prevButton?.querySelector('i');
     if (prevIcon) {
       prevIcon.className = prevIcon.className.replace('fa-stop', 'fa-volume-up');
@@ -3868,6 +4009,10 @@ async function speakAdvice(adviceId, title, content) {
 
     // 再生開始時の処理
     currentAudio.onplay = () => {
+      if (button) {
+        button.setAttribute('data-speaking', 'true');
+        button.setAttribute('title', '停止する');
+      }
       if (icon) {
         icon.className = icon.className.replace('fa-spinner fa-spin', 'fa-stop');
       }
@@ -3878,6 +4023,10 @@ async function speakAdvice(adviceId, title, content) {
       isSpeaking = false;
       currentAdviceId = null;
       currentAudio = null;
+      if (button) {
+        button.setAttribute('data-speaking', 'false');
+        button.setAttribute('title', '音声で読み上げる');
+      }
       if (icon) {
         icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
       }
@@ -3889,6 +4038,10 @@ async function speakAdvice(adviceId, title, content) {
       isSpeaking = false;
       currentAdviceId = null;
       currentAudio = null;
+      if (button) {
+        button.setAttribute('data-speaking', 'false');
+        button.setAttribute('title', '音声で読み上げる');
+      }
       if (icon) {
         icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
       }
@@ -3903,6 +4056,10 @@ async function speakAdvice(adviceId, title, content) {
     isSpeaking = false;
     currentAdviceId = null;
     currentAudio = null;
+    if (button) {
+      button.setAttribute('data-speaking', 'false');
+      button.setAttribute('title', '音声で読み上げる');
+    }
     if (icon) {
       icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
     }
