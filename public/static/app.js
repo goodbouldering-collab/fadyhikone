@@ -1164,9 +1164,11 @@ function renderHealthLogSection() {
                     <i class="fas fa-lightbulb text-yellow-500"></i>
                     この日のアドバイス
                   </h3>
-                  <a href="/mypage#advices-section" class="text-sm text-primary hover:text-pink-600 transition-colors">
-                    すべて見る →
-                  </a>
+                  <button onclick="window.location.href='/mypage#advices-section'" 
+                          class="text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1" style="font-size: var(--font-sm);">
+                    もっと見る
+                    <i class="fas fa-chevron-right text-xs"></i>
+                  </button>
                 </div>
                 
                 <!-- 統合アドバイス（スタッフ優先） -->
