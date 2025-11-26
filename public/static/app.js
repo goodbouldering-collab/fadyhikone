@@ -931,13 +931,12 @@ function renderHealthLogSection() {
               <!-- 合計 -->
               <div class="mt-3 bg-gradient-to-br from-primary/10 to-pink-50 p-2.5 rounded-lg">
                 <div class="text-center">
-                  <div class="text-xs text-gray-600 mb-1">今日の総カロリー</div>
+                  <div class="text-xs text-gray-600 mb-1">今日の総カロリー（自動計算）</div>
                   <div class="flex items-center justify-center gap-2">
-                    <input type="number" 
-                      id="total-calories-input"
-                      value="0"
-                      oninput="updateTotalCaloriesDisplay()"
-                      class="w-24 px-2 py-1 text-xl font-bold text-primary text-center bg-white rounded focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div id="total-calories-display"
+                      class="w-auto px-3 py-1 text-xl font-bold text-primary text-center bg-white rounded border border-primary/20">
+                      0
+                    </div>
                     <span class="text-sm text-gray-500">kcal</span>
                   </div>
                   <div class="text-xs text-gray-500 mt-1">
@@ -1661,9 +1660,8 @@ async function handleHealthLogSubmit(e) {
   const totalFat = mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat + mealData.snack.fat;
   const totalCarbs = mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs + mealData.snack.carbs;
   
-  // 総カロリー入力値を取得（手動入力優先）
-  const totalCaloriesInput = document.getElementById('total-calories-input');
-  const totalCaloriesValue = totalCaloriesInput ? parseInt(totalCaloriesInput.value) || 0 : 0;
+  // 総カロリーは常に自動計算（食事の合計）
+  const totalCaloriesValue = totalCalories;
   
   const data = {
     log_date: selectedDate || dayjs().format('YYYY-MM-DD'),
@@ -1674,7 +1672,7 @@ async function handleHealthLogSubmit(e) {
     exercise_minutes: formData.get('exercise_minutes') ? parseInt(formData.get('exercise_minutes')) : null,
     condition_rating: formData.get('condition_rating') ? parseInt(formData.get('condition_rating')) : 3,
     condition_note: formData.get('condition_note') || null,
-    total_calories: totalCaloriesValue,  // ユーザーが入力した総カロリー
+    total_calories: totalCaloriesValue,  // 食事の合計カロリー（自動計算）
     // 食事データ (新フォーマット: 朝昼晩+間食の内訳 + 写真配列)
     meals: {
       breakfast: {
@@ -1951,9 +1949,9 @@ function updateTotalNutrition() {
     carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs + mealData.snack.carbs
   };
   
-  // 総カロリー入力フィールド更新
-  const totalCaloriesInput = document.getElementById('total-calories-input');
-  if (totalCaloriesInput) totalCaloriesInput.value = total.calories;
+  // 総カロリー表示要素を更新（自動計算）
+  const totalCaloriesDisplay = document.getElementById('total-calories-display');
+  if (totalCaloriesDisplay) totalCaloriesDisplay.textContent = total.calories;
   
   // ブレークダウン表示更新
   const breakdownEl = document.getElementById('total-calories-breakdown');
@@ -1971,12 +1969,19 @@ function updateTotalNutrition() {
   if (totalCarbsEl) totalCarbsEl.textContent = total.carbs;
 }
 
-// 総カロリー手動入力対応
+// 総カロリー表示更新（自動計算のみ）
 function updateTotalCaloriesDisplay() {
-  const totalCaloriesInput = document.getElementById('total-calories-input');
-  if (!totalCaloriesInput) return;
+  // 食事データの合計を計算
+  const total = {
+    calories: mealData.breakfast.calories + mealData.lunch.calories + mealData.dinner.calories + mealData.snack.calories,
+    protein: mealData.breakfast.protein + mealData.lunch.protein + mealData.dinner.protein + mealData.snack.protein,
+    fat: mealData.breakfast.fat + mealData.lunch.fat + mealData.dinner.fat + mealData.snack.fat,
+    carbs: mealData.breakfast.carbs + mealData.lunch.carbs + mealData.dinner.carbs + mealData.snack.carbs
+  };
   
-  const manualTotal = parseFloat(totalCaloriesInput.value) || 0;
+  // 総カロリー表示要素を更新
+  const totalCaloriesDisplay = document.getElementById('total-calories-display');
+  if (totalCaloriesDisplay) totalCaloriesDisplay.textContent = total.calories;
   
   // ブレークダウン表示更新
   const breakdownEl = document.getElementById('total-calories-breakdown');
