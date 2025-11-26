@@ -446,7 +446,7 @@ function renderHero() {
                                 type="button"
                                 id="speak-btn-hero-${advice.id}"
                                 onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-                                class="w-7 h-7 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md flex-shrink-0"
+                                class="w-7 h-7 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500' : 'bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500'} rounded-full transition-all duration-200 shadow-md flex-shrink-0"
                                 data-speaking="false"
                                 title="音声で読み上げる">
                                 <i class="fas fa-volume-up text-white text-xs"></i>
@@ -2668,7 +2668,7 @@ function showAdviceDetail(id) {
         <button 
           id="speak-btn-modal-${advice.id}"
           onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-          class="px-4 py-2 bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 shadow-md flex items-center gap-2"
+          class="px-4 py-2 ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} text-white rounded-lg transition-all duration-200 shadow-md flex items-center gap-2"
           data-speaking="false"
           title="音声で読み上げる">
           <i class="fas fa-volume-up"></i>
@@ -2793,7 +2793,7 @@ function showAllAdvices() {
                       <button 
                         onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                         id="speak-btn-${advice.id}"
-                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md"
                         data-speaking="false"
                         title="音声で読み上げる">
                         <i class="fas fa-volume-up text-white text-sm"></i>
@@ -2833,7 +2833,7 @@ function showAllAdvices() {
                       <button 
                         onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                         id="speak-btn-${advice.id}"
-                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md"
                         data-speaking="false"
                         title="音声で読み上げる">
                         <i class="fas fa-volume-up text-white text-sm"></i>
@@ -3925,6 +3925,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // 音声読み上げの状態管理
 let currentAudio = null;
 let isSpeaking = false;
+let isPaused = false;
 let currentAdviceId = null;
 
 // アドバイスを音声で読み上げ（OpenAI TTS API使用）
@@ -3934,20 +3935,32 @@ async function speakAdvice(adviceId, title, content) {
                  document.getElementById(`speak-btn-modal-${adviceId}`);
   const icon = button?.querySelector('i');
 
-  // 既に同じアドバイスを読み上げ中の場合は停止
+  // 既に同じアドバイスを読み上げ中の場合は一時停止/再開
   if (isSpeaking && currentAdviceId === adviceId) {
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
-    isSpeaking = false;
-    currentAdviceId = null;
-    if (button) {
-      button.setAttribute('data-speaking', 'false');
-      button.setAttribute('title', '音声で読み上げる');
-    }
-    if (icon) {
-      icon.className = icon.className.replace('fa-pause', 'fa-volume-up');
+      if (isPaused) {
+        // 再開
+        currentAudio.play();
+        isPaused = false;
+        if (button) {
+          button.setAttribute('data-speaking', 'true');
+          button.setAttribute('title', '一時停止する');
+        }
+        if (icon) {
+          icon.className = icon.className.replace('fa-play', 'fa-pause');
+        }
+      } else {
+        // 一時停止
+        currentAudio.pause();
+        isPaused = true;
+        if (button) {
+          button.setAttribute('data-speaking', 'paused');
+          button.setAttribute('title', '再生する');
+        }
+        if (icon) {
+          icon.className = icon.className.replace('fa-pause', 'fa-play');
+        }
+      }
     }
     return;
   }
@@ -3966,12 +3979,13 @@ async function speakAdvice(adviceId, title, content) {
     }
     const prevIcon = prevButton?.querySelector('i');
     if (prevIcon) {
-      prevIcon.className = prevIcon.className.replace('fa-pause', 'fa-volume-up');
+      prevIcon.className = prevIcon.className.replace('fa-pause fa-play', 'fa-volume-up');
     }
   }
 
   // ローディング状態に設定
   isSpeaking = true;
+  isPaused = false;
   currentAdviceId = adviceId;
   if (icon) {
     icon.className = icon.className.replace('fa-volume-up', 'fa-spinner fa-spin');
@@ -4019,7 +4033,7 @@ async function speakAdvice(adviceId, title, content) {
     currentAudio.onplay = () => {
       if (button) {
         button.setAttribute('data-speaking', 'true');
-        button.setAttribute('title', '停止する');
+        button.setAttribute('title', '一時停止する');
       }
       if (icon) {
         icon.className = icon.className.replace('fa-spinner fa-spin', 'fa-pause');
@@ -4029,6 +4043,7 @@ async function speakAdvice(adviceId, title, content) {
     // 再生終了時の処理
     currentAudio.onended = () => {
       isSpeaking = false;
+      isPaused = false;
       currentAdviceId = null;
       currentAudio = null;
       if (button) {
@@ -4044,6 +4059,7 @@ async function speakAdvice(adviceId, title, content) {
     currentAudio.onerror = (event) => {
       console.error('音声再生エラー:', event);
       isSpeaking = false;
+      isPaused = false;
       currentAdviceId = null;
       currentAudio = null;
       if (button) {
@@ -4051,7 +4067,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '音声で読み上げる');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-pause fa-spinner fa-spin', 'fa-volume-up');
+        icon.className = icon.className.replace('fa-pause fa-play fa-spinner fa-spin', 'fa-volume-up');
       }
       showToast('音声再生に失敗しました', 'error');
     };
@@ -4062,6 +4078,7 @@ async function speakAdvice(adviceId, title, content) {
   } catch (error) {
     console.error('TTS error:', error);
     isSpeaking = false;
+    isPaused = false;
     currentAdviceId = null;
     currentAudio = null;
     if (button) {
@@ -4069,7 +4086,7 @@ async function speakAdvice(adviceId, title, content) {
       button.setAttribute('title', '音声で読み上げる');
     }
     if (icon) {
-      icon.className = icon.className.replace('fa-pause fa-spinner fa-spin', 'fa-volume-up');
+      icon.className = icon.className.replace('fa-pause fa-play fa-spinner fa-spin', 'fa-volume-up');
     }
     showToast(error.message || '音声生成に失敗しました', 'error');
   }
