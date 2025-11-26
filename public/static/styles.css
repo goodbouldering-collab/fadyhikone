@@ -9,6 +9,13 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   
+  /* グラフの色 */
+  --color-weight: #0ea5e9;      /* 体重 - sky-500 */
+  --color-bodyfat: #f97316;     /* 体脂肪率 - orange-500 */
+  --color-sleep: #a855f7;       /* 睡眠時間 - purple-500 */
+  --color-calorie: #22c55e;     /* カロリー - green-500 */
+  --color-exercise: #ec4899;    /* 運動時間 - pink-500 */
+  
   /* 背景色 */
   --color-bg-light: #F9FAFB;
   --color-bg-white: #FFFFFF;
