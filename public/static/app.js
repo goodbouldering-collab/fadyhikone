@@ -378,7 +378,7 @@ function renderHero() {
                   </div>
                   <div class="flex items-center gap-1">
                     <div class="w-3 h-3 rounded-full" style="background: var(--color-sleep);"></div>
-                    <span class="text-gray-600">睡眠時間</span>
+                    <span class="text-gray-600">睡眠</span>
                   </div>
                   <div class="flex items-center gap-1">
                     <div class="w-3 h-3 rounded-full" style="background: var(--color-calorie);"></div>
@@ -386,7 +386,7 @@ function renderHero() {
                   </div>
                   <div class="flex items-center gap-1">
                     <div class="w-3 h-3 rounded-full" style="background: var(--color-exercise);"></div>
-                    <span class="text-gray-600">運動時間</span>
+                    <span class="text-gray-600">運動</span>
                   </div>
                 </div>
                 
@@ -440,7 +440,11 @@ function renderHero() {
                               </button>
                             </div>
                             <strong class="font-bold text-gray-800 block truncate" style="font-size: var(--font-sm);">${advice.title}</strong>
-                            <div class="text-gray-600 leading-tight line-clamp-2" style="font-size: var(--font-xs);">${advice.content}</div>
+                            <div class="text-gray-600 leading-tight line-clamp-2 cursor-pointer hover:text-gray-800 transition" 
+                                 style="font-size: var(--font-xs);"
+                                 onclick="showAdviceDetail(${advice.id})">
+                              ${advice.content}
+                            </div>
                           </div>
                         `).join('')}
                       </div>
@@ -2601,6 +2605,61 @@ function showAnnouncementDetail(id) {
       <div class="mt-4 text-xs text-gray-400 text-right">
         <i class="fas fa-clock mr-1"></i>
         ${dayjs(announcement.published_at).format('YYYY年MM月DD日 HH:mm')}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// アドバイス詳細をモーダルで表示
+function showAdviceDetail(id) {
+  const advice = advices.find(a => a.id === id);
+  if (!advice) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
+  modal.innerHTML = `
+    <div class="bg-white/95 backdrop-blur-xl rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/50" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-start mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 bg-gradient-to-br ${advice.advice_source === 'staff' ? 'from-pink-500 to-rose-600' : 'from-blue-500 to-purple-600'} rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas ${advice.advice_source === 'staff' ? 'fa-user-nurse' : 'fa-robot'} text-white text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold ${advice.advice_source === 'staff' ? 'text-pink-600' : 'text-blue-600'}">${advice.advice_source === 'staff' ? 'スタッフ' : 'AI'}</span>
+              ${advice.staff_name ? `<span class="text-sm text-gray-500">- ${advice.staff_name}</span>` : ''}
+            </div>
+            ${advice.log_date ? `<div class="text-xs text-gray-400">${dayjs(advice.log_date).format('YYYY年MM月DD日')}</div>` : ''}
+          </div>
+        </div>
+        <button onclick="this.closest('.fixed').remove()" 
+          class="text-gray-400 hover:text-gray-600 text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <h3 class="text-xl font-bold text-gray-800 mb-4">${advice.title}</h3>
+      
+      <p class="text-base text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">${advice.content}</p>
+      
+      <div class="flex justify-end">
+        <button 
+          onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+          class="px-4 py-2 ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} text-white rounded-lg transition-all duration-200 shadow-md flex items-center gap-2">
+          <i class="fas fa-volume-up"></i>
+          音声で読み上げる
+        </button>
+      </div>
+      
+      <div class="mt-4 text-xs text-gray-400 text-right">
+        <i class="fas fa-clock mr-1"></i>
+        ${dayjs(advice.created_at).format('YYYY年MM月DD日 HH:mm')}
       </div>
     </div>
   `;
