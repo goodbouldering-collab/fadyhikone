@@ -392,19 +392,22 @@ function renderHero() {
                 
                 <!-- 最新のアドバイス（グラフ内に統合） -->
                 ${(() => {
-                  // AIとスタッフそれぞれの最新アドバイスを取得
-                  const aiAdvices = advices.filter(a => a.advice_source === 'ai');
-                  const staffAdvices = advices.filter(a => a.advice_source === 'staff');
+                  // スタッフとAIのアドバイスを時系列で取得（スタッフを優先表示）
+                  const staffAdvices = advices.filter(a => a.advice_source === 'staff')
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                  const aiAdvices = advices.filter(a => a.advice_source === 'ai')
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                   
-                  const latestAI = aiAdvices.sort((a, b) => 
-                    new Date(b.created_at) - new Date(a.created_at)
-                  )[0];
-                  
-                  const latestStaff = staffAdvices.sort((a, b) => 
-                    new Date(b.created_at) - new Date(a.created_at)
-                  )[0];
-                  
-                  const latestAdvices = [latestStaff, latestAI].filter(Boolean);
+                  // スタッフを上に、AIを下に配置（最新2件まで表示）
+                  const latestAdvices = [...staffAdvices.slice(0, 2), ...aiAdvices.slice(0, 2)]
+                    .slice(0, 2)
+                    .sort((a, b) => {
+                      // スタッフを上に
+                      if (a.advice_source === 'staff' && b.advice_source === 'ai') return -1;
+                      if (a.advice_source === 'ai' && b.advice_source === 'staff') return 1;
+                      // 同じソースなら時系列
+                      return new Date(b.created_at) - new Date(a.created_at);
+                    });
                   
                   if (latestAdvices.length === 0) return '';
                   
@@ -443,7 +446,7 @@ function renderHero() {
                                 type="button"
                                 id="speak-btn-hero-${advice.id}"
                                 onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-                                class="w-7 h-7 flex items-center justify-center ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500' : 'bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500'} rounded-full transition-all duration-200 shadow-md flex-shrink-0"
+                                class="w-7 h-7 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md flex-shrink-0"
                                 data-speaking="false"
                                 title="音声で読み上げる">
                                 <i class="fas fa-volume-up text-white text-xs"></i>
@@ -2663,8 +2666,11 @@ function showAdviceDetail(id) {
       
       <div class="flex justify-end">
         <button 
+          id="speak-btn-modal-${advice.id}"
           onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
-          class="px-4 py-2 ${advice.advice_source === 'staff' ? 'bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} text-white rounded-lg transition-all duration-200 shadow-md flex items-center gap-2">
+          class="px-4 py-2 bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 shadow-md flex items-center gap-2"
+          data-speaking="false"
+          title="音声で読み上げる">
           <i class="fas fa-volume-up"></i>
           音声で読み上げる
         </button>
@@ -2787,7 +2793,7 @@ function showAllAdvices() {
                       <button 
                         onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                         id="speak-btn-${advice.id}"
-                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md"
                         data-speaking="false"
                         title="音声で読み上げる">
                         <i class="fas fa-volume-up text-white text-sm"></i>
@@ -2827,7 +2833,7 @@ function showAllAdvices() {
                       <button 
                         onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                         id="speak-btn-${advice.id}"
-                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 rounded-full transition-all duration-200 shadow-md"
+                        class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 rounded-full transition-all duration-200 shadow-md"
                         data-speaking="false"
                         title="音声で読み上げる">
                         <i class="fas fa-volume-up text-white text-sm"></i>
@@ -3924,7 +3930,8 @@ let currentAdviceId = null;
 // アドバイスを音声で読み上げ（OpenAI TTS API使用）
 async function speakAdvice(adviceId, title, content) {
   const button = document.getElementById(`speak-btn-${adviceId}`) || 
-                 document.getElementById(`speak-btn-hero-${adviceId}`);
+                 document.getElementById(`speak-btn-hero-${adviceId}`) ||
+                 document.getElementById(`speak-btn-modal-${adviceId}`);
   const icon = button?.querySelector('i');
 
   // 既に同じアドバイスを読み上げ中の場合は停止
@@ -3940,7 +3947,7 @@ async function speakAdvice(adviceId, title, content) {
       button.setAttribute('title', '音声で読み上げる');
     }
     if (icon) {
-      icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
+      icon.className = icon.className.replace('fa-pause', 'fa-volume-up');
     }
     return;
   }
@@ -3951,14 +3958,15 @@ async function speakAdvice(adviceId, title, content) {
     currentAudio = null;
     // 前のボタンのアイコンとツールチップをリセット
     const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`) || 
-                       document.getElementById(`speak-btn-hero-${currentAdviceId}`);
+                       document.getElementById(`speak-btn-hero-${currentAdviceId}`) ||
+                       document.getElementById(`speak-btn-modal-${currentAdviceId}`);
     if (prevButton) {
       prevButton.setAttribute('data-speaking', 'false');
       prevButton.setAttribute('title', '音声で読み上げる');
     }
     const prevIcon = prevButton?.querySelector('i');
     if (prevIcon) {
-      prevIcon.className = prevIcon.className.replace('fa-stop', 'fa-volume-up');
+      prevIcon.className = prevIcon.className.replace('fa-pause', 'fa-volume-up');
     }
   }
 
@@ -4014,7 +4022,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '停止する');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-spinner fa-spin', 'fa-stop');
+        icon.className = icon.className.replace('fa-spinner fa-spin', 'fa-pause');
       }
     };
 
@@ -4028,7 +4036,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '音声で読み上げる');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-stop', 'fa-volume-up');
+        icon.className = icon.className.replace('fa-pause', 'fa-volume-up');
       }
     };
 
@@ -4043,7 +4051,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '音声で読み上げる');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
+        icon.className = icon.className.replace('fa-pause fa-spinner fa-spin', 'fa-volume-up');
       }
       showToast('音声再生に失敗しました', 'error');
     };
@@ -4061,7 +4069,7 @@ async function speakAdvice(adviceId, title, content) {
       button.setAttribute('title', '音声で読み上げる');
     }
     if (icon) {
-      icon.className = icon.className.replace('fa-stop fa-spinner fa-spin', 'fa-volume-up');
+      icon.className = icon.className.replace('fa-pause fa-spinner fa-spin', 'fa-volume-up');
     }
     showToast(error.message || '音声生成に失敗しました', 'error');
   }
