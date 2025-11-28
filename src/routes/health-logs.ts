@@ -38,7 +38,7 @@ function generateMockAnalysis() {
 
 // AI分析関数（OpenAI API使用）
 async function generateAIAdvice(
-  env: Bindings,
+  env: Bindings & { OPENAI_API_KEY?: string; OPENAI_BASE_URL?: string },
   userId: number,
   logDate: string,
   healthLog: HealthLog,
@@ -46,16 +46,33 @@ async function generateAIAdvice(
   exerciseActivities?: any[]
 ): Promise<void> {
   try {
-    // OpenAI APIキーを取得
-    const settingsResult = await env.DB.prepare(
-      'SELECT setting_value FROM settings WHERE setting_key = ?'
-    ).bind('openai_api_key').first<{ setting_value: string }>();
+    // OpenAI APIキーを取得（DB優先、なければ環境変数）
+    let OPENAI_API_KEY = '';
+    let OPENAI_BASE_URL = 'https://api.openai.com/v1';
     
-    const OPENAI_API_KEY = settingsResult?.setting_value;
+    try {
+      const settingsResult = await env.DB.prepare(
+        'SELECT setting_value FROM settings WHERE setting_key = ?'
+      ).bind('openai_api_key').first<{ setting_value: string }>();
+      if (settingsResult?.setting_value) {
+        OPENAI_API_KEY = settingsResult.setting_value;
+      }
+    } catch (e) {
+      console.log('DB settings not available, checking env vars');
+    }
+    
+    // 環境変数からフォールバック
+    if (!OPENAI_API_KEY && env.OPENAI_API_KEY) {
+      OPENAI_API_KEY = env.OPENAI_API_KEY;
+      OPENAI_BASE_URL = env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    }
+    
     if (!OPENAI_API_KEY) {
-      console.error('OpenAI API key not configured');
+      console.error('OpenAI API key not configured (neither in DB nor env)');
       return;
     }
+    
+    console.log('🤖 Starting AI advice generation for user', userId, 'date', logDate);
 
     // 過去7日間のログを取得（トレンド分析用）
     const pastLogs = await env.DB.prepare(`
@@ -198,8 +215,9 @@ ${pastLogs.results.map((log: HealthLog, i: number) =>
 }`;
 
     // OpenAI API呼び出し
+    console.log('🔄 Calling OpenAI API at', OPENAI_BASE_URL);
     const response = await fetch(
-      'https://api.openai.com/v1/chat/completions',
+      `${OPENAI_BASE_URL}/chat/completions`,
       {
         method: 'POST',
         headers: {
@@ -363,12 +381,14 @@ healthLogs.post('/', async (c) => {
       'SELECT id FROM health_logs WHERE user_id = ? AND log_date = ? ORDER BY id DESC LIMIT 1'
     ).bind(userId, body.log_date).first<{ id: number }>();
 
-    // 既存ログがある場合はエラーを返す（フロントエンドでPUTを使うべき）
+    // 既存ログがある場合は上書き（UPSERT動作）
     if (existingLog) {
-      return c.json<ApiResponse>({ 
-        success: false, 
-        error: `この日付のログは既に存在します。既存のログID: ${existingLog.id}` 
-      }, 400);
+      console.log(`📝 Existing log found for ${body.log_date}, will overwrite (ID: ${existingLog.id})`);
+      // 既存のmeals, exercise_activities, meal_photosを削除
+      await c.env.DB.prepare('DELETE FROM exercise_activities WHERE health_log_id = ?').bind(existingLog.id).run();
+      await c.env.DB.prepare('DELETE FROM meals WHERE health_log_id = ?').bind(existingLog.id).run();
+      await c.env.DB.prepare('DELETE FROM health_logs WHERE id = ?').bind(existingLog.id).run();
+      console.log(`🗑️ Deleted old log and related data for ID: ${existingLog.id}`);
     }
 
     // 食事データの合計を計算（間食も含む）

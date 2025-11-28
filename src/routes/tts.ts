@@ -33,12 +33,27 @@ tts.post('/speak', async (c) => {
       }, 400);
     }
 
-    // OpenAI APIキーを取得
-    const settingsResult = await c.env.DB.prepare(
-      'SELECT setting_value FROM settings WHERE setting_key = ?'
-    ).bind('openai_api_key').first<{ setting_value: string }>();
+    // OpenAI APIキーを取得（DB優先、なければ環境変数）
+    let OPENAI_API_KEY = '';
+    let OPENAI_BASE_URL = 'https://api.openai.com/v1';
     
-    const OPENAI_API_KEY = settingsResult?.setting_value;
+    try {
+      const settingsResult = await c.env.DB.prepare(
+        'SELECT setting_value FROM settings WHERE setting_key = ?'
+      ).bind('openai_api_key').first<{ setting_value: string }>();
+      if (settingsResult?.setting_value) {
+        OPENAI_API_KEY = settingsResult.setting_value;
+      }
+    } catch (e) {
+      console.log('DB settings not available, checking env vars');
+    }
+    
+    // 環境変数からフォールバック
+    if (!OPENAI_API_KEY && c.env.OPENAI_API_KEY) {
+      OPENAI_API_KEY = c.env.OPENAI_API_KEY;
+      OPENAI_BASE_URL = c.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    }
+    
     if (!OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
       return c.json<ApiResponse>({ 
@@ -48,7 +63,7 @@ tts.post('/speak', async (c) => {
     }
 
     // OpenAI TTS API呼び出し
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const response = await fetch(`${OPENAI_BASE_URL}/audio/speech`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -102,12 +117,27 @@ tts.post('/speak-stream', async (c) => {
       }, 400);
     }
 
-    // OpenAI APIキーを取得
-    const settingsResult = await c.env.DB.prepare(
-      'SELECT setting_value FROM settings WHERE setting_key = ?'
-    ).bind('openai_api_key').first<{ setting_value: string }>();
+    // OpenAI APIキーを取得（DB優先、なければ環境変数）
+    let OPENAI_API_KEY = '';
+    let OPENAI_BASE_URL = 'https://api.openai.com/v1';
     
-    const OPENAI_API_KEY = settingsResult?.setting_value;
+    try {
+      const settingsResult = await c.env.DB.prepare(
+        'SELECT setting_value FROM settings WHERE setting_key = ?'
+      ).bind('openai_api_key').first<{ setting_value: string }>();
+      if (settingsResult?.setting_value) {
+        OPENAI_API_KEY = settingsResult.setting_value;
+      }
+    } catch (e) {
+      console.log('DB settings not available, checking env vars');
+    }
+    
+    // 環境変数からフォールバック
+    if (!OPENAI_API_KEY && c.env.OPENAI_API_KEY) {
+      OPENAI_API_KEY = c.env.OPENAI_API_KEY;
+      OPENAI_BASE_URL = c.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    }
+    
     if (!OPENAI_API_KEY) {
       return c.json<ApiResponse>({ 
         success: false, 
@@ -116,7 +146,7 @@ tts.post('/speak-stream', async (c) => {
     }
 
     // OpenAI TTS API呼び出し
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const response = await fetch(`${OPENAI_BASE_URL}/audio/speech`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,

@@ -8,6 +8,8 @@ export type Bindings = {
   LINE_CHANNEL_ID: string;
   LINE_CHANNEL_SECRET: string;
   GEMINI_API_KEY?: string;
+  OPENAI_API_KEY?: string;
+  OPENAI_BASE_URL?: string;
 };
 
 // User
