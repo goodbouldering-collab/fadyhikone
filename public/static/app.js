@@ -1196,7 +1196,7 @@ function renderHealthLogSection() {
                   ${staffAdvices.length > 0 || aiAdvices.length > 0 ? `
                     <div class="space-y-1.5">
                       ${staffAdvices.map(advice => `
-                        <div class="bg-white/70 p-1.5 rounded-lg">
+                        <div class="bg-white/70 p-1.5 rounded-lg cursor-pointer hover:bg-white/90 transition-all duration-200" onclick="showAdviceDetail(${advice.id})">
                           <div class="flex items-center justify-between mb-1">
                             <div class="flex items-center gap-1.5 flex-1 min-w-0">
                               <div class="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -1210,7 +1210,7 @@ function renderHealthLogSection() {
                             <button 
                               type="button"
                               id="speak-btn-${advice.id}"
-                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                               class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 rounded-full transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
                               title="音声で読み上げる">
                               <i class="fas fa-volume-up text-white text-lg"></i>
@@ -1221,7 +1221,7 @@ function renderHealthLogSection() {
                         </div>
                       `).join('')}
                       ${aiAdvices.map(advice => `
-                        <div class="bg-white/70 p-1.5 rounded-lg">
+                        <div class="bg-white/70 p-1.5 rounded-lg cursor-pointer hover:bg-white/90 transition-all duration-200" onclick="showAdviceDetail(${advice.id})">
                           <div class="flex items-center justify-between mb-1">
                             <div class="flex items-center gap-1.5 flex-1 min-w-0">
                               <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -1234,7 +1234,7 @@ function renderHealthLogSection() {
                             <button 
                               type="button"
                               id="speak-btn-${advice.id}"
-                              onclick="speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+                              onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
                               class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 rounded-full transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0"
                               title="音声で読み上げる">
                               <i class="fas fa-volume-up text-white text-lg"></i>

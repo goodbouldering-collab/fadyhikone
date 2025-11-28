@@ -1763,6 +1763,20 @@ function showAdviceDetail(adviceId) {
           </div>
         ` : ''}
         
+        <!-- 読み上げボタン -->
+        <div class="mt-4 flex justify-center">
+          <button 
+            type="button"
+            id="speak-btn-modal-${advice.id}"
+            onclick="event.stopPropagation(); speakAdvice(${advice.id}, '${advice.title.replace(/'/g, "\\'")}', '${advice.content.replace(/'/g, "\\'")}')"
+            class="px-5 py-3 ${isAI ? 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700' : 'bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700'} text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+            data-speaking="false"
+            title="音声で読み上げる">
+            <i class="fas fa-volume-up text-lg"></i>
+            <span class="font-medium">音声で読み上げる</span>
+          </button>
+        </div>
+        
         <div class="mt-6 pt-4 border-t text-xs text-gray-500 flex items-center justify-between">
           <div>
             <i class="fas fa-clock mr-1"></i>
@@ -1883,7 +1897,8 @@ let currentAdviceId = null;
 
 // アドバイスを音声で読み上げ（OpenAI TTS API使用）
 async function speakAdvice(adviceId, title, content) {
-  const button = document.getElementById(`speak-btn-${adviceId}`);
+  const button = document.getElementById(`speak-btn-${adviceId}`) || 
+                 document.getElementById(`speak-btn-modal-${adviceId}`);
   const icon = button?.querySelector('i');
 
   // 既に同じアドバイスを読み上げ中の場合は一時停止/再開
@@ -1921,7 +1936,8 @@ async function speakAdvice(adviceId, title, content) {
     currentAudio.pause();
     currentAudio = null;
     // 前のボタンのアイコンとツールチップをリセット
-    const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`);
+    const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`) || 
+                       document.getElementById(`speak-btn-modal-${currentAdviceId}`);
     if (prevButton) {
       prevButton.setAttribute('data-speaking', 'false');
       prevButton.setAttribute('title', '音声で読み上げる');
