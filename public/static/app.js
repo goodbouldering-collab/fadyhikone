@@ -339,40 +339,6 @@ function renderHero() {
               </div>
             </div>
             
-            <!-- 今日の総カロリー（常に表示） -->
-            <div class="mb-3">
-              <div class="bg-white/70 backdrop-blur-xl rounded-xl p-3 border border-white/40 shadow-lg">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-md">
-                      <i class="fas fa-fire text-white text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs text-gray-500 font-medium">今日の総カロリー</div>
-                      <div class="flex items-baseline gap-1">
-                        <span id="hero-total-calories" class="text-2xl font-bold text-gray-800">${(() => {
-                          const b = mealData?.breakfast?.calories || 0;
-                          const l = mealData?.lunch?.calories || 0;
-                          const d = mealData?.dinner?.calories || 0;
-                          const s = mealData?.snack?.calories || 0;
-                          return b + l + d + s;
-                        })()}</span>
-                        <span class="text-sm text-gray-500">kcal</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="flex flex-wrap justify-end gap-1 text-xs">
-                      <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">朝 <span id="hero-cal-breakfast">${mealData?.breakfast?.calories || 0}</span></span>
-                      <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">昼 <span id="hero-cal-lunch">${mealData?.lunch?.calories || 0}</span></span>
-                      <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">夕 <span id="hero-cal-dinner">${mealData?.dinner?.calories || 0}</span></span>
-                      <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">間 <span id="hero-cal-snack">${mealData?.snack?.calories || 0}</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
             <!-- 健康データグラフ（30日単位） -->
             <div class="mb-2">
               <div class="bg-white/60 backdrop-blur-xl rounded-lg p-3 border border-white/30">
@@ -2010,23 +1976,6 @@ function updateTotalNutrition() {
   // 総カロリー表示要素を更新（自動計算）
   const totalCaloriesDisplay = document.getElementById('total-calories-display');
   if (totalCaloriesDisplay) totalCaloriesDisplay.textContent = total.calories;
-  
-  // ヒーローセクションの総カロリー表示を更新
-  const heroTotalCal = document.getElementById('hero-total-calories');
-  if (heroTotalCal) heroTotalCal.textContent = total.calories;
-  
-  // ヒーローセクションの各食事カロリー表示を更新
-  const heroCalBreakfast = document.getElementById('hero-cal-breakfast');
-  if (heroCalBreakfast) heroCalBreakfast.textContent = mealData.breakfast.calories;
-  
-  const heroCalLunch = document.getElementById('hero-cal-lunch');
-  if (heroCalLunch) heroCalLunch.textContent = mealData.lunch.calories;
-  
-  const heroCalDinner = document.getElementById('hero-cal-dinner');
-  if (heroCalDinner) heroCalDinner.textContent = mealData.dinner.calories;
-  
-  const heroCalSnack = document.getElementById('hero-cal-snack');
-  if (heroCalSnack) heroCalSnack.textContent = mealData.snack.calories;
   
   // ブレークダウン表示更新
   const breakdownEl = document.getElementById('total-calories-breakdown');
