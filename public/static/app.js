@@ -3979,7 +3979,7 @@ async function speakAdvice(adviceId, title, content) {
     }
     const prevIcon = prevButton?.querySelector('i');
     if (prevIcon) {
-      prevIcon.className = prevIcon.className.replace('fa-pause fa-play', 'fa-volume-up');
+      prevIcon.className = prevIcon.className.replace(/fa-pause|fa-play|fa-spinner|fa-spin/g, '').trim() + ' fa-volume-up';
     }
   }
 
@@ -4051,7 +4051,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '音声で読み上げる');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-pause', 'fa-volume-up');
+        icon.className = icon.className.replace(/fa-pause|fa-play|fa-spinner|fa-spin/g, '').trim() + ' fa-volume-up';
       }
     };
 
@@ -4067,7 +4067,7 @@ async function speakAdvice(adviceId, title, content) {
         button.setAttribute('title', '音声で読み上げる');
       }
       if (icon) {
-        icon.className = icon.className.replace('fa-pause fa-play fa-spinner fa-spin', 'fa-volume-up');
+        icon.className = icon.className.replace(/fa-pause|fa-play|fa-spinner|fa-spin/g, '').trim() + ' fa-volume-up';
       }
       showToast('音声再生に失敗しました', 'error');
     };
@@ -4086,7 +4086,7 @@ async function speakAdvice(adviceId, title, content) {
       button.setAttribute('title', '音声で読み上げる');
     }
     if (icon) {
-      icon.className = icon.className.replace('fa-pause fa-play fa-spinner fa-spin', 'fa-volume-up');
+      icon.className = icon.className.replace(/fa-pause|fa-play|fa-spinner|fa-spin/g, '').trim() + ' fa-volume-up';
     }
     showToast(error.message || '音声生成に失敗しました', 'error');
   }
