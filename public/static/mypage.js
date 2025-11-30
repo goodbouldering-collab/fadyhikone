@@ -124,41 +124,47 @@ function renderHeader() {
   `;
 }
 
-// ユーザープロフィール（コンパクト版）
+// ユーザープロフィール（スリガラスデザイン）
 function renderUserProfile() {
   return `
-    <section class="relative min-h-[200px] overflow-hidden">
-      <!-- 背景画像 -->
-      <div class="absolute inset-0">
-        <img src="${sectionImages.exercise}" alt="フィットネス" 
-          class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-r from-pink-600/80 via-purple-600/70 to-pink-600/80"></div>
-      </div>
-      
-      <!-- コンテンツ -->
-      <div class="relative container mx-auto px-6 md:px-8 py-8">
+    <section class="gradient-bg py-6">
+      <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center text-white">
-            <div class="flex items-center justify-center gap-3 mb-2">
-              <h2 class="text-3xl md:text-4xl font-bold drop-shadow-lg">マイページ</h2>
-              ${currentUser?.role === 'admin' ? `
-                <a href="/admin" class="px-3 py-2 text-sm bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
-                  <i class="fas fa-user-shield mr-1.5"></i>
-                  管理ページ
-                </a>
-              ` : ''}
+          <!-- スリガラスプロフィールカード -->
+          <div class="flex flex-col md:flex-row items-center gap-4 p-4 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+            <!-- プロフィール画像 -->
+            <div class="relative flex-shrink-0">
+              <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-xl border-2 border-white/40">
+                <img src="${sectionImages.exercise}" alt="プロフィール" class="w-full h-full object-cover">
+              </div>
+              <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                <i class="fas fa-check text-white text-xs"></i>
+              </div>
             </div>
-            <p class="text-base opacity-90 drop-shadow">あなたの健康データを分析・管理</p>
             
             <!-- ユーザー情報 -->
-            <div class="mt-4 flex items-center justify-center gap-4">
-              <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                <i class="fas fa-user text-3xl text-white"></i>
+            <div class="flex-1 text-center md:text-left text-white">
+              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
+                <h2 class="text-xl md:text-2xl font-bold">${currentUser?.name || 'ゲスト'}さんのマイページ</h2>
+                ${currentUser?.role === 'admin' ? `
+                  <a href="/admin" class="px-2 py-1 text-xs bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
+                    <i class="fas fa-user-shield mr-1"></i>管理者
+                  </a>
+                ` : ''}
               </div>
-              <div class="text-left">
-                <div class="text-lg font-bold">${currentUser?.name || 'ゲスト'}さん</div>
-                <div class="text-sm opacity-80">${currentUser?.email || ''}</div>
-              </div>
+              <p class="text-sm text-white/80 mb-2">${currentUser?.email || ''}</p>
+              <p class="text-xs text-white/70">
+                <i class="fas fa-chart-line mr-1"></i>
+                健康データの記録・分析・AIアドバイスを確認できます
+              </p>
+            </div>
+            
+            <!-- クイックアクション -->
+            <div class="flex gap-2 flex-shrink-0">
+              <a href="/" class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-sm rounded-xl transition backdrop-blur-sm border border-white/30 flex items-center gap-1.5">
+                <i class="fas fa-plus"></i>
+                <span class="hidden sm:inline">記録する</span>
+              </a>
             </div>
           </div>
         </div>

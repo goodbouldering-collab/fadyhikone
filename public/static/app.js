@@ -666,14 +666,17 @@ function renderHealthLogSection() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 健康指標 (体重・BMI・体脂肪率・睡眠時間) -->
               <div id="weight-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-                <!-- 健康指標ヘッダー画像 -->
-                <div class="relative h-20 rounded-lg overflow-hidden mb-2">
-                  <img src="${sectionImages.healthTracking}" alt="健康管理" 
-                    class="w-full h-full object-cover">
-                  <div class="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-red-500/50 flex items-center justify-center">
-                    <span class="text-white font-bold text-base drop-shadow-lg">
-                      <i class="fas fa-heartbeat mr-2"></i>健康指標
-                    </span>
+                <!-- 健康指標ヘッダー（スリガラス） -->
+                <div class="flex items-center gap-3 mb-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
+                  <div class="relative w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                    <img src="${sectionImages.healthTracking}" alt="健康" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                      <i class="fas fa-heartbeat text-red-500"></i>
+                      今日のカラダをチェック
+                    </h3>
+                    <p class="text-xs text-gray-500 truncate">体重・BMI・体脂肪率・睡眠</p>
                   </div>
                 </div>
                 
@@ -745,14 +748,21 @@ function renderHealthLogSection() {
             
             <!-- 食事記録 -->
             <div id="meal-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-              <!-- 食事記録ヘッダー画像 -->
-              <div class="relative h-24 rounded-lg overflow-hidden mb-2">
-                <img src="${sectionImages.meal}" alt="健康的な食事" 
-                  class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-r from-orange-500/70 to-yellow-500/50 flex items-center justify-center">
-                  <span class="text-white font-bold text-lg drop-shadow-lg">
-                    <i class="fas fa-utensils mr-2"></i>食事記録
-                  </span>
+              <!-- 食事記録ヘッダー（スリガラス） -->
+              <div class="flex items-center gap-3 mb-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
+                <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                  <img src="${sectionImages.meal}" alt="食事" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                    <i class="fas fa-utensils text-orange-500"></i>
+                    今日の食事バランスを記録
+                  </h3>
+                  <p class="text-xs text-gray-500 truncate">朝・昼・夕・間食のカロリーとPFC</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="text-lg font-bold text-orange-600" id="total-meal-calories-header">0</div>
+                  <div class="text-xs text-gray-500">kcal</div>
                 </div>
               </div>
               
@@ -1000,23 +1010,26 @@ function renderHealthLogSection() {
           <!-- 運動ログ（フォーム外・独立） -->
           <div id="exercise-section" class="mt-2">
             <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-              <!-- 運動ログヘッダー画像 -->
-              <div class="relative h-24 rounded-lg overflow-hidden mb-2">
-                <img src="${sectionImages.exercise}" alt="運動する女性" 
-                  class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-purple-500/50 flex items-center justify-center">
-                  <span class="text-white font-bold text-lg drop-shadow-lg">
-                    <i class="fas fa-running mr-2"></i>運動ログ
-                  </span>
-                </div>
-              </div>
+              <!-- 運動ログヘッダー（スリガラス） -->
               <button type="button" onclick="toggleExerciseTracker()" 
-                class="w-full flex items-center justify-between text-left group">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
-                  <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
-                  今日の運動を記録
-                </label>
-                <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
+                class="w-full flex items-center gap-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
+                <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                  <img src="${sectionImages.exercise}" alt="運動" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                  <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                    <i class="fas fa-running text-pink-500"></i>
+                    今日のワークアウトを記録
+                  </h3>
+                  <p class="text-xs text-gray-500 truncate">ファディー・ストレッチ・筋トレなど</p>
+                </div>
+                <div class="text-right flex-shrink-0 flex items-center gap-2">
+                  <div>
+                    <div class="text-lg font-bold text-pink-600" id="total-exercise-header">0</div>
+                    <div class="text-xs text-gray-500">分</div>
+                  </div>
+                  <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm group-hover:text-pink-500" id="exercise-tracker-arrow"></i>
+                </div>
               </button>
                 
               <div id="exercise-tracker" class="hidden mt-4">
@@ -1312,18 +1325,24 @@ function renderQuickToolsSection() {
 // 特徴セクション
 function renderFeaturesSection() {
   return `
-    <section id="features" class="bg-gradient-to-b from-white/40 to-gray-50/40 backdrop-blur-sm py-16">
+    <section id="features" class="bg-gradient-to-b from-white/40 to-gray-50/40 backdrop-blur-sm py-12">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <!-- ヘッダー画像 -->
-          <div class="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-8 shadow-lg">
-            <img src="${sectionImages.achievement}" alt="目標達成" 
-              class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-r from-pink-600/80 to-purple-600/60 flex items-center justify-center">
-              <div class="text-center text-white">
-                <h2 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">ファディーの特徴</h2>
-                <p class="text-white/90 text-sm md:text-base drop-shadow">最新のAI技術とプロのトレーナーが、あなたの健康目標達成を強力にサポート</p>
-              </div>
+          <!-- ヘッダー（スリガラス） -->
+          <div class="flex flex-col md:flex-row items-center gap-4 mb-8 p-4 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg hover:bg-white/50 transition-all duration-300">
+            <div class="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-xl">
+              <img src="${sectionImages.achievement}" alt="目標達成" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 text-center md:text-left">
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 flex items-center justify-center md:justify-start gap-2">
+                <i class="fas fa-star text-yellow-500"></i>
+                あなたの健康をトータルサポート
+              </h2>
+              <p class="text-sm text-gray-600">最新AI × プロトレーナー × 24時間アクセス — 科学的根拠に基づいた個別最適化プログラム</p>
+            </div>
+            <div class="hidden md:flex items-center gap-2 text-primary">
+              <span class="text-sm font-medium">詳しく見る</span>
+              <i class="fas fa-arrow-down animate-bounce"></i>
             </div>
           </div>
           

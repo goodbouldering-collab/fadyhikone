@@ -127,27 +127,41 @@ function renderHeader() {
 // 統計情報
 function renderStats() {
   return `
-    <section class="relative min-h-[140px] overflow-hidden">
-      <!-- 背景画像 -->
-      <div class="absolute inset-0">
-        <img src="${adminImages.hero}" alt="管理画面" 
-          class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-700/85 via-indigo-600/80 to-purple-700/85"></div>
-      </div>
-      
-      <!-- コンテンツ -->
-      <div class="relative container mx-auto px-6 md:px-8 py-4">
+    <section class="gradient-bg py-4">
+      <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <!-- タイトル -->
-          <div class="text-center text-white mb-4">
-            <h2 class="text-2xl font-bold drop-shadow-lg flex items-center justify-center gap-2">
-              <i class="fas fa-shield-alt"></i>
-              管理ダッシュボード
-            </h2>
-            <p class="text-sm opacity-80">ユーザー管理・アドバイス・設定</p>
+          <!-- スリガラスヘッダー -->
+          <div class="flex flex-col md:flex-row items-center gap-4 p-4 mb-4 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+            <!-- アイコン画像 -->
+            <div class="relative flex-shrink-0">
+              <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shadow-xl border-2 border-white/40">
+                <img src="${adminImages.hero}" alt="管理" class="w-full h-full object-cover">
+              </div>
+            </div>
+            
+            <!-- タイトル -->
+            <div class="flex-1 text-center md:text-left text-white">
+              <h2 class="text-xl md:text-2xl font-bold flex items-center justify-center md:justify-start gap-2">
+                <i class="fas fa-shield-alt text-yellow-300"></i>
+                ファディー彦根 管理ダッシュボード
+              </h2>
+              <p class="text-sm text-white/80">
+                <i class="fas fa-users mr-1"></i>ユーザー管理
+                <span class="mx-2">•</span>
+                <i class="fas fa-comment-medical mr-1"></i>アドバイス
+                <span class="mx-2">•</span>
+                <i class="fas fa-cog mr-1"></i>システム設定
+              </p>
+            </div>
+            
+            <!-- 日付 -->
+            <div class="text-white/80 text-sm flex-shrink-0">
+              <i class="fas fa-calendar mr-1"></i>
+              ${new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
           </div>
           
-          <!-- コンパクトダイジェスト：4カラムグリッド（常に横1列、マイページと統一） -->
+          <!-- コンパクトダイジェスト：4カラムグリッド -->
           <div class="grid grid-cols-4 gap-1.5">
             <!-- 総顧客数 -->
             <div class="bg-white bg-opacity-20 backdrop-blur-sm p-2 rounded-lg shadow-sm">
