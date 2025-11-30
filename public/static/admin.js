@@ -14,6 +14,13 @@ let announcements = [];
 let blogs = [];
 let settings = [];
 
+// セクション別画像URL（nano-banana-pro生成）
+const adminImages = {
+  hero: 'https://www.genspark.ai/api/files/s/vbBLwsGD',            // 管理画面ヒーロー
+  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // アドバイザー
+  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
+};
+
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAdminAuth();
@@ -120,9 +127,26 @@ function renderHeader() {
 // 統計情報
 function renderStats() {
   return `
-    <section class="gradient-bg text-white py-4">
-      <div class="container mx-auto px-6 md:px-8">
+    <section class="relative min-h-[140px] overflow-hidden">
+      <!-- 背景画像 -->
+      <div class="absolute inset-0">
+        <img src="${adminImages.hero}" alt="管理画面" 
+          class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-700/85 via-indigo-600/80 to-purple-700/85"></div>
+      </div>
+      
+      <!-- コンテンツ -->
+      <div class="relative container mx-auto px-6 md:px-8 py-4">
         <div class="max-w-6xl mx-auto">
+          <!-- タイトル -->
+          <div class="text-center text-white mb-4">
+            <h2 class="text-2xl font-bold drop-shadow-lg flex items-center justify-center gap-2">
+              <i class="fas fa-shield-alt"></i>
+              管理ダッシュボード
+            </h2>
+            <p class="text-sm opacity-80">ユーザー管理・アドバイス・設定</p>
+          </div>
+          
           <!-- コンパクトダイジェスト：4カラムグリッド（常に横1列、マイページと統一） -->
           <div class="grid grid-cols-4 gap-1.5">
             <!-- 総顧客数 -->

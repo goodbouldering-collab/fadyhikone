@@ -8,6 +8,17 @@ let opinions = [];
 let charts = {};
 let announcements = [];
 
+// セクション別画像URL（nano-banana-pro生成）
+const sectionImages = {
+  meal: 'https://www.genspark.ai/api/files/s/Ts8WTuwA',           // 食事記録用
+  exercise: 'https://www.genspark.ai/api/files/s/3twanMSX',       // 運動記録用
+  healthTracking: 'https://www.genspark.ai/api/files/s/06ioSozJ', // 健康管理用
+  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // AIアドバイザー
+  weight: 'https://www.genspark.ai/api/files/s/YI7RK9wC',         // 体重管理用
+  sleep: 'https://www.genspark.ai/api/files/s/hSTh0GPM',          // 睡眠記録用
+  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
+};
+
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthAndLoad();
@@ -116,12 +127,20 @@ function renderHeader() {
 // ユーザープロフィール（コンパクト版）
 function renderUserProfile() {
   return `
-    <section class="gradient-bg text-white py-8">
-      <div class="container mx-auto px-6 md:px-8">
+    <section class="relative min-h-[200px] overflow-hidden">
+      <!-- 背景画像 -->
+      <div class="absolute inset-0">
+        <img src="${sectionImages.exercise}" alt="フィットネス" 
+          class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-pink-600/80 via-purple-600/70 to-pink-600/80"></div>
+      </div>
+      
+      <!-- コンテンツ -->
+      <div class="relative container mx-auto px-6 md:px-8 py-8">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center">
+          <div class="text-center text-white">
             <div class="flex items-center justify-center gap-3 mb-2">
-              <h2 class="text-3xl md:text-4xl font-bold">マイページ</h2>
+              <h2 class="text-3xl md:text-4xl font-bold drop-shadow-lg">マイページ</h2>
               ${currentUser?.role === 'admin' ? `
                 <a href="/admin" class="px-3 py-2 text-sm bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm border border-white/30">
                   <i class="fas fa-user-shield mr-1.5"></i>
@@ -129,7 +148,18 @@ function renderUserProfile() {
                 </a>
               ` : ''}
             </div>
-            <p class="text-base opacity-90">あなたの健康データを分析・管理</p>
+            <p class="text-base opacity-90 drop-shadow">あなたの健康データを分析・管理</p>
+            
+            <!-- ユーザー情報 -->
+            <div class="mt-4 flex items-center justify-center gap-4">
+              <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                <i class="fas fa-user text-3xl text-white"></i>
+              </div>
+              <div class="text-left">
+                <div class="text-lg font-bold">${currentUser?.name || 'ゲスト'}さん</div>
+                <div class="text-sm opacity-80">${currentUser?.email || ''}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

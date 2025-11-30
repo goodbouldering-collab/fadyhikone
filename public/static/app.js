@@ -297,14 +297,23 @@ function renderHeader() {
   `;
 }
 
-// ファディー彦根ジムの画像配列（5枚）
+// ファディー彦根ジムの画像配列（nano-banana-pro生成）
 const gymImages = [
-  'https://www.genspark.ai/api/files/s/MRTRC0j2',
-  'https://www.genspark.ai/api/files/s/o6lHqw9N',
-  'https://www.genspark.ai/api/files/s/RfUOa2Sn',
-  'https://www.genspark.ai/api/files/s/BYroyvBQ',
-  'https://www.genspark.ai/api/files/s/EHeI1X0S'
+  'https://www.genspark.ai/api/files/s/yZ3G7zeO',  // ジム内観1
+  'https://www.genspark.ai/api/files/s/vbBLwsGD',  // ジム内観2
+  'https://www.genspark.ai/api/files/s/nTHxadRe',  // グループフィットネス
 ];
+
+// セクション別画像URL（nano-banana-pro生成）
+const sectionImages = {
+  meal: 'https://www.genspark.ai/api/files/s/Ts8WTuwA',           // 食事記録用
+  exercise: 'https://www.genspark.ai/api/files/s/3twanMSX',       // 運動記録用
+  healthTracking: 'https://www.genspark.ai/api/files/s/06ioSozJ', // 健康管理用
+  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // AIアドバイザー
+  weight: 'https://www.genspark.ai/api/files/s/YI7RK9wC',         // 体重管理用
+  sleep: 'https://www.genspark.ai/api/files/s/hSTh0GPM',          // 睡眠記録用
+  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
+};
 
 let currentImageIndex = 0;
 
@@ -657,10 +666,16 @@ function renderHealthLogSection() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 健康指標 (体重・BMI・体脂肪率・睡眠時間) -->
               <div id="weight-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                  <i class="fas fa-heartbeat text-primary"></i>
-                  健康指標
-                </label>
+                <!-- 健康指標ヘッダー画像 -->
+                <div class="relative h-20 rounded-lg overflow-hidden mb-2">
+                  <img src="${sectionImages.healthTracking}" alt="健康管理" 
+                    class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-red-500/50 flex items-center justify-center">
+                    <span class="text-white font-bold text-base drop-shadow-lg">
+                      <i class="fas fa-heartbeat mr-2"></i>健康指標
+                    </span>
+                  </div>
+                </div>
                 
                 <!-- 体重とBMI -->
                 <div class="flex items-center gap-2 mb-2">
@@ -730,10 +745,16 @@ function renderHealthLogSection() {
             
             <!-- 食事記録 -->
             <div id="meal-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-              <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <i class="fas fa-utensils text-accent"></i>
-                食事記録
-              </label>
+              <!-- 食事記録ヘッダー画像 -->
+              <div class="relative h-24 rounded-lg overflow-hidden mb-2">
+                <img src="${sectionImages.meal}" alt="健康的な食事" 
+                  class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-500/70 to-yellow-500/50 flex items-center justify-center">
+                  <span class="text-white font-bold text-lg drop-shadow-lg">
+                    <i class="fas fa-utensils mr-2"></i>食事記録
+                  </span>
+                </div>
+              </div>
               
               <!-- 3食 -->
               <div class="space-y-2">
@@ -979,11 +1000,21 @@ function renderHealthLogSection() {
           <!-- 運動ログ（フォーム外・独立） -->
           <div id="exercise-section" class="mt-2">
             <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
+              <!-- 運動ログヘッダー画像 -->
+              <div class="relative h-24 rounded-lg overflow-hidden mb-2">
+                <img src="${sectionImages.exercise}" alt="運動する女性" 
+                  class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-pink-500/70 to-purple-500/50 flex items-center justify-center">
+                  <span class="text-white font-bold text-lg drop-shadow-lg">
+                    <i class="fas fa-running mr-2"></i>運動ログ
+                  </span>
+                </div>
+              </div>
               <button type="button" onclick="toggleExerciseTracker()" 
                 class="w-full flex items-center justify-between text-left group">
                 <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
                   <i class="fas fa-running text-primary group-hover:text-pink-500 transition"></i>
-                  運動ログ
+                  今日の運動を記録
                 </label>
                 <i class="fas fa-chevron-down text-gray-400 transform transition-transform text-sm" id="exercise-tracker-arrow"></i>
               </button>
@@ -1284,8 +1315,17 @@ function renderFeaturesSection() {
     <section id="features" class="bg-gradient-to-b from-white/40 to-gray-50/40 backdrop-blur-sm py-16">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <h2 class="text-3xl font-bold text-center mb-4">ファディーの特徴</h2>
-          <p class="text-center text-gray-600 mb-12">最新のAI技術とプロのトレーナーが、あなたの健康目標達成を強力にサポート</p>
+          <!-- ヘッダー画像 -->
+          <div class="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-8 shadow-lg">
+            <img src="${sectionImages.achievement}" alt="目標達成" 
+              class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-r from-pink-600/80 to-purple-600/60 flex items-center justify-center">
+              <div class="text-center text-white">
+                <h2 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">ファディーの特徴</h2>
+                <p class="text-white/90 text-sm md:text-base drop-shadow">最新のAI技術とプロのトレーナーが、あなたの健康目標達成を強力にサポート</p>
+              </div>
+            </div>
+          </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- AI食事解析 -->
