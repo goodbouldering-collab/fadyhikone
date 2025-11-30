@@ -66,6 +66,7 @@ function renderPage() {
     ${renderHeader()}
     ${renderUserProfile()}
     ${renderStatsSection()}
+    ${renderAdviceListSection()}
     ${renderChartsSection()}
     ${renderHealthLogsTable()}
     ${renderOpinionBox()}
@@ -399,6 +400,388 @@ let adviceFilter = {
   source: 'all',   // all, ai, staff
   readStatus: 'all' // all, unread, read
 };
+
+// アドバイス一覧のページネーション
+let adviceListPage = 1;
+const adviceListPerPage = 10;
+
+// アドバイス一覧セクション
+function renderAdviceListSection() {
+  if (advices.length === 0) {
+    return '';
+  }
+
+  // フィルター適用
+  let filteredAdvices = advices.filter(advice => {
+    if (adviceFilter.category !== 'all' && advice.advice_type !== adviceFilter.category) return false;
+    if (adviceFilter.source !== 'all' && advice.advice_source !== adviceFilter.source) return false;
+    if (adviceFilter.readStatus === 'unread' && advice.is_read) return false;
+    if (adviceFilter.readStatus === 'read' && !advice.is_read) return false;
+    return true;
+  });
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredAdvices.length / adviceListPerPage);
+  const startIndex = (adviceListPage - 1) * adviceListPerPage;
+  const paginatedAdvices = filteredAdvices.slice(startIndex, startIndex + adviceListPerPage);
+
+  return \`
+    <section id="advices-section" class="bg-white py-6">
+      <div class="container mx-auto px-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-comments text-primary"></i>
+              アドバイス一覧
+              <span class="text-sm font-normal text-gray-500">(\${filteredAdvices.length}件)</span>
+            </h3>
+          </div>
+
+          <!-- フィルター -->
+          <div class="bg-gray-50 p-3 rounded-lg mb-4">
+            <div class="flex flex-wrap gap-3">
+              <!-- ソース -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-600">種類:</span>
+                <select onchange="updateAdviceFilter('source', this.value)" 
+                  class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="all" \${adviceFilter.source === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="ai" \${adviceFilter.source === 'ai' ? 'selected' : ''}>AI</option>
+                  <option value="staff" \${adviceFilter.source === 'staff' ? 'selected' : ''}>スタッフ</option>
+                </select>
+              </div>
+              <!-- カテゴリ -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-600">カテゴリ:</span>
+                <select onchange="updateAdviceFilter('category', this.value)"
+                  class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="all" \${adviceFilter.category === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="meal" \${adviceFilter.category === 'meal' ? 'selected' : ''}>食事</option>
+                  <option value="exercise" \${adviceFilter.category === 'exercise' ? 'selected' : ''}>運動</option>
+                  <option value="weight" \${adviceFilter.category === 'weight' ? 'selected' : ''}>体重</option>
+                  <option value="sleep" \${adviceFilter.category === 'sleep' ? 'selected' : ''}>睡眠</option>
+                  <option value="mental" \${adviceFilter.category === 'mental' ? 'selected' : ''}>メンタル</option>
+                  <option value="general" \${adviceFilter.category === 'general' ? 'selected' : ''}>総合</option>
+                </select>
+              </div>
+              <!-- 既読状態 -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-600">状態:</span>
+                <select onchange="updateAdviceFilter('readStatus', this.value)"
+                  class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="all" \${adviceFilter.readStatus === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="unread" \${adviceFilter.readStatus === 'unread' ? 'selected' : ''}>未読</option>
+                  <option value="read" \${adviceFilter.readStatus === 'read' ? 'selected' : ''}>既読</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- アドバイス一覧テーブル -->
+          <div class="bg-white rounded-lg border overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-gray-50 border-b">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">日付</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">種類</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">タイトル</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 hidden md:table-cell">内容</th>
+                  <th class="px-3 py-2 text-center text-xs font-medium text-gray-600">操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                \${paginatedAdvices.length > 0 ? paginatedAdvices.map(advice => \`
+                  <tr class="hover:bg-gray-50 transition \${!advice.is_read ? 'bg-blue-50/30' : ''}">
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
+                      \${advice.log_date ? dayjs(advice.log_date).format('M/D') : '-'}
+                    </td>
+                    <td class="px-3 py-2">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs \${advice.advice_source === 'ai' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}">
+                        <i class="fas \${advice.advice_source === 'ai' ? 'fa-robot' : 'fa-user-nurse'}" style="font-size: 8px;"></i>
+                        \${advice.advice_source === 'ai' ? 'AI' : 'スタッフ'}
+                      </span>
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="flex items-center gap-2">
+                        \${!advice.is_read ? '<span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>' : ''}
+                        <span class="text-sm font-medium text-gray-800 truncate max-w-[150px]">\${advice.title}</span>
+                      </div>
+                    </td>
+                    <td class="px-3 py-2 text-xs text-gray-600 hidden md:table-cell">
+                      <div class="truncate max-w-[200px]">\${advice.content.substring(0, 50)}\${advice.content.length > 50 ? '...' : ''}</div>
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="flex items-center justify-center gap-1">
+                        <button onclick="showAdviceDetail(\${advice.id})" 
+                          class="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded transition" title="詳細">
+                          <i class="fas fa-eye text-xs"></i>
+                        </button>
+                        <button onclick="openAdviceEditModal(\${advice.id})" 
+                          class="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="編集">
+                          <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button onclick="confirmDeleteAdvice(\${advice.id})" 
+                          class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition" title="削除">
+                          <i class="fas fa-trash text-xs"></i>
+                        </button>
+                        <button 
+                          type="button"
+                          id="speak-btn-list-\${advice.id}"
+                          onclick="speakAdvice(\${advice.id}, '\${advice.title.replace(/'/g, "\\\\'")}', '\${advice.content.replace(/'/g, "\\\\'")}')"
+                          class="p-1.5 \${advice.advice_source === 'ai' ? 'text-blue-500 hover:bg-blue-50' : 'text-pink-500 hover:bg-pink-50'} hover:text-opacity-80 rounded transition" 
+                          title="読み上げ">
+                          <i class="fas fa-volume-up text-xs"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                \`).join('') : \`
+                  <tr>
+                    <td colspan="5" class="px-3 py-8 text-center text-gray-500">
+                      <i class="fas fa-inbox text-3xl mb-2"></i>
+                      <p class="text-sm">該当するアドバイスがありません</p>
+                    </td>
+                  </tr>
+                \`}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ページネーション -->
+          \${totalPages > 1 ? \`
+            <div class="flex items-center justify-center gap-2 mt-4">
+              <button onclick="changeAdviceListPage(\${adviceListPage - 1})" 
+                class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition \${adviceListPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                \${adviceListPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span class="text-sm text-gray-600">\${adviceListPage} / \${totalPages}</span>
+              <button onclick="changeAdviceListPage(\${adviceListPage + 1})" 
+                class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition \${adviceListPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}"
+                \${adviceListPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          \` : ''}
+        </div>
+      </div>
+    </section>
+  \`;
+}
+
+// フィルター更新
+function updateAdviceFilter(key, value) {
+  adviceFilter[key] = value;
+  adviceListPage = 1; // フィルター変更時はページをリセット
+  refreshAdviceListSection();
+}
+
+// ページ変更
+function changeAdviceListPage(page) {
+  const filteredAdvices = advices.filter(advice => {
+    if (adviceFilter.category !== 'all' && advice.advice_type !== adviceFilter.category) return false;
+    if (adviceFilter.source !== 'all' && advice.advice_source !== adviceFilter.source) return false;
+    if (adviceFilter.readStatus === 'unread' && advice.is_read) return false;
+    if (adviceFilter.readStatus === 'read' && !advice.is_read) return false;
+    return true;
+  });
+  const totalPages = Math.ceil(filteredAdvices.length / adviceListPerPage);
+  
+  if (page < 1 || page > totalPages) return;
+  adviceListPage = page;
+  refreshAdviceListSection();
+}
+
+// アドバイス一覧セクションのみ更新
+function refreshAdviceListSection() {
+  const section = document.getElementById('advices-section');
+  if (section) {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = renderAdviceListSection();
+    section.replaceWith(tempDiv.firstElementChild);
+  }
+}
+
+// アドバイス編集モーダルを開く
+function openAdviceEditModal(adviceId) {
+  const advice = advices.find(a => a.id === adviceId);
+  if (!advice) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.id = 'advice-edit-modal';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+
+  const isAI = advice.advice_source === 'ai';
+  const iconColor = isAI ? 'from-blue-500 to-purple-500' : 'from-pink-500 to-rose-500';
+  const icon = isAI ? 'fa-robot' : 'fa-user-nurse';
+
+  modal.innerHTML = \`
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+      <!-- ヘッダー -->
+      <div class="bg-gradient-to-r \${iconColor} px-6 py-4 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <i class="fas \${icon} text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold">アドバイスを編集</h3>
+              <div class="text-sm opacity-90">\${isAI ? 'AIアドバイス' : 'スタッフアドバイス'}</div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('advice-edit-modal').remove()" 
+            class="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- フォーム -->
+      <form onsubmit="saveAdviceEdit(event, \${advice.id})" class="p-6">
+        <div class="space-y-4">
+          <!-- 日付（読み取り専用） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">日付</label>
+            <div class="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">
+              \${advice.log_date ? dayjs(advice.log_date).format('YYYY年M月D日') : '未設定'}
+            </div>
+          </div>
+
+          <!-- タイトル -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
+            <input type="text" id="edit-advice-title" value="\${advice.title.replace(/"/g, '&quot;')}"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="タイトルを入力">
+          </div>
+
+          <!-- 内容 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+            <textarea id="edit-advice-content" rows="8"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              placeholder="アドバイス内容を入力">\${advice.content}</textarea>
+          </div>
+        </div>
+
+        <!-- ボタン -->
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('advice-edit-modal').remove()"
+            class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition">
+            キャンセル
+          </button>
+          <button type="submit"
+            class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition flex items-center gap-2">
+            <i class="fas fa-save"></i>
+            保存する
+          </button>
+        </div>
+      </form>
+    </div>
+  \`;
+
+  document.body.appendChild(modal);
+}
+
+// アドバイス編集を保存
+async function saveAdviceEdit(event, adviceId) {
+  event.preventDefault();
+
+  const title = document.getElementById('edit-advice-title').value.trim();
+  const content = document.getElementById('edit-advice-content').value.trim();
+
+  if (!title || !content) {
+    showToast('タイトルと内容を入力してください', 'warning');
+    return;
+  }
+
+  try {
+    const response = await apiCall(\`/api/advices/\${adviceId}\`, {
+      method: 'PUT',
+      body: JSON.stringify({ title, content })
+    });
+
+    if (response.success) {
+      // ローカルデータを更新
+      const index = advices.findIndex(a => a.id === adviceId);
+      if (index !== -1) {
+        advices[index].title = title;
+        advices[index].content = content;
+      }
+
+      document.getElementById('advice-edit-modal').remove();
+      showToast('アドバイスを更新しました', 'success');
+      refreshAdviceListSection();
+    } else {
+      showToast(response.error || '更新に失敗しました', 'error');
+    }
+  } catch (error) {
+    showToast('エラーが発生しました', 'error');
+  }
+}
+
+// アドバイス削除確認
+function confirmDeleteAdvice(adviceId) {
+  const advice = advices.find(a => a.id === adviceId);
+  if (!advice) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+  modal.id = 'advice-delete-modal';
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+
+  modal.innerHTML = \`
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+      <div class="text-center mb-4">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-trash text-red-500 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">アドバイスを削除</h3>
+        <p class="text-sm text-gray-600">「\${advice.title}」を削除しますか？</p>
+        <p class="text-xs text-gray-500 mt-1">この操作は取り消せません。</p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="document.getElementById('advice-delete-modal').remove()"
+          class="flex-1 px-4 py-2 text-sm text-gray-600 border rounded-lg hover:bg-gray-50 transition">
+          キャンセル
+        </button>
+        <button onclick="deleteAdvice(\${adviceId})"
+          class="flex-1 px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+          削除する
+        </button>
+      </div>
+    </div>
+  \`;
+
+  document.body.appendChild(modal);
+}
+
+// アドバイス削除実行
+async function deleteAdvice(adviceId) {
+  try {
+    const response = await apiCall(\`/api/advices/\${adviceId}\`, {
+      method: 'DELETE'
+    });
+
+    if (response.success) {
+      // ローカルデータから削除
+      advices = advices.filter(a => a.id !== adviceId);
+
+      document.getElementById('advice-delete-modal').remove();
+      showToast('アドバイスを削除しました', 'success');
+      refreshAdviceListSection();
+    } else {
+      showToast(response.error || '削除に失敗しました', 'error');
+    }
+  } catch (error) {
+    showToast('エラーが発生しました', 'error');
+  }
+}
 
 // アドバイス一覧
 function renderAdvicesList() {
@@ -1898,7 +2281,8 @@ let currentAdviceId = null;
 // アドバイスを音声で読み上げ（OpenAI TTS API使用）
 async function speakAdvice(adviceId, title, content) {
   const button = document.getElementById(`speak-btn-${adviceId}`) || 
-                 document.getElementById(`speak-btn-modal-${adviceId}`);
+                 document.getElementById(`speak-btn-modal-${adviceId}`) ||
+                 document.getElementById(`speak-btn-list-${adviceId}`);
   const icon = button?.querySelector('i');
 
   // 既に同じアドバイスを読み上げ中の場合は一時停止/再開
@@ -1937,7 +2321,8 @@ async function speakAdvice(adviceId, title, content) {
     currentAudio = null;
     // 前のボタンのアイコンとツールチップをリセット
     const prevButton = document.getElementById(`speak-btn-${currentAdviceId}`) || 
-                       document.getElementById(`speak-btn-modal-${currentAdviceId}`);
+                       document.getElementById(`speak-btn-modal-${currentAdviceId}`) ||
+                       document.getElementById(`speak-btn-list-${currentAdviceId}`);
     if (prevButton) {
       prevButton.setAttribute('data-speaking', 'false');
       prevButton.setAttribute('title', '音声で読み上げる');

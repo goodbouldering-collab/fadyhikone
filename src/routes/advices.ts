@@ -120,4 +120,86 @@ advices.put('/mark-all-read', async (c) => {
   }
 });
 
+// アドバイスを編集する
+advices.put('/:id', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const adviceId = c.req.param('id');
+    const body = await c.req.json<{ title?: string; content?: string }>();
+
+    // アドバイスの所有権確認
+    const advice = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE id = ? AND user_id = ?'
+    ).bind(adviceId, userId).first<Advice>();
+
+    if (!advice) {
+      return c.json<ApiResponse>({ success: false, error: 'アドバイスが見つかりません' }, 404);
+    }
+
+    // 更新するフィールドを構築
+    const updates: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (body.title !== undefined) {
+      updates.push('title = ?');
+      values.push(body.title);
+    }
+    if (body.content !== undefined) {
+      updates.push('content = ?');
+      values.push(body.content);
+    }
+
+    if (updates.length === 0) {
+      return c.json<ApiResponse>({ success: false, error: '更新するデータがありません' }, 400);
+    }
+
+    values.push(adviceId);
+
+    await c.env.DB.prepare(
+      `UPDATE advices SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...values).run();
+
+    // 更新後のデータを取得
+    const updatedAdvice = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE id = ?'
+    ).bind(adviceId).first<Advice>();
+
+    return c.json<ApiResponse<Advice>>({
+      success: true,
+      data: updatedAdvice!,
+      message: 'アドバイスを更新しました',
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの更新に失敗しました' }, 500);
+  }
+});
+
+// アドバイスを削除する
+advices.delete('/:id', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const adviceId = c.req.param('id');
+
+    // アドバイスの所有権確認
+    const advice = await c.env.DB.prepare(
+      'SELECT * FROM advices WHERE id = ? AND user_id = ?'
+    ).bind(adviceId, userId).first<Advice>();
+
+    if (!advice) {
+      return c.json<ApiResponse>({ success: false, error: 'アドバイスが見つかりません' }, 404);
+    }
+
+    await c.env.DB.prepare(
+      'DELETE FROM advices WHERE id = ?'
+    ).bind(adviceId).run();
+
+    return c.json<ApiResponse>({
+      success: true,
+      message: 'アドバイスを削除しました',
+    });
+  } catch (error) {
+    return c.json<ApiResponse>({ success: false, error: 'アドバイスの削除に失敗しました' }, 500);
+  }
+});
+
 export default advices;
