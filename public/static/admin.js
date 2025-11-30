@@ -14,12 +14,6 @@ let announcements = [];
 let blogs = [];
 let settings = [];
 
-// セクション別画像URL（nano-banana-pro生成）
-const adminImages = {
-  hero: 'https://www.genspark.ai/api/files/s/vbBLwsGD',            // 管理画面ヒーロー
-  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // アドバイザー
-  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
-};
 
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -132,10 +126,10 @@ function renderStats() {
         <div class="max-w-6xl mx-auto">
           <!-- スリガラスヘッダー -->
           <div class="flex flex-col md:flex-row items-center gap-4 p-4 mb-4 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
-            <!-- アイコン画像 -->
+            <!-- アイコン -->
             <div class="relative flex-shrink-0">
-              <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shadow-xl border-2 border-white/40">
-                <img src="${adminImages.hero}" alt="管理" class="w-full h-full object-cover">
+              <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center shadow-xl border-2 border-white/40">
+                <i class="fas fa-cog text-3xl text-white"></i>
               </div>
             </div>
             

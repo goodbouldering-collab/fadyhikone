@@ -8,16 +8,6 @@ let opinions = [];
 let charts = {};
 let announcements = [];
 
-// セクション別画像URL（nano-banana-pro生成）
-const sectionImages = {
-  meal: 'https://www.genspark.ai/api/files/s/Ts8WTuwA',           // 食事記録用
-  exercise: 'https://www.genspark.ai/api/files/s/3twanMSX',       // 運動記録用
-  healthTracking: 'https://www.genspark.ai/api/files/s/06ioSozJ', // 健康管理用
-  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // AIアドバイザー
-  weight: 'https://www.genspark.ai/api/files/s/YI7RK9wC',         // 体重管理用
-  sleep: 'https://www.genspark.ai/api/files/s/hSTh0GPM',          // 睡眠記録用
-  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
-};
 
 // ページ初期化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -132,10 +122,10 @@ function renderUserProfile() {
         <div class="max-w-6xl mx-auto">
           <!-- スリガラスプロフィールカード -->
           <div class="flex flex-col md:flex-row items-center gap-4 p-4 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
-            <!-- プロフィール画像 -->
+            <!-- プロフィールアイコン -->
             <div class="relative flex-shrink-0">
-              <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-xl border-2 border-white/40">
-                <img src="${sectionImages.exercise}" alt="プロフィール" class="w-full h-full object-cover">
+              <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-xl border-2 border-white/40">
+                <i class="fas fa-user text-4xl text-white"></i>
               </div>
               <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
                 <i class="fas fa-check text-white text-xs"></i>

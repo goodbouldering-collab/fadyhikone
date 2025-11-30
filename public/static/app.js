@@ -28,9 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAnnouncements();
   renderPage();
   
-  // ヒーロー画像スライドショー開始
-  startHeroSlideshow();
-  
   // 認証されている場合、アドバイスとログをロード
   if (currentUser) {
     selectedDate = dayjs().format('YYYY-MM-DD'); // 初期値は今日
@@ -297,39 +294,13 @@ function renderHeader() {
   `;
 }
 
-// ファディー彦根ジムの画像配列（nano-banana-pro生成）
-const gymImages = [
-  'https://www.genspark.ai/api/files/s/yZ3G7zeO',  // ジム内観1
-  'https://www.genspark.ai/api/files/s/vbBLwsGD',  // ジム内観2
-  'https://www.genspark.ai/api/files/s/nTHxadRe',  // グループフィットネス
-];
-
-// セクション別画像URL（nano-banana-pro生成）
-const sectionImages = {
-  meal: 'https://www.genspark.ai/api/files/s/Ts8WTuwA',           // 食事記録用
-  exercise: 'https://www.genspark.ai/api/files/s/3twanMSX',       // 運動記録用
-  healthTracking: 'https://www.genspark.ai/api/files/s/06ioSozJ', // 健康管理用
-  advisor: 'https://www.genspark.ai/api/files/s/GQCW2Qrw',        // AIアドバイザー
-  weight: 'https://www.genspark.ai/api/files/s/YI7RK9wC',         // 体重管理用
-  sleep: 'https://www.genspark.ai/api/files/s/hSTh0GPM',          // 睡眠記録用
-  achievement: 'https://www.genspark.ai/api/files/s/fDyrGGY5',    // 達成・成功用
-};
-
-let currentImageIndex = 0;
-
-// Hero セクション - ファディージム画像スライドショー
+// Hero セクション - グラデーション背景
 function renderHero() {
   return `
     <section class="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
-      <!-- 背景画像スライドショー（3枚） -->
-      <div class="absolute inset-0" id="hero-slideshow">
-        ${gymImages.map((img, index) => `
-          <img src="${img}" 
-               alt="フィットネス背景 ${index + 1}" 
-               class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
-               id="hero-image-${index}">
-        `).join('')}
-        <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60"></div>
+      <!-- グラデーション背景 -->
+      <div class="absolute inset-0 bg-gradient-to-br from-pink-600 via-purple-600 to-indigo-700">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
       </div>
       
       <div class="container mx-auto px-6 md:px-8 relative z-10">
@@ -666,17 +637,14 @@ function renderHealthLogSection() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <!-- 健康指標 (体重・BMI・体脂肪率・睡眠時間) -->
               <div id="weight-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-                <!-- 健康指標ヘッダー（スリガラス） -->
-                <div class="flex items-center gap-3 mb-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
-                  <div class="relative w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                    <img src="${sectionImages.healthTracking}" alt="健康" class="w-full h-full object-cover">
+                <!-- 健康指標ヘッダー（アイコンベース） -->
+                <div class="flex items-center gap-2 mb-3 p-2 bg-gradient-to-r from-red-50/80 to-pink-50/80 backdrop-blur-md rounded-xl border border-red-100/50">
+                  <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center shadow-md">
+                    <i class="fas fa-heartbeat text-white text-sm"></i>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                      <i class="fas fa-heartbeat text-red-500"></i>
-                      今日のカラダをチェック
-                    </h3>
-                    <p class="text-xs text-gray-500 truncate">体重・BMI・体脂肪率・睡眠</p>
+                    <h3 class="text-sm font-bold text-gray-800">今日のカラダをチェック</h3>
+                    <p class="text-xs text-gray-500">体重・BMI・体脂肪率・睡眠</p>
                   </div>
                 </div>
                 
@@ -748,17 +716,14 @@ function renderHealthLogSection() {
             
             <!-- 食事記録 -->
             <div id="meal-section" class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-              <!-- 食事記録ヘッダー（スリガラス） -->
-              <div class="flex items-center gap-3 mb-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
-                <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                  <img src="${sectionImages.meal}" alt="食事" class="w-full h-full object-cover">
+              <!-- 食事記録ヘッダー（アイコンベース） -->
+              <div class="flex items-center gap-2 mb-3 p-2 bg-gradient-to-r from-orange-50/80 to-yellow-50/80 backdrop-blur-md rounded-xl border border-orange-100/50">
+                <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center shadow-md">
+                  <i class="fas fa-utensils text-white text-sm"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                    <i class="fas fa-utensils text-orange-500"></i>
-                    今日の食事バランスを記録
-                  </h3>
-                  <p class="text-xs text-gray-500 truncate">朝・昼・夕・間食のカロリーとPFC</p>
+                  <h3 class="text-sm font-bold text-gray-800">今日の食事バランスを記録</h3>
+                  <p class="text-xs text-gray-500">朝・昼・夕・間食のカロリーとPFC</p>
                 </div>
                 <div class="text-right flex-shrink-0">
                   <div class="text-lg font-bold text-orange-600" id="total-meal-calories-header">0</div>
@@ -1010,18 +975,15 @@ function renderHealthLogSection() {
           <!-- 運動ログ（フォーム外・独立） -->
           <div id="exercise-section" class="mt-2">
             <div class="bg-white/40 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-white/50 hover:bg-white/50 hover:shadow-md transition-all duration-200">
-              <!-- 運動ログヘッダー（スリガラス） -->
+              <!-- 運動ログヘッダー（アイコンベース） -->
               <button type="button" onclick="toggleExerciseTracker()" 
-                class="w-full flex items-center gap-3 p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 hover:bg-white/40 transition-all duration-300 group">
-                <div class="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                  <img src="${sectionImages.exercise}" alt="運動" class="w-full h-full object-cover">
+                class="w-full flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50/80 to-purple-50/80 backdrop-blur-md rounded-xl border border-pink-100/50 hover:from-pink-100/80 hover:to-purple-100/80 transition-all duration-300 group">
+                <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                  <i class="fas fa-running text-white text-sm"></i>
                 </div>
                 <div class="flex-1 min-w-0 text-left">
-                  <h3 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                    <i class="fas fa-running text-pink-500"></i>
-                    今日のワークアウトを記録
-                  </h3>
-                  <p class="text-xs text-gray-500 truncate">ファディー・ストレッチ・筋トレなど</p>
+                  <h3 class="text-sm font-bold text-gray-800">今日のワークアウトを記録</h3>
+                  <p class="text-xs text-gray-500">ファディー・ストレッチ・筋トレなど</p>
                 </div>
                 <div class="text-right flex-shrink-0 flex items-center gap-2">
                   <div>
@@ -1328,10 +1290,10 @@ function renderFeaturesSection() {
     <section id="features" class="bg-gradient-to-b from-white/40 to-gray-50/40 backdrop-blur-sm py-12">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
-          <!-- ヘッダー（スリガラス） -->
+          <!-- ヘッダー（アイコンベース・スリガラス） -->
           <div class="flex flex-col md:flex-row items-center gap-4 mb-8 p-4 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg hover:bg-white/50 transition-all duration-300">
-            <div class="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-xl">
-              <img src="${sectionImages.achievement}" alt="目標達成" class="w-full h-full object-cover">
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-xl">
+              <i class="fas fa-trophy text-3xl md:text-4xl text-white"></i>
             </div>
             <div class="flex-1 text-center md:text-left">
               <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 flex items-center justify-center md:justify-start gap-2">
@@ -3687,30 +3649,6 @@ function scrollToSection(sectionId) {
 
 // お知らせ詳細を表示
 // お知らせモーダル関数は上部で定義済み
-
-// ヒーロー画像スライドショー
-function startHeroSlideshow() {
-  if (gymImages.length <= 1) return; // 画像が1枚以下ならスキップ
-  
-  setInterval(() => {
-    // 現在の画像をフェードアウト
-    const currentImg = document.getElementById(`hero-image-${currentImageIndex}`);
-    if (currentImg) {
-      currentImg.classList.remove('opacity-100');
-      currentImg.classList.add('opacity-0');
-    }
-    
-    // 次の画像インデックスを計算
-    currentImageIndex = (currentImageIndex + 1) % gymImages.length;
-    
-    // 次の画像をフェードイン
-    const nextImg = document.getElementById(`hero-image-${currentImageIndex}`);
-    if (nextImg) {
-      nextImg.classList.remove('opacity-0');
-      nextImg.classList.add('opacity-100');
-    }
-  }, 5000); // 5秒ごとに切り替え
-}
 
 // =============================================================================
 // 運動ログ並べ替え機能
