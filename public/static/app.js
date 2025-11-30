@@ -74,7 +74,7 @@ async function loadAnnouncements() {
   try {
     const response = await axios.get('/api/announcements');
     if (response.data.success) {
-      announcements = response.data.data;
+      announcements = response.data.data.slice(0, 2); // 最新2件のみ表示用
     }
   } catch (error) {
     console.error('お知らせの読み込みに失敗:', error);
@@ -2544,18 +2544,6 @@ function toggleMobileMenu() {
   showToast('モバイルメニューは今後実装予定です', 'info');
 }
 
-// お知らせ取得
-async function loadAnnouncements() {
-  try {
-    const response = await apiCall('/api/announcements');
-    if (response.success) {
-      announcements = response.data.slice(0, 2); // 最新2件のみ
-    }
-  } catch (error) {
-    console.error('お知らせの取得に失敗:', error);
-  }
-}
-
 // お知らせセクション（小さく表示）
 function renderAnnouncementsSection() {
   if (announcements.length === 0) return '';
@@ -3564,118 +3552,6 @@ function restoreExerciseActivities(activities) {
   });
 }
 
-// =============================================================================
-// 便利ツール関数
-// =============================================================================
-
-// クイック運動記録
-function quickExercise(exerciseType, minutes) {
-  const exerciseInput = document.getElementById('exercise-minutes');
-  if (exerciseInput) {
-    exerciseInput.value = minutes;
-    showToast(`${exerciseType} ${minutes}分を記録しました`, 'success');
-  }
-}
-
-// カロリー計算機
-function calculateCalories() {
-  const minutes = parseFloat(document.getElementById('calc-minutes')?.value || 0);
-  const intensity = parseFloat(document.getElementById('calc-intensity')?.value || 5);
-  const weight = currentUser?.weight || 60; // ユーザーの体重（デフォルト60kg）
-  
-  if (minutes <= 0) {
-    showToast('運動時間を入力してください', 'warning');
-    return;
-  }
-  
-  // MET計算式: カロリー = MET × 体重(kg) × 時間(h) × 1.05
-  const calories = Math.round(intensity * weight * (minutes / 60) * 1.05);
-  
-  const resultDiv = document.getElementById('calorie-result');
-  if (resultDiv) {
-    resultDiv.textContent = `約 ${calories} kcal`;
-  }
-  
-  showToast(`消費カロリー: 約${calories}kcal`, 'success');
-}
-
-// BMI計算
-function calculateBMI() {
-  const height = parseFloat(document.getElementById('bmi-height')?.value || 0);
-  const weight = parseFloat(document.getElementById('bmi-weight')?.value || 0);
-  
-  if (height <= 0 || weight <= 0) {
-    showToast('身長と体重を入力してください', 'warning');
-    return;
-  }
-  
-  const heightM = height / 100; // cmをmに変換
-  const bmi = (weight / (heightM * heightM)).toFixed(1);
-  
-  let category = '';
-  let color = '';
-  
-  if (bmi < 18.5) {
-    category = '低体重';
-    color = 'text-blue-600';
-  } else if (bmi < 25) {
-    category = '普通体重';
-    color = 'text-green-600';
-  } else if (bmi < 30) {
-    category = '肥満(1度)';
-    color = 'text-orange-600';
-  } else {
-    category = '肥満(2度以上)';
-    color = 'text-red-600';
-  }
-  
-  const resultDiv = document.getElementById('bmi-result');
-  if (resultDiv) {
-    resultDiv.innerHTML = `BMI: <span class="${color}">${bmi}</span><br><span class="text-xs ${color}">${category}</span>`;
-  }
-}
-
-// PFC目標計算
-function calculatePFCGoal() {
-  const targetCalories = parseFloat(document.getElementById('target-calories')?.value || 2000);
-  const goalType = document.getElementById('pfc-goal-type')?.value || 'maintain';
-  
-  let ratios = { protein: 0.30, fat: 0.25, carbs: 0.45 }; // デフォルト: 維持
-  
-  if (goalType === 'lose') {
-    ratios = { protein: 0.35, fat: 0.20, carbs: 0.45 };
-  } else if (goalType === 'gain') {
-    ratios = { protein: 0.30, fat: 0.30, carbs: 0.40 };
-  }
-  
-  // カロリーをグラムに変換 (P: 4kcal/g, F: 9kcal/g, C: 4kcal/g)
-  const protein = Math.round((targetCalories * ratios.protein) / 4);
-  const fat = Math.round((targetCalories * ratios.fat) / 9);
-  const carbs = Math.round((targetCalories * ratios.carbs) / 4);
-  
-  const resultDiv = document.getElementById('pfc-result');
-  if (resultDiv) {
-    resultDiv.innerHTML = `
-      <div class="mt-2 space-y-1">
-        <div class="flex justify-between">
-          <span>タンパク質:</span>
-          <span class="font-bold text-blue-600">${protein}g</span>
-        </div>
-        <div class="flex justify-between">
-          <span>脂質:</span>
-          <span class="font-bold text-yellow-600">${fat}g</span>
-        </div>
-        <div class="flex justify-between">
-          <span>炭水化物:</span>
-          <span class="font-bold text-orange-600">${carbs}g</span>
-        </div>
-      </div>
-    `;
-  }
-  
-  showToast('PFC目標を計算しました', 'success');
-}
-
 // 水分補給追加
 let waterIntakeToday = 0;
 
@@ -3704,12 +3580,6 @@ function updateWaterDisplay() {
     const percentage = Math.min((waterIntakeToday / targetWater) * 100, 100);
     waterProgressEl.style.width = `${percentage}%`;
   }
-}
-
-// 目標設定を開く
-function openGoalSettings() {
-  showToast('目標設定機能は開発中です', 'info');
-  // TODO: 目標設定モーダルを実装
 }
 
 // セクションへスクロール

@@ -37,13 +37,14 @@ async function checkAdminAuth() {
     } else {
       // 管理者権限がない場合もログインフォームを表示
       showToast('管理者権限が必要です', 'error');
-      clearToken();
+      removeToken();
       renderLoginPage();
     }
   } catch (error) {
     // 認証エラーの場合もログインフォームを表示
+    console.error('Admin auth error:', error);
     showToast('認証エラーが発生しました', 'error');
-    clearToken();
+    removeToken();
     renderLoginPage();
   }
 }
@@ -1458,153 +1459,6 @@ function renderAnnouncementsTab() {
       </div>
     </section>
   `;
-}
-
-// お知らせ追加モーダル
-function showAddAnnouncementModal() {
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  modal.innerHTML = `
-    <div class="modal-content p-5 max-w-2xl">
-      <h3 class="text-lg font-bold mb-3">新規お知らせ</h3>
-      <form id="add-announcement-form" class="space-y-3">
-        <div>
-          <label class="block text-sm font-medium mb-1">タイトル</label>
-          <input type="text" name="title" required class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">内容</label>
-          <textarea name="content" rows="4" required class="w-full px-3 py-2 border rounded-lg"></textarea>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">画像URL（任意）</label>
-          <input type="url" name="image_url" class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <div class="flex gap-2 justify-end">
-          <button type="button" onclick="this.closest('.modal-backdrop').remove()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            キャンセル
-          </button>
-          <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90">
-            作成
-          </button>
-        </div>
-      </form>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  document.getElementById('add-announcement-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      title: formData.get('title'),
-      content: formData.get('content'),
-      image_url: formData.get('image_url') || null,
-    };
-    
-    try {
-      const response = await apiCall('/api/announcements', {
-        method: 'POST',
-        data
-      });
-      
-      if (response.success) {
-        showToast('お知らせを作成しました', 'success');
-        modal.remove();
-        await loadAdminData();
-        renderPage();
-        showTab('announcements');
-      }
-    } catch (error) {
-      showToast('作成に失敗しました', 'error');
-    }
-  });
-}
-
-// お知らせ編集モーダル
-function showEditAnnouncementModal(id) {
-  const announcement = announcements.find(a => a.id === id);
-  if (!announcement) return;
-  
-  const modal = document.createElement('div');
-  modal.className = 'modal-backdrop';
-  modal.innerHTML = `
-    <div class="modal-content p-5 max-w-2xl">
-      <h3 class="text-lg font-bold mb-3">お知らせ編集</h3>
-      <form id="edit-announcement-form" class="space-y-3">
-        <div>
-          <label class="block text-sm font-medium mb-1">タイトル</label>
-          <input type="text" name="title" value="${announcement.title}" required class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">内容</label>
-          <textarea name="content" rows="4" required class="w-full px-3 py-2 border rounded-lg">${announcement.content}</textarea>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">画像URL（任意）</label>
-          <input type="url" name="image_url" value="${announcement.image_url || ''}" class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <div class="flex gap-2 justify-end">
-          <button type="button" onclick="this.closest('.modal-backdrop').remove()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            キャンセル
-          </button>
-          <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90">
-            更新
-          </button>
-        </div>
-      </form>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  document.getElementById('edit-announcement-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      title: formData.get('title'),
-      content: formData.get('content'),
-      image_url: formData.get('image_url') || null,
-    };
-    
-    try {
-      const response = await apiCall(`/api/announcements/${id}`, {
-        method: 'PUT',
-        data
-      });
-      
-      if (response.success) {
-        showToast('お知らせを更新しました', 'success');
-        modal.remove();
-        await loadAdminData();
-        renderPage();
-        showTab('announcements');
-      }
-    } catch (error) {
-      showToast('更新に失敗しました', 'error');
-    }
-  });
-}
-
-// お知らせ削除
-async function deleteAnnouncement(id) {
-  if (!confirm('このお知らせを削除してもよろしいですか？')) return;
-  
-  try {
-    const response = await apiCall(`/api/announcements/${id}`, {
-      method: 'DELETE'
-    });
-    
-    if (response.success) {
-      showToast('お知らせを削除しました', 'success');
-      await loadAdminData();
-      renderPage();
-      showTab('announcements');
-    }
-  } catch (error) {
-    showToast('削除に失敗しました', 'error');
-  }
 }
 
 // 管理者ログインページ
