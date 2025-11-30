@@ -396,9 +396,9 @@ function renderTodayAdvices() {
 
 // アドバイスフィルター状態
 let adviceFilter = {
-  category: 'all', // all, meal, exercise, mental, sleep, weight
-  source: 'all',   // all, ai, staff
-  readStatus: 'all' // all, unread, read
+  category: 'all',
+  source: 'all',
+  readStatus: 'all'
 };
 
 // アドバイス一覧のページネーション
@@ -425,7 +425,95 @@ function renderAdviceListSection() {
   const startIndex = (adviceListPage - 1) * adviceListPerPage;
   const paginatedAdvices = filteredAdvices.slice(startIndex, startIndex + adviceListPerPage);
 
-  return \`
+  let tableRows = '';
+  if (paginatedAdvices.length > 0) {
+    tableRows = paginatedAdvices.map(advice => {
+      const dateStr = advice.log_date ? dayjs(advice.log_date).format('M/D') : '-';
+      const sourceClass = advice.advice_source === 'ai' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700';
+      const sourceIcon = advice.advice_source === 'ai' ? 'fa-robot' : 'fa-user-nurse';
+      const sourceLabel = advice.advice_source === 'ai' ? 'AI' : 'スタッフ';
+      const unreadDot = !advice.is_read ? '<span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>' : '';
+      const rowClass = !advice.is_read ? 'bg-blue-50/30' : '';
+      const contentPreview = advice.content.substring(0, 50) + (advice.content.length > 50 ? '...' : '');
+      const speakBtnClass = advice.advice_source === 'ai' ? 'text-blue-500 hover:bg-blue-50' : 'text-pink-500 hover:bg-pink-50';
+      const titleEscaped = advice.title.replace(/'/g, "\\'");
+      const contentEscaped = advice.content.replace(/'/g, "\\'");
+      
+      return `
+        <tr class="hover:bg-gray-50 transition ${rowClass}">
+          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">${dateStr}</td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${sourceClass}">
+              <i class="fas ${sourceIcon}" style="font-size: 8px;"></i>
+              ${sourceLabel}
+            </span>
+          </td>
+          <td class="px-3 py-2">
+            <div class="flex items-center gap-2">
+              ${unreadDot}
+              <span class="text-sm font-medium text-gray-800 truncate max-w-[150px]">${advice.title}</span>
+            </div>
+          </td>
+          <td class="px-3 py-2 text-xs text-gray-600 hidden md:table-cell">
+            <div class="truncate max-w-[200px]">${contentPreview}</div>
+          </td>
+          <td class="px-3 py-2">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="showAdviceDetail(${advice.id})" 
+                class="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded transition" title="詳細">
+                <i class="fas fa-eye text-xs"></i>
+              </button>
+              <button onclick="openAdviceEditModal(${advice.id})" 
+                class="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="編集">
+                <i class="fas fa-edit text-xs"></i>
+              </button>
+              <button onclick="confirmDeleteAdvice(${advice.id})" 
+                class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition" title="削除">
+                <i class="fas fa-trash text-xs"></i>
+              </button>
+              <button type="button" id="speak-btn-list-${advice.id}"
+                onclick="speakAdvice(${advice.id}, '${titleEscaped}', '${contentEscaped}')"
+                class="p-1.5 ${speakBtnClass} hover:text-opacity-80 rounded transition" title="読み上げ">
+                <i class="fas fa-volume-up text-xs"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } else {
+    tableRows = `
+      <tr>
+        <td colspan="5" class="px-3 py-8 text-center text-gray-500">
+          <i class="fas fa-inbox text-3xl mb-2"></i>
+          <p class="text-sm">該当するアドバイスがありません</p>
+        </td>
+      </tr>
+    `;
+  }
+
+  let pagination = '';
+  if (totalPages > 1) {
+    const prevDisabled = adviceListPage === 1 ? 'opacity-50 cursor-not-allowed' : '';
+    const nextDisabled = adviceListPage === totalPages ? 'opacity-50 cursor-not-allowed' : '';
+    pagination = `
+      <div class="flex items-center justify-center gap-2 mt-4">
+        <button onclick="changeAdviceListPage(${adviceListPage - 1})" 
+          class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition ${prevDisabled}"
+          ${adviceListPage === 1 ? 'disabled' : ''}>
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="text-sm text-gray-600">${adviceListPage} / ${totalPages}</span>
+        <button onclick="changeAdviceListPage(${adviceListPage + 1})" 
+          class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition ${nextDisabled}"
+          ${adviceListPage === totalPages ? 'disabled' : ''}>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    `;
+  }
+
+  return `
     <section id="advices-section" class="bg-white py-6">
       <div class="container mx-auto px-6 md:px-8">
         <div class="max-w-6xl mx-auto">
@@ -433,45 +521,42 @@ function renderAdviceListSection() {
             <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
               <i class="fas fa-comments text-primary"></i>
               アドバイス一覧
-              <span class="text-sm font-normal text-gray-500">(\${filteredAdvices.length}件)</span>
+              <span class="text-sm font-normal text-gray-500">(${filteredAdvices.length}件)</span>
             </h3>
           </div>
 
           <!-- フィルター -->
           <div class="bg-gray-50 p-3 rounded-lg mb-4">
             <div class="flex flex-wrap gap-3">
-              <!-- ソース -->
               <div class="flex items-center gap-2">
                 <span class="text-xs text-gray-600">種類:</span>
                 <select onchange="updateAdviceFilter('source', this.value)" 
                   class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all" \${adviceFilter.source === 'all' ? 'selected' : ''}>すべて</option>
-                  <option value="ai" \${adviceFilter.source === 'ai' ? 'selected' : ''}>AI</option>
-                  <option value="staff" \${adviceFilter.source === 'staff' ? 'selected' : ''}>スタッフ</option>
+                  <option value="all" ${adviceFilter.source === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="ai" ${adviceFilter.source === 'ai' ? 'selected' : ''}>AI</option>
+                  <option value="staff" ${adviceFilter.source === 'staff' ? 'selected' : ''}>スタッフ</option>
                 </select>
               </div>
-              <!-- カテゴリ -->
               <div class="flex items-center gap-2">
                 <span class="text-xs text-gray-600">カテゴリ:</span>
                 <select onchange="updateAdviceFilter('category', this.value)"
                   class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all" \${adviceFilter.category === 'all' ? 'selected' : ''}>すべて</option>
-                  <option value="meal" \${adviceFilter.category === 'meal' ? 'selected' : ''}>食事</option>
-                  <option value="exercise" \${adviceFilter.category === 'exercise' ? 'selected' : ''}>運動</option>
-                  <option value="weight" \${adviceFilter.category === 'weight' ? 'selected' : ''}>体重</option>
-                  <option value="sleep" \${adviceFilter.category === 'sleep' ? 'selected' : ''}>睡眠</option>
-                  <option value="mental" \${adviceFilter.category === 'mental' ? 'selected' : ''}>メンタル</option>
-                  <option value="general" \${adviceFilter.category === 'general' ? 'selected' : ''}>総合</option>
+                  <option value="all" ${adviceFilter.category === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="meal" ${adviceFilter.category === 'meal' ? 'selected' : ''}>食事</option>
+                  <option value="exercise" ${adviceFilter.category === 'exercise' ? 'selected' : ''}>運動</option>
+                  <option value="weight" ${adviceFilter.category === 'weight' ? 'selected' : ''}>体重</option>
+                  <option value="sleep" ${adviceFilter.category === 'sleep' ? 'selected' : ''}>睡眠</option>
+                  <option value="mental" ${adviceFilter.category === 'mental' ? 'selected' : ''}>メンタル</option>
+                  <option value="general" ${adviceFilter.category === 'general' ? 'selected' : ''}>総合</option>
                 </select>
               </div>
-              <!-- 既読状態 -->
               <div class="flex items-center gap-2">
                 <span class="text-xs text-gray-600">状態:</span>
                 <select onchange="updateAdviceFilter('readStatus', this.value)"
                   class="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all" \${adviceFilter.readStatus === 'all' ? 'selected' : ''}>すべて</option>
-                  <option value="unread" \${adviceFilter.readStatus === 'unread' ? 'selected' : ''}>未読</option>
-                  <option value="read" \${adviceFilter.readStatus === 'read' ? 'selected' : ''}>既読</option>
+                  <option value="all" ${adviceFilter.readStatus === 'all' ? 'selected' : ''}>すべて</option>
+                  <option value="unread" ${adviceFilter.readStatus === 'unread' ? 'selected' : ''}>未読</option>
+                  <option value="read" ${adviceFilter.readStatus === 'read' ? 'selected' : ''}>既読</option>
                 </select>
               </div>
             </div>
@@ -490,89 +575,22 @@ function renderAdviceListSection() {
                 </tr>
               </thead>
               <tbody class="divide-y">
-                \${paginatedAdvices.length > 0 ? paginatedAdvices.map(advice => \`
-                  <tr class="hover:bg-gray-50 transition \${!advice.is_read ? 'bg-blue-50/30' : ''}">
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
-                      \${advice.log_date ? dayjs(advice.log_date).format('M/D') : '-'}
-                    </td>
-                    <td class="px-3 py-2">
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs \${advice.advice_source === 'ai' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}">
-                        <i class="fas \${advice.advice_source === 'ai' ? 'fa-robot' : 'fa-user-nurse'}" style="font-size: 8px;"></i>
-                        \${advice.advice_source === 'ai' ? 'AI' : 'スタッフ'}
-                      </span>
-                    </td>
-                    <td class="px-3 py-2">
-                      <div class="flex items-center gap-2">
-                        \${!advice.is_read ? '<span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>' : ''}
-                        <span class="text-sm font-medium text-gray-800 truncate max-w-[150px]">\${advice.title}</span>
-                      </div>
-                    </td>
-                    <td class="px-3 py-2 text-xs text-gray-600 hidden md:table-cell">
-                      <div class="truncate max-w-[200px]">\${advice.content.substring(0, 50)}\${advice.content.length > 50 ? '...' : ''}</div>
-                    </td>
-                    <td class="px-3 py-2">
-                      <div class="flex items-center justify-center gap-1">
-                        <button onclick="showAdviceDetail(\${advice.id})" 
-                          class="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded transition" title="詳細">
-                          <i class="fas fa-eye text-xs"></i>
-                        </button>
-                        <button onclick="openAdviceEditModal(\${advice.id})" 
-                          class="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="編集">
-                          <i class="fas fa-edit text-xs"></i>
-                        </button>
-                        <button onclick="confirmDeleteAdvice(\${advice.id})" 
-                          class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition" title="削除">
-                          <i class="fas fa-trash text-xs"></i>
-                        </button>
-                        <button 
-                          type="button"
-                          id="speak-btn-list-\${advice.id}"
-                          onclick="speakAdvice(\${advice.id}, '\${advice.title.replace(/'/g, "\\\\'")}', '\${advice.content.replace(/'/g, "\\\\'")}')"
-                          class="p-1.5 \${advice.advice_source === 'ai' ? 'text-blue-500 hover:bg-blue-50' : 'text-pink-500 hover:bg-pink-50'} hover:text-opacity-80 rounded transition" 
-                          title="読み上げ">
-                          <i class="fas fa-volume-up text-xs"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                \`).join('') : \`
-                  <tr>
-                    <td colspan="5" class="px-3 py-8 text-center text-gray-500">
-                      <i class="fas fa-inbox text-3xl mb-2"></i>
-                      <p class="text-sm">該当するアドバイスがありません</p>
-                    </td>
-                  </tr>
-                \`}
+                ${tableRows}
               </tbody>
             </table>
           </div>
 
-          <!-- ページネーション -->
-          \${totalPages > 1 ? \`
-            <div class="flex items-center justify-center gap-2 mt-4">
-              <button onclick="changeAdviceListPage(\${adviceListPage - 1})" 
-                class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition \${adviceListPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
-                \${adviceListPage === 1 ? 'disabled' : ''}>
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <span class="text-sm text-gray-600">\${adviceListPage} / \${totalPages}</span>
-              <button onclick="changeAdviceListPage(\${adviceListPage + 1})" 
-                class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition \${adviceListPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}"
-                \${adviceListPage === totalPages ? 'disabled' : ''}>
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-          \` : ''}
+          ${pagination}
         </div>
       </div>
     </section>
-  \`;
+  `;
 }
 
 // フィルター更新
 function updateAdviceFilter(key, value) {
   adviceFilter[key] = value;
-  adviceListPage = 1; // フィルター変更時はページをリセット
+  adviceListPage = 1;
   refreshAdviceListSection();
 }
 
@@ -617,19 +635,20 @@ function openAdviceEditModal(adviceId) {
   const isAI = advice.advice_source === 'ai';
   const iconColor = isAI ? 'from-blue-500 to-purple-500' : 'from-pink-500 to-rose-500';
   const icon = isAI ? 'fa-robot' : 'fa-user-nurse';
+  const dateStr = advice.log_date ? dayjs(advice.log_date).format('YYYY年M月D日') : '未設定';
+  const titleEscaped = advice.title.replace(/"/g, '&quot;');
 
-  modal.innerHTML = \`
+  modal.innerHTML = `
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
-      <!-- ヘッダー -->
-      <div class="bg-gradient-to-r \${iconColor} px-6 py-4 text-white">
+      <div class="bg-gradient-to-r ${iconColor} px-6 py-4 text-white">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <i class="fas \${icon} text-xl"></i>
+              <i class="fas ${icon} text-xl"></i>
             </div>
             <div>
               <h3 class="text-lg font-bold">アドバイスを編集</h3>
-              <div class="text-sm opacity-90">\${isAI ? 'AIアドバイス' : 'スタッフアドバイス'}</div>
+              <div class="text-sm opacity-90">${isAI ? 'AIアドバイス' : 'スタッフアドバイス'}</div>
             </div>
           </div>
           <button onclick="document.getElementById('advice-edit-modal').remove()" 
@@ -639,35 +658,28 @@ function openAdviceEditModal(adviceId) {
         </div>
       </div>
 
-      <!-- フォーム -->
-      <form onsubmit="saveAdviceEdit(event, \${advice.id})" class="p-6">
+      <form onsubmit="saveAdviceEdit(event, ${advice.id})" class="p-6">
         <div class="space-y-4">
-          <!-- 日付（読み取り専用） -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">日付</label>
-            <div class="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">
-              \${advice.log_date ? dayjs(advice.log_date).format('YYYY年M月D日') : '未設定'}
-            </div>
+            <div class="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">${dateStr}</div>
           </div>
 
-          <!-- タイトル -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-            <input type="text" id="edit-advice-title" value="\${advice.title.replace(/"/g, '&quot;')}"
+            <input type="text" id="edit-advice-title" value="${titleEscaped}"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="タイトルを入力">
           </div>
 
-          <!-- 内容 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">内容</label>
             <textarea id="edit-advice-content" rows="8"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="アドバイス内容を入力">\${advice.content}</textarea>
+              placeholder="アドバイス内容を入力">${advice.content}</textarea>
           </div>
         </div>
 
-        <!-- ボタン -->
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('advice-edit-modal').remove()"
             class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition">
@@ -681,7 +693,7 @@ function openAdviceEditModal(adviceId) {
         </div>
       </form>
     </div>
-  \`;
+  `;
 
   document.body.appendChild(modal);
 }
@@ -699,13 +711,12 @@ async function saveAdviceEdit(event, adviceId) {
   }
 
   try {
-    const response = await apiCall(\`/api/advices/\${adviceId}\`, {
+    const response = await apiCall(`/api/advices/${adviceId}`, {
       method: 'PUT',
       body: JSON.stringify({ title, content })
     });
 
     if (response.success) {
-      // ローカルデータを更新
       const index = advices.findIndex(a => a.id === adviceId);
       if (index !== -1) {
         advices[index].title = title;
@@ -735,14 +746,14 @@ function confirmDeleteAdvice(adviceId) {
     if (e.target === modal) modal.remove();
   };
 
-  modal.innerHTML = \`
+  modal.innerHTML = `
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6" onclick="event.stopPropagation()">
       <div class="text-center mb-4">
         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <i class="fas fa-trash text-red-500 text-2xl"></i>
         </div>
         <h3 class="text-lg font-bold text-gray-800 mb-2">アドバイスを削除</h3>
-        <p class="text-sm text-gray-600">「\${advice.title}」を削除しますか？</p>
+        <p class="text-sm text-gray-600">「${advice.title}」を削除しますか？</p>
         <p class="text-xs text-gray-500 mt-1">この操作は取り消せません。</p>
       </div>
       <div class="flex gap-3">
@@ -750,13 +761,13 @@ function confirmDeleteAdvice(adviceId) {
           class="flex-1 px-4 py-2 text-sm text-gray-600 border rounded-lg hover:bg-gray-50 transition">
           キャンセル
         </button>
-        <button onclick="deleteAdvice(\${adviceId})"
+        <button onclick="deleteAdvice(${adviceId})"
           class="flex-1 px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
           削除する
         </button>
       </div>
     </div>
-  \`;
+  `;
 
   document.body.appendChild(modal);
 }
@@ -764,12 +775,11 @@ function confirmDeleteAdvice(adviceId) {
 // アドバイス削除実行
 async function deleteAdvice(adviceId) {
   try {
-    const response = await apiCall(\`/api/advices/\${adviceId}\`, {
+    const response = await apiCall(`/api/advices/${adviceId}`, {
       method: 'DELETE'
     });
 
     if (response.success) {
-      // ローカルデータから削除
       advices = advices.filter(a => a.id !== adviceId);
 
       document.getElementById('advice-delete-modal').remove();
@@ -781,414 +791,6 @@ async function deleteAdvice(adviceId) {
   } catch (error) {
     showToast('エラーが発生しました', 'error');
   }
-}
-
-// アドバイス一覧
-function renderAdvicesList() {
-  if (advices.length === 0) {
-    return '';
-  }
-  
-  // フィルター適用
-  let filteredAdvices = advices.filter(advice => {
-    if (adviceFilter.category !== 'all' && advice.advice_type !== adviceFilter.category) return false;
-    if (adviceFilter.source !== 'all' && advice.advice_source !== adviceFilter.source) return false;
-    if (adviceFilter.readStatus === 'unread' && advice.is_read) return false;
-    if (adviceFilter.readStatus === 'read' && !advice.is_read) return false;
-    return true;
-  });
-  
-  return `
-    <section id="advices-section" class="bg-gradient-to-b from-gray-50/50 to-white/50 backdrop-blur-sm py-8">
-      <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-2xl md:text-3xl font-bold text-gray-800">
-              <i class="fas fa-comment-medical mr-2" style="color: var(--color-primary)"></i>
-              アドバイス履歴
-            </h3>
-            <button onclick="markAllAdvicesAsRead()" class="text-xs text-primary hover:underline">
-              すべて既読にする
-            </button>
-          </div>
-          
-          <!-- フィルター -->
-          <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-2 rounded-lg mb-2 shadow-sm">
-            <div class="flex flex-wrap gap-2">
-              <!-- カテゴリーフィルター -->
-              <div class="flex-1 min-w-[200px]">
-                <label class="text-xs font-medium text-gray-700 mb-1 block">カテゴリー</label>
-                <select id="category-filter" onchange="updateAdviceFilter('category', this.value)" 
-                  class="w-full px-2 py-1 text-xs border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all">すべて</option>
-                  <option value="meal">🍽️ 食事</option>
-                  <option value="exercise">🏃 運動</option>
-                  <option value="mental">💭 メンタル</option>
-                  <option value="sleep">😴 睡眠</option>
-                  <option value="weight">⚖️ 体重管理</option>
-                </select>
-              </div>
-              
-              <!-- ソースフィルター -->
-              <div class="flex-1 min-w-[150px]">
-                <label class="text-xs font-medium text-gray-700 mb-1 block">提供元</label>
-                <select id="source-filter" onchange="updateAdviceFilter('source', this.value)"
-                  class="w-full px-2 py-1 text-xs border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all">すべて</option>
-                  <option value="ai">🤖 AI分析</option>
-                  <option value="staff">👨‍⚕️ スタッフ</option>
-                </select>
-              </div>
-              
-              <!-- 既読/未読フィルター -->
-              <div class="flex-1 min-w-[150px]">
-                <label class="text-xs font-medium text-gray-700 mb-1 block">既読状態</label>
-                <select id="read-status-filter" onchange="updateAdviceFilter('readStatus', this.value)"
-                  class="w-full px-2 py-1 text-xs border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="all">すべて</option>
-                  <option value="unread">未読のみ</option>
-                  <option value="read">既読のみ</option>
-                </select>
-              </div>
-            </div>
-            
-            <!-- フィルター結果 -->
-            <div class="text-xs text-gray-600 mt-2">
-              <i class="fas fa-filter mr-1"></i>
-              ${filteredAdvices.length}件のアドバイス / 全${advices.length}件
-            </div>
-          </div>
-          
-          <!-- アドバイスリスト -->
-          <div class="space-y-2">
-            ${filteredAdvices.length > 0 ? filteredAdvices.map(advice => {
-              const isAI = advice.advice_source === 'ai';
-              const categoryIcons = {
-                meal: '🍽️', exercise: '🏃', mental: '💭', sleep: '😴', weight: '⚖️',
-                diet: '🍽️', general: '📋'
-              };
-              const categoryIcon = categoryIcons[advice.advice_type] || '📋';
-              
-              return `
-              <div class="card-hover bg-white/30 backdrop-blur-sm p-2 rounded-lg border-l-4 ${advice.is_read ? 'opacity-60' : ''}" 
-                style="border-color: var(--color-${getAdviceColor(advice.advice_type)})">
-                <div class="flex justify-between items-start mb-1">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-1 mb-1">
-                      <span class="text-xs">${categoryIcon}</span>
-                      <span class="badge badge-${getAdviceColor(advice.advice_type)} text-xs">${getAdviceTypeLabel(advice.advice_type)}</span>
-                      ${isAI ? '<span class="badge badge-info text-xs">🤖 AI</span>' : '<span class="badge badge-success text-xs">👨‍⚕️ スタッフ</span>'}
-                      ${!advice.is_read ? '<span class="badge badge-error text-xs">未読</span>' : ''}
-                      ${advice.log_date ? `<span class="text-xs text-gray-500">${advice.log_date}</span>` : ''}
-                    </div>
-                    <h4 class="text-sm font-bold">${advice.title}</h4>
-                  </div>
-                  <span class="text-xs text-gray-500">${formatRelativeTime(advice.created_at)}</span>
-                </div>
-                <p class="text-xs text-gray-700 mb-1 line-clamp-2">${advice.content}</p>
-                <div class="flex justify-between items-center">
-                  <div class="text-xs text-gray-600">
-                    <i class="fas ${isAI ? 'fa-robot' : 'fa-user-nurse'} mr-1"></i>
-                    ${advice.staff_name || 'AI Assistant'}
-                    ${isAI && advice.confidence_score ? ` (信頼度 ${Math.round(advice.confidence_score * 100)}%)` : ''}
-                  </div>
-                  <div class="flex gap-2">
-                    <button onclick="showAdviceDetail(${advice.id})" class="text-primary hover:underline text-xs">
-                      詳細
-                    </button>
-                    ${!advice.is_read ? `
-                      <button onclick="markAdviceAsRead(${advice.id})" class="text-primary hover:underline text-xs">
-                        既読
-                      </button>
-                    ` : ''}
-                  </div>
-                </div>
-              </div>
-            `;
-            }).join('') : `
-              <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-filter text-4xl mb-2"></i>
-                <p class="text-sm">フィルター条件に一致するアドバイスがありません</p>
-              </div>
-            `}
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-// フィルター更新
-function updateAdviceFilter(filterType, value) {
-  adviceFilter[filterType] = value;
-  const content = document.getElementById('content');
-  if (content) {
-    content.innerHTML = renderAdvicesList();
-  }
-}
-
-// すべて既読にする
-async function markAllAdvicesAsRead() {
-  if (!confirm('すべてのアドバイスを既読にしますか？')) return;
-  
-  try {
-    const response = await apiCall('/api/advices/mark-all-read', {
-      method: 'PUT'
-    });
-    
-    if (response.success) {
-      showToast('すべてのアドバイスを既読にしました', 'success');
-      await loadAdvices();
-      await loadUnreadCount();
-      showSettingsTab('advices');
-    }
-  } catch (error) {
-    showToast('既読処理に失敗しました', 'error');
-  }
-}
-
-// 質問・相談セクション
-function renderOpinionBox() {
-  const pendingOpinions = opinions.filter(op => op.status === 'pending');
-  const answeredOpinions = opinions.filter(op => op.status === 'answered');
-  
-  return `
-    <section id="qa-section" class="bg-gradient-to-br from-purple-50 to-pink-50 py-8">
-      <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto">
-          <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-comments mr-2" style="color: var(--color-primary)"></i>
-            質問・相談
-          </h3>
-          
-          <!-- 質問フォーム（アイコン削除、幅広く） -->
-          <div class="bg-white/30 backdrop-blur-sm p-2 rounded-xl shadow-sm mb-2 border border-white/40">
-            <textarea 
-              id="opinion-question" 
-              rows="3" 
-              class="w-full px-2 py-2 text-sm bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition border border-purple-100 shadow-sm"
-              placeholder="トレーニングや食事、健康に関する質問・相談をお気軽にどうぞ..."
-            ></textarea>
-            <div class="flex justify-end mt-2">
-              <button 
-                onclick="submitOpinion()" 
-                class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-opacity-90 transition shadow-sm font-medium"
-              >
-                <i class="fas fa-paper-plane mr-1"></i>
-                送信
-              </button>
-            </div>
-          </div>
-          
-          <!-- 質問履歴 -->
-          ${opinions.length > 0 ? `
-            <div class="space-y-4">
-              <!-- 未回答の質問 -->
-              ${pendingOpinions.length > 0 ? `
-                <div>
-                  <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-hourglass-half text-orange-500"></i>
-                    回答待ち（${pendingOpinions.length}件）
-                  </h4>
-                  <div class="space-y-2">
-                    ${pendingOpinions.map(opinion => `
-                      <div class="bg-white/40 backdrop-blur-sm p-2 rounded-xl shadow-sm border-l-2 border-orange-400">
-                        <div class="flex justify-between items-start mb-1">
-                          <div class="flex items-center gap-1">
-                            <i class="fas fa-clock text-orange-500 text-xs"></i>
-                            <span class="text-xs text-gray-500">${formatDateTime(opinion.created_at)}</span>
-                          </div>
-                          <span class="badge badge-warning text-xs">回答待ち</span>
-                        </div>
-                        <div class="bg-white/20 backdrop-blur-sm p-2 rounded mb-1">
-                          <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
-                        </div>
-                        <p class="text-xs text-gray-500 italic">スタッフが確認中です。しばらくお待ちください。</p>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              ` : ''}
-              
-              <!-- 回答済みの質問 -->
-              ${answeredOpinions.length > 0 ? `
-                <div>
-                  <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fas fa-check-circle text-green-500"></i>
-                    回答済み（${answeredOpinions.length}件）
-                  </h4>
-                  <div class="space-y-2">
-                    ${answeredOpinions.map(opinion => `
-                      <div class="bg-white/40 backdrop-blur-sm p-2 rounded-xl shadow-sm border-l-2 border-green-400">
-                        <div class="flex justify-between items-start mb-1">
-                          <div class="flex items-center gap-1">
-                            <i class="fas fa-calendar text-green-500 text-xs"></i>
-                            <span class="text-xs text-gray-500">質問: ${formatDateTime(opinion.created_at)}</span>
-                          </div>
-                          <span class="badge badge-success text-xs">回答済み</span>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-2 rounded mb-1.5">
-                          <p class="text-xs text-gray-800"><strong>質問:</strong> ${opinion.question}</p>
-                        </div>
-                        
-                        <div class="bg-green-50 p-2 rounded border-l-2 border-green-500">
-                          <div class="flex items-center gap-1 mb-1">
-                            <i class="fas fa-user-nurse text-green-600 text-xs"></i>
-                            <span class="text-xs font-medium text-green-700">${opinion.answered_by} からの回答:</span>
-                            <span class="text-xs text-gray-500">${formatDateTime(opinion.answered_at)}</span>
-                          </div>
-                          <p class="text-xs text-gray-800 whitespace-pre-wrap">${opinion.answer}</p>
-                        </div>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-          ` : `
-            <div class="bg-white/30 backdrop-blur-sm p-4 rounded-xl shadow-sm text-center border border-white/40">
-              <div class="w-12 h-12 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-comments text-xl text-gray-300"></i>
-              </div>
-              <p class="text-xs text-gray-500">まだ質問がありません。お気軽にご相談ください！</p>
-            </div>
-          `}
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-// 健康ログテーブル (横スクロール)
-function renderHealthLogsTable() {
-  if (healthLogs.length === 0) {
-    return `
-      <section class="bg-gradient-to-b from-white/50 to-gray-50/50 backdrop-blur-sm py-8">
-        <div class="container mx-auto px-6 md:px-8">
-          <div class="max-w-6xl mx-auto text-center">
-            <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-3"></i>
-            <p class="text-gray-500 text-base">まだ健康ログがありません</p>
-            <a href="/" class="inline-block mt-3 px-5 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-              ログを記録する
-            </a>
-          </div>
-        </div>
-      </section>
-    `;
-  }
-  
-  return `
-    <section class="bg-gray-50 py-8">
-      <div class="container mx-auto px-6 md:px-8">
-        <div class="max-w-6xl mx-auto">
-          <div class="mb-2">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-2xl md:text-3xl font-bold text-gray-800">
-                <i class="fas fa-table mr-2" style="color: var(--color-primary)"></i>
-                健康ログ履歴
-              </h3>
-              <div class="flex gap-2">
-                <button onclick="exportHealthLogs()" class="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                  <i class="fas fa-download mr-1"></i>
-                  CSVエクスポート
-                </button>
-                <button onclick="showAddLogModal()" class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition">
-                  <i class="fas fa-plus mr-1"></i>
-                  ログを追加
-                </button>
-              </div>
-            </div>
-            
-            <!-- フィルター機能 -->
-            <div class="bg-white/30 backdrop-blur-sm p-3 rounded-lg shadow-sm flex flex-wrap items-center gap-2 border border-white/40">
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-medium text-gray-600">期間:</label>
-                <select id="log-filter-period" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="all">全期間</option>
-                  <option value="7">過去7日</option>
-                  <option value="30" selected>過去30日</option>
-                  <option value="90">過去90日</option>
-                </select>
-              </div>
-              
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-medium text-gray-600">運動:</label>
-                <select id="log-filter-exercise" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="all">すべて</option>
-                  <option value="yes">あり</option>
-                  <option value="no">なし</option>
-                </select>
-              </div>
-              
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-medium text-gray-600">体重記録:</label>
-                <select id="log-filter-weight" onchange="filterHealthLogs()" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="all">すべて</option>
-                  <option value="yes">あり</option>
-                  <option value="no">なし</option>
-                </select>
-              </div>
-              
-              <button onclick="resetFilters()" class="ml-auto text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
-                <i class="fas fa-undo mr-1"></i>
-                リセット
-              </button>
-              
-              <div class="w-full mt-2 text-xs text-gray-600">
-                <i class="fas fa-info-circle mr-1"></i>
-                表示中: <span id="filtered-count" class="font-bold text-primary">${healthLogs.length}</span> 件 / 全 ${healthLogs.length} 件
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-white/20 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-white/30">
-            <div class="scroll-container overflow-x-auto">
-              <table class="table min-w-full text-sm">
-                <thead>
-                  <tr>
-                    <th class="sticky left-0 bg-primary z-10 text-xs whitespace-nowrap w-28">日付</th>
-                    <th class="text-xs whitespace-nowrap w-20">体重</th>
-                    <th class="text-xs whitespace-nowrap w-24">体脂肪率</th>
-                    <th class="text-xs whitespace-nowrap w-20">体温</th>
-                    <th class="text-xs whitespace-nowrap w-20">睡眠</th>
-                    <th class="text-xs whitespace-nowrap w-24">カロリー</th>
-                    <th class="text-xs whitespace-nowrap w-20">運動</th>
-                    <th class="text-xs whitespace-nowrap">運動記録</th>
-                    <th class="sticky right-0 bg-primary z-10 text-xs whitespace-nowrap w-24">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${healthLogs.map(log => `
-                    <tr>
-                      <td class="sticky left-0 bg-white z-10 font-medium text-xs whitespace-nowrap">${formatDate(log.log_date)}</td>
-                      <td class="text-xs whitespace-nowrap">${log.weight ? log.weight + ' kg' : '--'}</td>
-                      <td class="text-xs whitespace-nowrap">${log.body_fat_percentage ? log.body_fat_percentage + ' %' : '--'}</td>
-                      <td class="text-xs whitespace-nowrap">${log.body_temperature ? log.body_temperature + ' ℃' : '--'}</td>
-                      <td class="text-xs whitespace-nowrap">${log.sleep_hours ? log.sleep_hours + ' 時間' : '--'}</td>
-                      <td class="text-xs whitespace-nowrap">${log.meal_calories ? log.meal_calories + ' kcal' : '--'}</td>
-                      <td class="text-xs whitespace-nowrap">${log.exercise_minutes ? log.exercise_minutes + ' 分' : '--'}</td>
-                      <td class="text-xs max-w-xs truncate">${log.condition_note || '--'}</td>
-                      <td class="sticky right-0 bg-white z-10 whitespace-nowrap">
-                        <div class="flex gap-1.5">
-                          <button onclick="showEditLogModal(${log.id})" class="text-blue-500 hover:text-blue-700 text-xs">
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          <button onclick="deleteLog(${log.id})" class="text-red-500 hover:text-red-700 text-xs">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
 }
 
 // グラフセクション
